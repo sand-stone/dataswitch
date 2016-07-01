@@ -7,6 +7,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.*;
 import io.netty.buffer.*;
+import io.netty.handler.codec.*;
 
 public class SlipstreamServer {
 
@@ -26,7 +27,7 @@ public class SlipstreamServer {
         .childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             public void initChannel(SocketChannel ch) throws Exception {
-              ch.pipeline().addLast(new SlipstreamHandler());
+              ch.pipeline().addLast(new TimeEncoder(), new SlipstreamHandler());
             }
           })
         .option(ChannelOption.SO_BACKLOG, 128)
@@ -42,13 +43,19 @@ public class SlipstreamServer {
     }
   }
 
+  public class TimeEncoder extends MessageToByteEncoder<ByteBuf> {
+    @Override
+    protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) {
+      out.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
+    }
+  }
+
   public static class SlipstreamHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
       final ByteBuf time = ctx.alloc().buffer(4);
       time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
-
       final ChannelFuture f = ctx.writeAndFlush(time);
       f.addListener(new ChannelFutureListener() {
           @Override
@@ -56,7 +63,7 @@ public class SlipstreamServer {
             assert f == future;
             ctx.close();
           }
-        });
+          });
     }
 
     @Override

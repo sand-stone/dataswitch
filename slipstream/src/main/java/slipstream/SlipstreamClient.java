@@ -1,16 +1,15 @@
 package slipstream;
 
 import java.util.Date;
+import java.util.List;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.*;
 import io.netty.buffer.*;
+import io.netty.handler.codec.*;
 
-/**
- * Discards any incoming data.
- */
 public class SlipstreamClient {
 
   public static class SlipstreamClientHandler extends ChannelInboundHandlerAdapter {
@@ -47,6 +46,13 @@ public class SlipstreamClient {
     }
   }
 
+  public static class TimeDecoder extends ReplayingDecoder<Void> {
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
+      out.add(in.readBytes(4));
+    }
+  }
+
   public static void main(String[] args) throws Exception {
     String host = args[0];
     int port = Integer.parseInt(args[1]);
@@ -60,7 +66,7 @@ public class SlipstreamClient {
       b.handler(new ChannelInitializer<SocketChannel>() {
           @Override
           public void initChannel(SocketChannel ch) throws Exception {
-            ch.pipeline().addLast(new SlipstreamClientHandler());
+            ch.pipeline().addLast(new TimeDecoder(),new SlipstreamClientHandler());
           }
         });
 
