@@ -8,9 +8,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.*;
 import io.netty.buffer.*;
 
-/**
- * Discards any incoming data.
- */
 public class SlipstreamServer {
 
   private int port;
