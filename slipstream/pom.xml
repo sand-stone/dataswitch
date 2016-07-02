@@ -40,11 +40,14 @@
               <include>io.atomix.catalyst:catalyst-common</include>
               <include>io.atomix.catalyst:catalyst-serializer</include>
               <include>io.atomix.catalyst:catalyst-buffer</include>
+              <include>com.github.shyiko:mysql-binlog-connector-java</include>
               <include>io.netty:netty-transport</include>
               <include>io.netty:netty-buffer</include>
               <include>io.netty:netty-handler</include>
               <include>io.netty:netty-common</include>
               <include>io.netty:netty-codec</include>
+              <include>org.apache.logging.log4j:log4j-api</include>
+              <include>org.apache.logging.log4j:log4j-core</include>
             </includes>
           </artifactSet>
           <filters>
@@ -99,6 +102,11 @@
       <groupId>io.atomix.catalyst</groupId>
       <artifactId>catalyst-netty</artifactId>
       <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.shyiko</groupId>
+      <artifactId>mysql-binlog-connector-java</artifactId>
+      <version>0.2.3-SNAPSHOT</version>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
