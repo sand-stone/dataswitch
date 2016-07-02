@@ -8,9 +8,10 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.*;
 import io.netty.buffer.*;
 import io.netty.handler.codec.*;
+import org.apache.log4j.Logger;
 
 public class SlipstreamServer {
-
+  private static Logger log = Logger.getLogger(SlipstreamServer.class);
   private int port;
 
   public SlipstreamServer(int port) {
@@ -35,7 +36,7 @@ public class SlipstreamServer {
 
 
       ChannelFuture f = b.bind(port).sync();
-      System.out.println("start up slipstream server");
+      log.info("start up slipstream server");
       f.channel().closeFuture().sync();
     } finally {
       dataGroup.shutdownGracefully();
