@@ -9,8 +9,11 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.*;
 import io.netty.buffer.*;
 import io.netty.handler.codec.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class SlipstreamClient {
+  private static Logger log = LogManager.getLogger(SlipstreamClient.class);
 
   public static class SlipstreamClientHandler extends ChannelInboundHandlerAdapter {
     private ByteBuf buf;
@@ -34,7 +37,7 @@ public class SlipstreamClient {
 
       if (buf.readableBytes() >= 4) {
         long currentTimeMillis = (buf.readUnsignedInt() - 2208988800L) * 1000L;
-        System.out.println("got:"+new Date(currentTimeMillis));
+        log.info("got:{}",new Date(currentTimeMillis));
         ctx.close();
       }
     }

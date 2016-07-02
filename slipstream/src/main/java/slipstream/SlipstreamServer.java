@@ -8,10 +8,11 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.*;
 import io.netty.buffer.*;
 import io.netty.handler.codec.*;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class SlipstreamServer {
-  private static Logger log = Logger.getLogger(SlipstreamServer.class);
+  private static Logger log = LogManager.getLogger(SlipstreamServer.class);
   private int port;
 
   public SlipstreamServer(int port) {
@@ -47,6 +48,7 @@ public class SlipstreamServer {
   public class TimeEncoder extends MessageToByteEncoder<ByteBuf> {
     @Override
     protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) {
+      log.info("inside encoder");
       out.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
     }
   }
@@ -55,8 +57,9 @@ public class SlipstreamServer {
 
     @Override
     public void channelActive(final ChannelHandlerContext ctx) throws Exception {
+      log.info("inside channel handler");
       final ByteBuf time = ctx.alloc().buffer(4);
-      time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
+      //time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
       final ChannelFuture f = ctx.writeAndFlush(time);
       f.addListener(new ChannelFutureListener() {
           @Override
