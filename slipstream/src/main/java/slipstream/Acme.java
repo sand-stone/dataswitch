@@ -21,7 +21,7 @@ import com.github.shyiko.mysql.binlog.event.deserialization.EventDeserializer;
 import com.github.shyiko.mysql.binlog.event.deserialization.NullEventDataDeserializer;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-
+import java.sql.*;
 import io.atomix.catalyst.buffer.*;
 import io.atomix.catalyst.serializer.*;
 
@@ -221,27 +221,27 @@ public class Acme {
           @Override
           public void execute(@NotNull final Transaction txn) {
             try {
-            Serializer serializer = new Serializer(new UnpooledHeapAllocator());
-            serializer.register(EventHeader.class, 1);
-            serializer.register(EventData.class, 2);
-            EventDeserializer eventDeserializer = new EventDeserializer();
-            eventDeserializer.setEventDataDeserializer(EventType.XID, new ByteArrayEventDataDeserializer());
-            eventDeserializer.setEventDataDeserializer(EventType.QUERY, new ByteArrayEventDataDeserializer());
-            BinaryLogFileReader reader = new BinaryLogFileReader(new FileInputStream(args[0]), eventDeserializer);
-            for (Event event; (event = reader.readEvent()) != null; ) {
-              Object h = event.getHeader();
-              Object d = event.getData();
-              if(d==null) continue;
-              Buffer buffer = serializer.writeObject(h);
-              buffer.flip();
-              ByteIterable key = toArrayByte(buffer);
-              //compare((ArrayByteIterable)key, buffer);
-              buffer = serializer.writeObject(d);
-              buffer.flip();
-              ByteIterable value = toArrayByte(buffer);
-              store.put(txn, key, value);
-            }
-            reader.close();
+              Serializer serializer = new Serializer(new UnpooledHeapAllocator());
+              serializer.register(EventHeader.class, 1);
+              serializer.register(EventData.class, 2);
+              EventDeserializer eventDeserializer = new EventDeserializer();
+              eventDeserializer.setEventDataDeserializer(EventType.XID, new ByteArrayEventDataDeserializer());
+              eventDeserializer.setEventDataDeserializer(EventType.QUERY, new ByteArrayEventDataDeserializer());
+              BinaryLogFileReader reader = new BinaryLogFileReader(new FileInputStream(args[0]), eventDeserializer);
+              for (Event event; (event = reader.readEvent()) != null; ) {
+                Object h = event.getHeader();
+                Object d = event.getData();
+                if(d==null) continue;
+                Buffer buffer = serializer.writeObject(h);
+                buffer.flip();
+                ByteIterable key = toArrayByte(buffer);
+                //compare((ArrayByteIterable)key, buffer);
+                buffer = serializer.writeObject(d);
+                buffer.flip();
+                ByteIterable value = toArrayByte(buffer);
+                store.put(txn, key, value);
+              }
+              reader.close();
             } catch (Exception e) {e.printStackTrace();}
           }
         });
@@ -273,8 +273,47 @@ public class Acme {
     }
   }
 
+  public static void test6(final String[] args) {
+    final String JDBC_DRIVER = "com.mysql.jdbc.Driver";
+    final String DB_URL = "jdbc:mysql://localhost/acme?autoReconnect=true&useSSL=false";
+    final String USER = "root";
+    final String PASS = "mysql";
+    try {
+      Class.forName("com.mysql.jdbc.Driver");
+      Connection conn = DriverManager.getConnection(DB_URL,USER,PASS);
+      Statement stmt = conn.createStatement();
+      String sql;
+      sql = "select COLUMN_NAME, DATA_TYPE, COLUMN_KEY, table_name from information_schema.COLUMNS where table_schema='sys' order by Table_NAME;";
+      ResultSet rs = stmt.executeQuery(sql);
+
+      while(rs.next()){
+        String c1  = rs.getString("COLUMN_NAME");
+        String c2 = rs.getString("DATA_TYPE");
+        String c3 = rs.getString("COLUMN_KEY");
+        String c4 = rs.getString("table_name");
+
+        System.out.printf("c1=%s c2=%s c3=%s c4=%s\n", c1, c2, c3, c4);
+      }
+      rs.close();
+
+      sql="select COLUMN_NAME from information_schema.KEY_COLUMN_USAGE  where TABLE_NAME='User' and CONSTRAINT_NAME='PRIMARY'  order by ORDINAL_POSITION;";
+      rs = stmt.executeQuery(sql);
+
+      while(rs.next()){
+        String c1  = rs.getString("COLUMN_NAME");
+        System.out.printf("c1=%s \n", c1);
+      }
+      rs.close();
+
+      stmt.close();
+    } catch (Exception e) {
+      System.out.println(e);
+    }
+  }
+
   public static void main(String[] args) {
     test5(args);
+    //test6(null);
   }
 
 }
