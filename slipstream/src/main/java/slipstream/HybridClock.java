@@ -1,6 +1,5 @@
 package slipstream;
 
-import com.google.common.util.concurrent.AbstractScheduledService;
 import org.apache.commons.net.ntp.NTPUDPClient;
 import org.apache.commons.net.ntp.TimeStamp;
 
