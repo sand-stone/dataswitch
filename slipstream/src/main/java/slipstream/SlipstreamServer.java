@@ -2,9 +2,20 @@ package slipstream;
 
 import io.netty.bootstrap.ServerBootstrap;
 
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.logging.LogLevel;
+import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpContentCompressor;
+import io.netty.handler.codec.http.HttpRequestDecoder;
+import io.netty.handler.codec.http.HttpResponseEncoder;
 import io.netty.channel.*;
 import io.netty.buffer.*;
 import io.netty.handler.codec.*;
@@ -13,77 +24,68 @@ import org.apache.logging.log4j.LogManager;
 
 public class SlipstreamServer {
   private static Logger log = LogManager.getLogger(SlipstreamServer.class);
-  private int port;
 
-  public SlipstreamServer(int port) {
-    this.port = port;
+  public SlipstreamServer() {
   }
 
   public void run() throws Exception {
-    EventLoopGroup dataGroup = new NioEventLoopGroup();
-    EventLoopGroup controlGroup = new NioEventLoopGroup();
+    final SslContext sslCtx;
+    if (SSL) {
+      SelfSignedCertificate ssc = new SelfSignedCertificate();
+      sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+    } else {
+      sslCtx = null;
+    }
+
+    EventLoopGroup controlGroup = new NioEventLoopGroup(1);
+    EventLoopGroup workerGroup = new NioEventLoopGroup();
     try {
       ServerBootstrap b = new ServerBootstrap();
-      b.group(dataGroup, controlGroup)
-        .channel(NioServerSocketChannel.class)
-        .childHandler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            public void initChannel(SocketChannel ch) throws Exception {
-              ch.pipeline().addLast(new TimeEncoder(), new SlipstreamHandler());
-            }
-          })
-        .option(ChannelOption.SO_BACKLOG, 128)
-        .childOption(ChannelOption.SO_KEEPALIVE, true);
+      b.group(controlGroup, workerGroup);
+      b.channel(NioServerSocketChannel.class);
+      b.handler(new LoggingHandler(LogLevel.INFO));
+      b.childHandler(new SlipstreamUploadServerInitializer(sslCtx));
 
+      Channel ch = b.bind(PORT).sync().channel();
 
-      ChannelFuture f = b.bind(port).sync();
-      log.info("start up slipstream server");
-      f.channel().closeFuture().sync();
+      System.err.println("Open your web browser and navigate to " +
+                         (SSL? "https" : "http") + "://127.0.0.1:" + PORT + '/');
+
+      ch.closeFuture().sync();
     } finally {
-      dataGroup.shutdownGracefully();
       controlGroup.shutdownGracefully();
+      workerGroup.shutdownGracefully();
     }
   }
 
-  public class TimeEncoder extends MessageToByteEncoder<ByteBuf> {
+  public static class SlipstreamUploadServerInitializer extends ChannelInitializer<SocketChannel> {
+
+    private final SslContext sslCtx;
+
+    public SlipstreamUploadServerInitializer(SslContext sslCtx) {
+      this.sslCtx = sslCtx;
+    }
+
     @Override
-    protected void encode(ChannelHandlerContext ctx, ByteBuf in, ByteBuf out) {
-      log.info("inside encoder");
-      out.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
+    public void initChannel(SocketChannel ch) {
+      ChannelPipeline pipeline = ch.pipeline();
+
+      if (sslCtx != null) {
+        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+      }
+
+      pipeline.addLast(new HttpRequestDecoder());
+      pipeline.addLast(new HttpResponseEncoder());
+      // Remove the following line if you don't want automatic content compression.
+      pipeline.addLast(new HttpContentCompressor());
+      pipeline.addLast(new SlipstreamFileUploadServerHandler());
     }
   }
 
-  public static class SlipstreamHandler extends ChannelInboundHandlerAdapter {
-
-    @Override
-    public void channelActive(final ChannelHandlerContext ctx) throws Exception {
-      log.info("inside channel handler");
-      final ByteBuf time = ctx.alloc().buffer(4);
-      //time.writeInt((int) (System.currentTimeMillis() / 1000L + 2208988800L));
-      final ChannelFuture f = ctx.writeAndFlush(time);
-      f.addListener(new ChannelFutureListener() {
-          @Override
-          public void operationComplete(ChannelFuture future) {
-            assert f == future;
-            ctx.close();
-          }
-          });
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      cause.printStackTrace();
-      ctx.close();
-    }
-  }
+  static final boolean SSL = System.getProperty("ssl") != null;
+  static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
 
   public static void main(String[] args) throws Exception {
-    int port;
-    if (args.length > 0) {
-      port = Integer.parseInt(args[0]);
-    } else {
-      port = 8080;
-    }
-    new SlipstreamServer(port).run();
+    new SlipstreamServer().run();
   }
 }
