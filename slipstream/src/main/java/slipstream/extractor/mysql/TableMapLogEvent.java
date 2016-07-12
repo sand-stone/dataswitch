@@ -27,8 +27,8 @@ import java.util.regex.Pattern;
 import org.apache.log4j.Logger;
 
 import slipstream.extractor.ReplicatorException;
-import com.continuent.tungsten.replicator.database.Column;
-import com.continuent.tungsten.replicator.database.Table;
+import slipstream.extractor.Column;
+import slipstream.extractor.Table;
 import slipstream.extractor.mysql.conversion.BigEndianConversion;
 import slipstream.extractor.mysql.conversion.LittleEndianConversion;
 

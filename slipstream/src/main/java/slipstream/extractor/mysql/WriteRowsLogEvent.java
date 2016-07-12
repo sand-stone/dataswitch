@@ -21,8 +21,8 @@
 package slipstream.extractor.mysql;
 
 import slipstream.extractor.ReplicatorException;
-import com.continuent.tungsten.replicator.dbms.OneRowChange;
-import com.continuent.tungsten.replicator.dbms.RowChangeData;
+import slipstream.extractor.OneRowChange;
+import slipstream.extractor.RowChangeData;
 
 /**
  * @author <a href="mailto:seppo.jaakola@continuent.com">Seppo Jaakola</a>
@@ -32,73 +32,73 @@ import com.continuent.tungsten.replicator.dbms.RowChangeData;
 public class WriteRowsLogEvent extends RowsLogEvent
 {
 
-    public WriteRowsLogEvent(byte[] buffer, int eventLength,
-            FormatDescriptionLogEvent descriptionEvent,
-            boolean useBytesForString, String currentPosition)
-            throws ReplicatorException
-    {
-        super(buffer, eventLength, descriptionEvent,
-                buffer[MysqlBinlog.EVENT_TYPE_OFFSET], useBytesForString);
+  public WriteRowsLogEvent(byte[] buffer, int eventLength,
+                           FormatDescriptionLogEvent descriptionEvent,
+                           boolean useBytesForString, String currentPosition)
+    throws ReplicatorException
+  {
+    super(buffer, eventLength, descriptionEvent,
+          buffer[MysqlBinlog.EVENT_TYPE_OFFSET], useBytesForString);
 
-        this.startPosition = currentPosition;
-        if (logger.isDebugEnabled())
-            logger.debug("Extracting event at position  : " + startPosition
-                    + " -> " + getNextEventPosition());
+    this.startPosition = currentPosition;
+    if (logger.isDebugEnabled())
+      logger.debug("Extracting event at position  : " + startPosition
+                   + " -> " + getNextEventPosition());
 
-    }
+  }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see com.continuent.tungsten.replicator.extractor.mysql.RowsLogEvent#processExtractedEvent(com.continuent.tungsten.replicator.dbms.RowChangeData,
-     *      com.continuent.tungsten.replicator.extractor.mysql.TableMapLogEvent)
-     */
-    @Override
-    public void processExtractedEvent(RowChangeData rowChanges,
-            TableMapLogEvent map) throws ReplicatorException
-    {
-        if (map == null)
-        {
-            throw new MySQLExtractException("Write row event for unknown table");
-        }
-        OneRowChange oneRowChange = new OneRowChange();
-        oneRowChange.setSchemaName(map.getDatabaseName());
-        oneRowChange.setTableName(map.getTableName());
-        oneRowChange.setTableId(map.getTableId());
-        oneRowChange.setAction(RowChangeData.ActionType.INSERT);
+  /**
+   * {@inheritDoc}
+   * 
+   * @see com.continuent.tungsten.replicator.extractor.mysql.RowsLogEvent#processExtractedEvent(com.continuent.tungsten.replicator.dbms.RowChangeData,
+   *      com.continuent.tungsten.replicator.extractor.mysql.TableMapLogEvent)
+   */
+  @Override
+  public void processExtractedEvent(RowChangeData rowChanges,
+                                    TableMapLogEvent map) throws ReplicatorException
+  {
+    if (map == null)
+      {
+        throw new MySQLExtractException("Write row event for unknown table");
+      }
+    OneRowChange oneRowChange = new OneRowChange();
+    oneRowChange.setSchemaName(map.getDatabaseName());
+    oneRowChange.setTableName(map.getTableName());
+    oneRowChange.setTableId(map.getTableId());
+    oneRowChange.setAction(RowChangeData.ActionType.INSERT);
 
-        int rowIndex = 0; /* index of the row in value arrays */
+    int rowIndex = 0; /* index of the row in value arrays */
 
-        int size = bufferSize;
+    int size = bufferSize;
 
-        for (int bufferIndex = 0; bufferIndex < size;)
-        {
-            int length;
+    for (int bufferIndex = 0; bufferIndex < size;)
+      {
+        int length;
 
-            /* Extract data */
-            try
-            {
-                length = processExtractedEventRow(oneRowChange, rowIndex,
-                        usedColumns, bufferIndex, packedRowsBuffer, map, false);
-            }
-            catch (ReplicatorException e)
-            {
-                logger.error(
-                        "Failure while processing extracted write row event", e);
-                throw (e);
-            }
-            rowIndex++;
+        /* Extract data */
+        try
+          {
+            length = processExtractedEventRow(oneRowChange, rowIndex,
+                                              usedColumns, bufferIndex, packedRowsBuffer, map, false);
+          }
+        catch (ReplicatorException e)
+          {
+            logger.error(
+                         "Failure while processing extracted write row event", e);
+            throw (e);
+          }
+        rowIndex++;
 
-            if (length == 0)
-                break;
-            bufferIndex += length;
-        }
-        rowChanges.appendOneRowChange(oneRowChange);
+        if (length == 0)
+          break;
+        bufferIndex += length;
+      }
+    rowChanges.appendOneRowChange(oneRowChange);
 
-        // Store options, if any
-        rowChanges.addOption("foreign_key_checks", getForeignKeyChecksFlag());
-        rowChanges.addOption("unique_checks", getUniqueChecksFlag());
+    // Store options, if any
+    rowChanges.addOption("foreign_key_checks", getForeignKeyChecksFlag());
+    rowChanges.addOption("unique_checks", getUniqueChecksFlag());
 
-    }
+  }
 
 }

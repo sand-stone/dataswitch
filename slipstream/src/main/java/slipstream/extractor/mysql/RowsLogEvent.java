@@ -34,11 +34,11 @@ import java.util.TimeZone;
 import org.apache.log4j.Logger;
 
 import slipstream.extractor.ReplicatorException;
-import com.continuent.tungsten.replicator.database.DatabaseHelper;
-import com.continuent.tungsten.replicator.dbms.OneRowChange;
-import com.continuent.tungsten.replicator.dbms.OneRowChange.ColumnSpec;
-import com.continuent.tungsten.replicator.dbms.OneRowChange.ColumnVal;
-import com.continuent.tungsten.replicator.dbms.RowChangeData;
+import slipstream.extractor.DatabaseHelper;
+import slipstream.extractor.OneRowChange;
+import slipstream.extractor.ColumnSpec;
+import slipstream.extractor.OneRowChange.ColumnVal;
+import slipstream.extractor.RowChangeData;
 import slipstream.extractor.ExtractorException;
 import slipstream.extractor.mysql.conversion.BigEndianConversion;
 import slipstream.extractor.mysql.conversion.GeneralConversion;

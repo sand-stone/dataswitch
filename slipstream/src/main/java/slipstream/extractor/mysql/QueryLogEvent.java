@@ -29,7 +29,7 @@ import java.util.HashMap;
 
 import org.apache.log4j.Logger;
 
-import com.continuent.tungsten.common.parsing.bytes.MySQLStatementTranslator;
+import slipstream.extractor.mysql.MySQLStatementTranslator;
 import slipstream.extractor.ReplicatorException;
 import slipstream.extractor.mysql.conversion.LittleEndianConversion;
 

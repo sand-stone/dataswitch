@@ -29,8 +29,8 @@ import java.util.zip.CRC32;
 
 import org.apache.log4j.Logger;
 
-import com.continuent.tungsten.common.config.TungstenProperties;
-import com.continuent.tungsten.common.jmx.ServerRuntimeException;
+import slipstream.extractor.TungstenProperties;
+import slipstream.extractor.mysql.ServerRuntimeException;
 import com.continuent.tungsten.replicator.conf.ReplicatorRuntimeConf;
 import slipstream.extractor.mysql.conversion.LittleEndianConversion;
 

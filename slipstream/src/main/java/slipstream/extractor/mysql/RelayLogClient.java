@@ -37,10 +37,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.log4j.Logger;
 
-import com.continuent.tungsten.common.io.WrappedInputStream;
-import com.continuent.tungsten.common.mysql.MySQLConstants;
-import com.continuent.tungsten.common.mysql.MySQLIOs;
-import com.continuent.tungsten.common.mysql.MySQLPacket;
+import slipstream.extractor.WrappedInputStream;
+import slipstream.extractor.mysql.MySQLConstants;
+import slipstream.extractor.mysql.MySQLIOs;
+import slipstream.extractor.mysql.MySQLPacket;
 import slipstream.extractor.ReplicatorException;
 import slipstream.extractor.ExtractorException;
 

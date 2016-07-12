@@ -21,8 +21,8 @@
 package slipstream.extractor.mysql;
 
 import slipstream.extractor.ReplicatorException;
-import com.continuent.tungsten.replicator.dbms.OneRowChange;
-import com.continuent.tungsten.replicator.dbms.RowChangeData;
+import slipstream.extractor.OneRowChange;
+import slipstream.extractor.RowChangeData;
 import slipstream.extractor.ExtractorException;
 
 /**
