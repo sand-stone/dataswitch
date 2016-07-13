@@ -31,7 +31,7 @@ import org.apache.log4j.Logger;
 
 import slipstream.extractor.TungstenProperties;
 import slipstream.extractor.mysql.ServerRuntimeException;
-import com.continuent.tungsten.replicator.conf.ReplicatorRuntimeConf;
+import slipstream.extractor.ReplicatorRuntimeConf;
 import slipstream.extractor.mysql.conversion.LittleEndianConversion;
 
 /**

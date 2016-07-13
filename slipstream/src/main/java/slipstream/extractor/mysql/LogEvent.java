@@ -28,7 +28,7 @@ import java.sql.Timestamp;
 import org.apache.log4j.Logger;
 
 import slipstream.extractor.ReplicatorException;
-import com.continuent.tungsten.replicator.conf.ReplicatorRuntime;
+import slipstream.extractor.ReplicatorRuntime;
 import slipstream.extractor.ExtractorException;
 import slipstream.extractor.mysql.conversion.BigEndianConversion;
 import slipstream.extractor.mysql.conversion.LittleEndianConversion;

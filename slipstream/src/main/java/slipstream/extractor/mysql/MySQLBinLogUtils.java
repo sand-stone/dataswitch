@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
-import com.continuent.tungsten.common.utils.StatisticsMap;
+import slipstream.extractor.StatisticsMap;
 
 public class MySQLBinLogUtils
 {

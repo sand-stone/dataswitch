@@ -36,8 +36,8 @@ import org.apache.log4j.Logger;
 
 import com.continuent.tungsten.common.commands.FileCommands;
 import slipstream.extractor.ReplicatorException;
-import com.continuent.tungsten.replicator.conf.FailurePolicy;
-import com.continuent.tungsten.replicator.conf.ReplicatorRuntime;
+import slipstream.extractor.FailurePolicy;
+import slipstream.extractor.ReplicatorRuntime;
 import com.continuent.tungsten.replicator.database.Database;
 import com.continuent.tungsten.replicator.database.MySQLOperationMatcher;
 import com.continuent.tungsten.replicator.database.SqlOperation;
@@ -55,12 +55,12 @@ import com.continuent.tungsten.replicator.dbms.RowIdData;
 import com.continuent.tungsten.replicator.dbms.StatementData;
 import com.continuent.tungsten.replicator.event.DBMSEmptyEvent;
 import com.continuent.tungsten.replicator.event.DBMSEvent;
-import com.continuent.tungsten.replicator.event.ReplDBMSHeader;
-import com.continuent.tungsten.replicator.event.ReplOption;
+import slipstream.extractor.ReplDBMSHeader;
+import slipstream.extractor.ReplOption;
 import com.continuent.tungsten.replicator.event.ReplOptionParams;
 import slipstream.extractor.ExtractorException;
 import com.continuent.tungsten.replicator.extractor.RawExtractor;
-import com.continuent.tungsten.replicator.plugin.PluginContext;
+import slipstream.extractor.PluginContext;
 
 /**
  * This class defines a MySQLExtractor
