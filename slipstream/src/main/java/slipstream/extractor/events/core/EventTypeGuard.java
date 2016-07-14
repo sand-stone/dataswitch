@@ -18,7 +18,7 @@
  * Initial developer(s): Robert Hodges
  * Contributor(s):
  */
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Defines a guard that accepts an event if it is an instance of the type

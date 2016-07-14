@@ -52,6 +52,7 @@
               <include>org.apache.logging.log4j:log4j-api</include>
               <include>org.apache.logging.log4j:log4j-core</include>
               <include>commons-net:commons-net</include>
+              <include>org.apache.commons:commons-lang3</include>
             </includes>
           </artifactSet>
           <filters>
@@ -131,6 +132,21 @@
       <groupId>commons-net</groupId>
       <artifactId>commons-net</artifactId>
       <version>3.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+      <version>3.4</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>1.9.13</version>
+    </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-mapper-asl</artifactId>
+      <version>1.9.13</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

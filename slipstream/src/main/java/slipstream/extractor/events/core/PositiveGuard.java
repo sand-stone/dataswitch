@@ -19,7 +19,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Defines a guard that always accepts the proffered event. The transition

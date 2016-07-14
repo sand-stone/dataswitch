@@ -19,12 +19,12 @@
  * Contributor(s):  Teemu Ollakka
  */
 
-package slipstream.extractors.events.event;
+package slipstream.extractor.events.event;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
-import com.continuent.tungsten.fsm.core.Event;
-import com.continuent.tungsten.fsm.core.StateMachine;
+import slipstream.extractor.events.core.Event;
+import slipstream.extractor.events.core.StateMachine;
 
 /**
  * Submits an event to the state machine with logging and sets the status.

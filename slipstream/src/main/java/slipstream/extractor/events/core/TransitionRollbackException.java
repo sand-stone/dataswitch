@@ -6,7 +6,7 @@
  * modify it under the terms of the GNU Lesser General Public
  * License as published by the Free Software Foundation; either
  * version 3 of the License, or (at your option) any later version.
- * 
+ *
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -20,15 +20,15 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
- * Denotes a failed transition that can be rolled back to the previous state. 
+ * Denotes a failed transition that can be rolled back to the previous state.
  * Actions may throw this exception to indicate that there are no side effects
  * and the state change may safely be rolled back.  Any error handling is
- * fully encapsulated within the action and is complete at the time this 
- * exception is thrown. 
- * 
+ * fully encapsulated within the action and is complete at the time this
+ * exception is thrown.
+ *
  * @author <a href="mailto:robert.hodges@continuent.com">Robert Hodges</a>
  * @version 1.0
  */
@@ -36,12 +36,12 @@ public final class TransitionRollbackException extends FiniteStateException
 {
     private static final long serialVersionUID = 1L;
     private final Event event;
-    private final Entity entity; 
+    private final Entity entity;
     private final Transition transition;
     private final int actionType;
 
     /**
-     * Creates a rollback exception.  All fields must be provided. 
+     * Creates a rollback exception.  All fields must be provided.
      */
     public TransitionRollbackException(String message, Event event,
             Entity entity, Transition transition, int actionType, Throwable t)

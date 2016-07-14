@@ -19,7 +19,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Defines a guard that wraps another guard and negates the result of the

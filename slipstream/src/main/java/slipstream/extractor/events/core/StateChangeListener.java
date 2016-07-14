@@ -19,7 +19,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Call-back interface to allow state machine client code to listen for 

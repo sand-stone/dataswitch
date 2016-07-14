@@ -19,7 +19,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Enumerates the types of states permitted in a state transition diagram.

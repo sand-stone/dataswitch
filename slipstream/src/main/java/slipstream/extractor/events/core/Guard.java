@@ -19,7 +19,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Denotes a class used to determine whether the conditions for a workflow

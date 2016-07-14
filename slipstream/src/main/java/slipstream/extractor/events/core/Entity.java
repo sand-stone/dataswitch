@@ -15,7 +15,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Denotes an entity whose state is managed using the state transition machine.

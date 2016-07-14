@@ -5,10 +5,10 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.concurrent.Future;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import slipstream.extractor.Interval;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.extractor.events.event.EventDispatcher;
 import slipstream.extractor.ReplicatorException;
 import slipstream.extractor.Applier;
 import slipstream.extractor.ReplicatorRuntime;

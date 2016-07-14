@@ -19,7 +19,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;

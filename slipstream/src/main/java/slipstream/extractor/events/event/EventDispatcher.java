@@ -19,9 +19,9 @@
  * Contributor(s): Robert Hodges
  */
 
-package slipstream.extractors.events.event;
+package slipstream.extractor.events.event;
 
-import com.continuent.tungsten.fsm.core.Event;
+import slipstream.extractor.events.core.Event;
 
 /**
  * Denotes a class that can dispatch events to a state machine. It handles

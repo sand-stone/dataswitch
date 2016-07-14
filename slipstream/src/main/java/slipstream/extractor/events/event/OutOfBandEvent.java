@@ -19,7 +19,7 @@
  * Contributor(s): 
  */
 
-package slipstream.extractors.events.event;
+package slipstream.extractor.events.event;
 
 /**
  * Denotes an event that should always be submitted out-of-band. If an event

@@ -19,7 +19,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;

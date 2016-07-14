@@ -18,7 +18,7 @@
  * Initial developer(s): Robert Hodges
  */
 
-package slipstream.extractors.events.event;
+package slipstream.extractor.events.event;
 
 /**
  * Defines the status of processing an event in the state machine.

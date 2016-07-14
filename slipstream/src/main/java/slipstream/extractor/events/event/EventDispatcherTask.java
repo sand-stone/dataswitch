@@ -19,7 +19,7 @@
  * Contributor(s): Robert Hodges
  */
 
-package slipstream.extractors.events.event;
+package slipstream.extractor.events.event;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CancellationException;
@@ -28,10 +28,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
-import com.continuent.tungsten.fsm.core.Event;
-import com.continuent.tungsten.fsm.core.StateMachine;
+import slipstream.extractor.events.core.Event;
+import slipstream.extractor.events.core.StateMachine;
 
 /**
  * This class defines an event dispatcher task, which is a separate thread that

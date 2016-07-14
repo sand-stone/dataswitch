@@ -19,9 +19,9 @@
  * Contributor(s):  Teemu Ollakka
  */
 
-package slipstream.extractors.events.event;
+package slipstream.extractor.events.event;
 
-import com.continuent.tungsten.fsm.core.Event;
+import slipstream.extractor.events.core.Event;
 
 /**
  * Denotes a class that listens for status resulting from processing of events.

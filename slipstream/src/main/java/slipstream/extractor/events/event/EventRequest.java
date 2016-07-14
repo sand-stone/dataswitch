@@ -18,14 +18,14 @@
  * Initial developer(s): Robert Hodges
  */
 
-package slipstream.extractors.events.event;
+package slipstream.extractor.events.event;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import com.continuent.tungsten.fsm.core.Event;
+import slipstream.extractor.events.core.Event;
 
 /**
  * Defines an event request, which contains the event to be processed as well as

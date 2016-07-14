@@ -35,7 +35,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import slipstream.extractor.WrappedInputStream;
 import slipstream.extractor.mysql.MySQLConstants;

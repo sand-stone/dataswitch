@@ -15,7 +15,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * This interfaces denotes a procedure that may be executed as part of

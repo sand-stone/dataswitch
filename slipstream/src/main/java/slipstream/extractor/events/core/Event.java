@@ -15,7 +15,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Denotes an event that may be delivered to a finite state machine.

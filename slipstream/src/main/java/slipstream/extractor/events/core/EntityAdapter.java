@@ -15,7 +15,7 @@
  * Contributor(s):
  */
 
-package slipstreamextractors.events.core;
+package slipstream.extractor.events.core;
 
 /**
  * Provides an adapter that permits ordinary objects to be handled as entities

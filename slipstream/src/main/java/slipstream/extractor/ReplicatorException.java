@@ -1,4 +1,4 @@
-package slipstream.extractor.mysql;
+package slipstream.extractor;
 
 public class ReplicatorException extends Exception
 {

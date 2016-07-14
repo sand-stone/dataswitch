@@ -5,15 +5,15 @@ import java.util.TimeZone;
 import java.util.concurrent.Future;
 
 import slipstream.extractor.TungstenProperties;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.extractor.events.event.EventDispatcher;
 import slipstream.extractor.ReplicatorException;
 import slipstream.extractor.FailurePolicy;
 import slipstream.extractor.ReplicatorMonitor;
 import slipstream.extractor.UniversalDataSource;
 import slipstream.extractor.ReplDBMSHeader;
-import com.continuent.tungsten.replicator.pipeline.Stage;
+import slipstream.extractor.Stage;
 import slipstream.extractor.PipelineService;
-import com.continuent.tungsten.replicator.storage.Store;
+import slipstream.extractor.Store;
 
 /**
  * This class defines a context passed into replicator plugins that exposes
