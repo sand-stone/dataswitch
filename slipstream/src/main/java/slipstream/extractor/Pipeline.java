@@ -13,14 +13,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.extractor.events.event.EventDispatcher;
 import slipstream.extractor.ReplicatorException;
 import slipstream.extractor.Applier;
 import slipstream.extractor.ReplicatorRuntime;
 import slipstream.extractor.ReplDBMSHeader;
-import slipstream.extracto.Extractor;
+import slipstream.extractor.Extractor;
 import slipstream.extractor.GoOfflineEvent;
 import slipstream.extractor.PluginContext;
 import slipstream.extractor.ReplicatorPlugin;

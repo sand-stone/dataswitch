@@ -2,7 +2,7 @@ package slipstream.extractor;
 
 import slipstream.extractor.ReplicatorException;
 import slipstream.extractor.ReplDBMSHeader;
-import slipstream.extractor.event.ReplEvent;
+import slipstream.extractor.ReplEvent;
 import slipstream.extractor.ReplicatorPlugin;
 
 /**
