@@ -21,7 +21,7 @@ package slipstream.replicator.conf;
 
 import java.io.Serializable;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This class implements a storage location for thread information

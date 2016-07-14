@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import slipstream.replicator.commons.common.cluster.resource.notification.ClusterResourceNotification;
 import slipstream.replicator.commons.common.patterns.notification.NotificationGroupMember;

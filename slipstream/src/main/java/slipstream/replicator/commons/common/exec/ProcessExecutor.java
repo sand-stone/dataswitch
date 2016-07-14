@@ -34,7 +34,7 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Wrapper class to encapsulate all aspects of executing native operating system

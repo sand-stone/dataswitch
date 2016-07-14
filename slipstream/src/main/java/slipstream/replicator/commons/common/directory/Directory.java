@@ -33,7 +33,7 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.Vector;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import slipstream.replicator.commons.common.cluster.resource.Resource;
 import slipstream.replicator.commons.common.cluster.resource.ResourceState;

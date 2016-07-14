@@ -25,7 +25,7 @@ import java.util.TimeZone;
 import java.util.concurrent.Future;
 
 import slipstream.replicator.commons.common.config.TungstenProperties;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 import slipstream.replicator.ReplicatorException;
 import slipstream.replicator.conf.FailurePolicy;
 import slipstream.replicator.conf.ReplicatorMonitor;

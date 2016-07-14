@@ -28,15 +28,15 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.concurrent.Future;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.MDC;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.MDC;
 
 import slipstream.replicator.commons.common.cluster.resource.OpenReplicatorParams;
 import slipstream.replicator.commons.common.config.PropertyException;
 import slipstream.replicator.commons.common.config.TungstenProperties;
 import slipstream.replicator.commons.common.config.TungstenPropertiesIO;
 import slipstream.replicator.commons.common.file.FileIOException;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 import slipstream.replicator.ReplicatorException;
 import slipstream.replicator.datasource.DataSourceService;
 import slipstream.replicator.datasource.DummyDataSource;

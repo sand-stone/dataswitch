@@ -25,7 +25,7 @@ import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 import slipstream.replicator.commons.common.config.Interval;
 

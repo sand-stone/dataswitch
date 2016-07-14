@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Manages a cache of resizable raw byte vectors. This class is ensures that the

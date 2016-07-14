@@ -24,7 +24,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Logger;
 
 /**
  * This class defines a simple RingBuffer.

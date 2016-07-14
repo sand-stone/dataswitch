@@ -50,8 +50,8 @@ import javax.net.ssl.SSLHandshakeException;
 import javax.rmi.ssl.SslRMIClientSocketFactory;
 import javax.rmi.ssl.SslRMIServerSocketFactory;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Logger;
 
 import slipstream.replicator.commons.common.config.cluster.ConfigurationException;
 import slipstream.replicator.commons.common.security.AuthenticationInfo;

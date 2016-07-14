@@ -23,7 +23,7 @@ package slipstream.replicator.commons.common.patterns.notification;
 import java.util.*;
 import java.util.concurrent.*;
 
-import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
 
 import slipstream.replicator.commons.common.cluster.resource.notification.ClusterResourceNotification;
 
