@@ -28,8 +28,8 @@ import java.util.Properties;
 import java.util.TimeZone;
 import java.util.concurrent.Future;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.MDC;
+import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 
 import slipstream.replicator.commons.common.cluster.resource.OpenReplicatorParams;
 import slipstream.replicator.commons.common.config.PropertyException;

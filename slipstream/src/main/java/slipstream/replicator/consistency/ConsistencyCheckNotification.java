@@ -20,7 +20,7 @@
 
 package slipstream.replicator.consistency;
 
-import com.continuent.tungsten.fsm.core.Event;
+import slipstream.replicator.fsm.core.Event;
 
 /**
  * 

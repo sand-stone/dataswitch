@@ -28,7 +28,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketTimeoutException;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import slipstream.replicator.commons.common.config.TungstenProperties;
 

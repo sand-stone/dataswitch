@@ -22,7 +22,7 @@ package slipstream.replicator.pipeline;
 
 import java.util.SortedSet;
 
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 
 /**
  * Denotes a Runnable task that implements stage processing.  Set methods are

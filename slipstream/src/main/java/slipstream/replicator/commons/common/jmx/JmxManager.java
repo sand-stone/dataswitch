@@ -51,7 +51,7 @@ import javax.rmi.ssl.SslRMIClientSocketFactory;
 import javax.rmi.ssl.SslRMIServerSocketFactory;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import slipstream.replicator.commons.common.config.cluster.ConfigurationException;
 import slipstream.replicator.commons.common.security.AuthenticationInfo;

@@ -23,7 +23,7 @@ package slipstream.replicator.management;
 import java.util.TimeZone;
 
 import slipstream.replicator.commons.common.jmx.JmxManager;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 
 /**
  * Dummy OpenReplicatorContext used for testing.

@@ -22,7 +22,7 @@ package slipstream.replicator.filter;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import slipstream.replicator.ReplicatorException;
 import slipstream.replicator.dbms.DBMSData;

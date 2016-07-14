@@ -21,8 +21,8 @@ package slipstream.replicator.management;
 
 import java.util.regex.Pattern;
 
-import com.continuent.tungsten.fsm.core.Action;
-import com.continuent.tungsten.fsm.core.Event;
+import slipstream.replicator.fsm.core.Action;
+import slipstream.replicator.fsm.core.Event;
 
 /**
  * Defines an event containing an extended command which a regexp specifying

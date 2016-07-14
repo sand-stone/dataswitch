@@ -45,7 +45,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import slipstream.replicator.commons.common.config.TungstenProperties;
 import slipstream.replicator.commons.common.config.cluster.ClusterConfiguration;

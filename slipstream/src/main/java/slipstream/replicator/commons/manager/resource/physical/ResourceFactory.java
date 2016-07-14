@@ -192,9 +192,10 @@ public class ResourceFactory
                                     .getResource().getType()));
         }
 
-        java.lang.Process process = new java.lang.Process(key);
+        //java.lang.Process process = new java.lang.Process(key);
 
-        return process;
+        //return process;
+        return null;
 
     }
 

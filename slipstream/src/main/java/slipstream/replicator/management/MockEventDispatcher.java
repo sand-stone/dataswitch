@@ -20,10 +20,10 @@
 
 package slipstream.replicator.management;
 
-import com.continuent.tungsten.fsm.core.Event;
-import com.continuent.tungsten.fsm.event.EventCompletionListener;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
-import com.continuent.tungsten.fsm.event.EventRequest;
+import slipstream.replicator.fsm.core.Event;
+import slipstream.replicator.fsm.event.EventCompletionListener;
+import slipstream.replicator.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventRequest;
 
 /**
  * Dummy event dispatcher used for testing.

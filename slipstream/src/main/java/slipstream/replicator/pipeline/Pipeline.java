@@ -35,7 +35,7 @@ import java.util.concurrent.Future;
 
 import org.apache.log4j.Logger;
 
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 import slipstream.replicator.ReplicatorException;
 import slipstream.replicator.applier.Applier;
 import slipstream.replicator.conf.ReplicatorRuntime;

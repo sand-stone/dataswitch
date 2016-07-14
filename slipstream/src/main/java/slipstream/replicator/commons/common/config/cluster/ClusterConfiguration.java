@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import slipstream.replicator.commons.common.cluster.resource.ResourceType;
 import slipstream.replicator.commons.common.config.TungstenProperties;

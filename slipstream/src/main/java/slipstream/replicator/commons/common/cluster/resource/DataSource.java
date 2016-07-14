@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonCreator;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;

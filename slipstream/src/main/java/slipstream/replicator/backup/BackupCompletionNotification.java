@@ -21,7 +21,7 @@ package slipstream.replicator.backup;
 
 import java.net.URI;
 
-import com.continuent.tungsten.fsm.core.Event;
+import slipstream.replicator.fsm.core.Event;
 
 /**
  * Event to indicate that backup has completed successfully.  

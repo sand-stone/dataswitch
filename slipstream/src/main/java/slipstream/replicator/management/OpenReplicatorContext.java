@@ -22,7 +22,7 @@ package slipstream.replicator.management;
 
 import java.util.TimeZone;
 
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 
 /**
  * This class defines a context passed into replicator plugins that exposes

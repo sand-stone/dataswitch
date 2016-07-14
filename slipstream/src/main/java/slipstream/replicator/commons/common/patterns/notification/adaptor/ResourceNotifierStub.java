@@ -25,7 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import slipstream.replicator.commons.common.cluster.resource.notification.ClusterResourceNotification;
 import slipstream.replicator.commons.common.patterns.notification.NotificationGroupMember;

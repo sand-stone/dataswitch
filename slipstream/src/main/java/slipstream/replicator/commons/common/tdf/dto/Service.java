@@ -22,7 +22,7 @@ package slipstream.replicator.commons.common.tdf.dto;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.annotate.JsonIgnoreProperties;
 import org.codehaus.jackson.annotate.JsonPropertyOrder;

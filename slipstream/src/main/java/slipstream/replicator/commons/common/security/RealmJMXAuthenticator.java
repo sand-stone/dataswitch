@@ -27,7 +27,7 @@ import javax.management.remote.JMXAuthenticator;
 import javax.management.remote.JMXPrincipal;
 import javax.security.auth.Subject;
 
-import org.apache.logging.log4j.Logger;
+import org.apache.log4j.Logger;
 
 import slipstream.replicator.commons.common.config.cluster.ConfigurationException;
 import slipstream.replicator.commons.common.security.PasswordManager.ClientApplicationType;

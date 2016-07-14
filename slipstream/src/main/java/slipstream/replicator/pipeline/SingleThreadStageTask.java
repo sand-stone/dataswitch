@@ -25,7 +25,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 import slipstream.replicator.ErrorNotification;
 import slipstream.replicator.InSequenceNotification;
 import slipstream.replicator.ReplicatorException;

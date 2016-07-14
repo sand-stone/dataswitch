@@ -45,7 +45,7 @@ import slipstream.replicator.plugin.PluginContext;
 import slipstream.replicator.storage.Store;
 import slipstream.replicator.thl.log.DiskLog;
 import slipstream.replicator.thl.log.LogConnection;
-import slipstream.replicator.thl.serializer.ProtobufSerializer;
+//import slipstream.replicator.thl.serializer.ProtobufSerializer;
 import slipstream.replicator.util.AtomicCounter;
 
 /**
@@ -72,7 +72,7 @@ public class THL implements Store
     private String storageListenerUri = "thl://0.0.0.0:2112/";
 
     private String logDir          = "/opt/continuent/logs/";
-    private String eventSerializer = ProtobufSerializer.class.getName();
+    private String eventSerializer = "ProtobufSerializer.class.getName();";
 
     // Data source with which this THL is associated.
     protected String dataSource;
@@ -84,7 +84,7 @@ public class THL implements Store
     private boolean doChecksum = true;
 
     /** Name of the class used to serialize events. */
-    protected String eventSerializerClass = ProtobufSerializer.class.getName();
+    protected String eventSerializerClass = "ProtobufSerializer.class.getName();";
 
     /** Log file maximum size in bytes. */
     protected int logFileSize = 1000000000;

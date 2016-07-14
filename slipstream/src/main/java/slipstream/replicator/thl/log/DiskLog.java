@@ -28,7 +28,7 @@ import org.apache.log4j.Logger;
 
 import slipstream.replicator.ReplicatorException;
 import slipstream.replicator.thl.THLException;
-import slipstream.replicator.thl.serializer.ProtobufSerializer;
+//import slipstream.replicator.thl.serializer.ProtobufSerializer;
 import slipstream.replicator.thl.serializer.Serializer;
 
 /**
@@ -68,8 +68,8 @@ public class DiskLog
     protected String             logDirName                 = "/opt/tungsten/logs";
 
     /** Name of the class used to serialize events. */
-    protected String             eventSerializerClass       = ProtobufSerializer.class
-                                                                    .getName();
+    protected String             eventSerializerClass       = "ProtobufSerializer.class";
+    //.getName();
 
     /** Log file maximum size in bytes. */
     protected int                logFileSize                = 1000000000;

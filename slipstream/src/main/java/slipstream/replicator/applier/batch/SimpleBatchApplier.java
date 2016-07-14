@@ -55,7 +55,7 @@ import slipstream.replicator.database.TableMetadataCache;
 import slipstream.replicator.datasource.CommitSeqno;
 import slipstream.replicator.datasource.CommitSeqnoAccessor;
 import slipstream.replicator.datasource.DataSourceService;
-import slipstream.replicator.datasource.HdfsConnection;
+//import slipstream.replicator.datasource.HdfsConnection;
 import slipstream.replicator.datasource.UniversalConnection;
 import slipstream.replicator.datasource.UniversalDataSource;
 import slipstream.replicator.datatypes.MySQLUnsignedNumeric;
@@ -73,8 +73,8 @@ import slipstream.replicator.event.ReplOptionParams;
 import slipstream.replicator.filter.SchemaTableFilter;
 import slipstream.replicator.heartbeat.HeartbeatTable;
 import slipstream.replicator.plugin.PluginContext;
-import slipstream.replicator.scripting.HdfsWrapper;
-import slipstream.replicator.scripting.JavascriptExecutor;
+//import slipstream.replicator.scripting.HdfsWrapper;
+//import slipstream.replicator.scripting.JavascriptExecutor;
 import slipstream.replicator.scripting.ScriptExecutor;
 import slipstream.replicator.scripting.ScriptExecutorService;
 import slipstream.replicator.scripting.ScriptExecutorTaskStatus;
@@ -983,12 +983,12 @@ public class SimpleBatchApplier implements RawApplier
                             e);
                 }
             }
-            else if (conn instanceof HdfsConnection)
+            /*else if (conn instanceof HdfsConnection)
             {
                 // If we have an HDFS connection wrap that and put into
                 // environment as 'hdfs'.
                 contextMap.put("hdfs", new HdfsWrapper((HdfsConnection) conn));
-            }
+                }*/
 
             filter = new SchemaTableFilter();
             contextMap.put("filter", filter);
@@ -1121,7 +1121,7 @@ public class SimpleBatchApplier implements RawApplier
     {
         ScriptExecutor exec;
         if (script.toLowerCase().endsWith(".js"))
-            exec = new JavascriptExecutor();
+          exec = null;//new JavascriptExecutor();
         else
         {
             throw new ReplicatorException(

@@ -32,7 +32,7 @@ import org.apache.log4j.Logger;
 
 import slipstream.replicator.commons.common.config.PropertyException;
 import slipstream.replicator.commons.common.config.TungstenProperties;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcher;
 
 /**
  * Implements a manager that tracks all backup agents.
