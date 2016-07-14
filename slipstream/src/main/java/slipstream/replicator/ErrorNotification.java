@@ -20,9 +20,9 @@
 
 package slipstream.replicator;
 
-import com.continuent.tungsten.fsm.core.Event;
-import com.continuent.tungsten.fsm.event.CriticalEvent;
-import com.continuent.tungsten.fsm.event.OutOfBandEvent;
+import slipstream.replicator.fsm.core.Event;
+import slipstream.replicator.fsm.event.CriticalEvent;
+import slipstream.replicator.fsm.event.OutOfBandEvent;
 
 /**
  * This class defines a ErrorNotification, which denotes a severe replication

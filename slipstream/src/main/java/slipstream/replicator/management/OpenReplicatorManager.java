@@ -56,29 +56,29 @@ import slipstream.replicator.commons.common.jmx.JmxManager;
 import slipstream.replicator.commons.common.jmx.MethodDesc;
 import slipstream.replicator.commons.common.jmx.ParamDesc;
 import slipstream.replicator.commons.common.security.AuthenticationInfo;
-import com.continuent.tungsten.fsm.core.Action;
-import com.continuent.tungsten.fsm.core.Entity;
-import com.continuent.tungsten.fsm.core.EntityAdapter;
-import com.continuent.tungsten.fsm.core.Event;
-import com.continuent.tungsten.fsm.core.EventTypeGuard;
-import com.continuent.tungsten.fsm.core.FiniteStateException;
-import com.continuent.tungsten.fsm.core.Guard;
-import com.continuent.tungsten.fsm.core.PositiveGuard;
-import com.continuent.tungsten.fsm.core.State;
-import com.continuent.tungsten.fsm.core.StateChangeListener;
-import com.continuent.tungsten.fsm.core.StateMachine;
-import com.continuent.tungsten.fsm.core.StateTransitionLatch;
-import com.continuent.tungsten.fsm.core.StateTransitionMap;
-import com.continuent.tungsten.fsm.core.StateType;
-import com.continuent.tungsten.fsm.core.Transition;
-import com.continuent.tungsten.fsm.core.TransitionFailureException;
-import com.continuent.tungsten.fsm.core.TransitionNotFoundException;
-import com.continuent.tungsten.fsm.core.TransitionRollbackException;
-import com.continuent.tungsten.fsm.event.EventCompletionListener;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
-import com.continuent.tungsten.fsm.event.EventDispatcherTask;
-import com.continuent.tungsten.fsm.event.EventRequest;
-import com.continuent.tungsten.fsm.event.EventStatus;
+import slipstream.replicator.fsm.core.Action;
+import slipstream.replicator.fsm.core.Entity;
+import slipstream.replicator.fsm.core.EntityAdapter;
+import slipstream.replicator.fsm.core.Event;
+import slipstream.replicator.fsm.core.EventTypeGuard;
+import slipstream.replicator.fsm.core.FiniteStateException;
+import slipstream.replicator.fsm.core.Guard;
+import slipstream.replicator.fsm.core.PositiveGuard;
+import slipstream.replicator.fsm.core.State;
+import slipstream.replicator.fsm.core.StateChangeListener;
+import slipstream.replicator.fsm.core.StateMachine;
+import slipstream.replicator.fsm.core.StateTransitionLatch;
+import slipstream.replicator.fsm.core.StateTransitionMap;
+import slipstream.replicator.fsm.core.StateType;
+import slipstream.replicator.fsm.core.Transition;
+import slipstream.replicator.fsm.core.TransitionFailureException;
+import slipstream.replicator.fsm.core.TransitionNotFoundException;
+import slipstream.replicator.fsm.core.TransitionRollbackException;
+import slipstream.replicator.fsm.event.EventCompletionListener;
+import slipstream.replicator.fsm.event.EventDispatcher;
+import slipstream.replicator.fsm.event.EventDispatcherTask;
+import slipstream.replicator.fsm.event.EventRequest;
+import slipstream.replicator.fsm.event.EventStatus;
 import slipstream.replicator.ErrorNotification;
 import slipstream.replicator.InSequenceNotification;
 import slipstream.replicator.OutOfSequenceNotification;
@@ -1802,7 +1802,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorContext#getEventDispatcher()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorContext#getEventDispatcher()
      */
     public EventDispatcher getEventDispatcher()
     {
@@ -1812,7 +1812,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorContext#registerMBean(Object,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorContext#registerMBean(Object,
      *      Class, String)
      */
     public void registerMBean(Object mbean, Class<?> mbeanClass, String name)
@@ -2059,7 +2059,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Clear dynamic properties. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#clearDynamicProperties()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#clearDynamicProperties()
      */
     @MethodDesc(description = "Clears the current dynamically-set properties.", usage = "clearDynamicProperties")
     public void clearDynamicProperties() throws Exception
@@ -2112,7 +2112,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Return a copy of current dynamic properties. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#getDynamicProperties()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#getDynamicProperties()
      */
     @MethodDesc(description = "Gets the current dynamically-set properties.", usage = "getDynamicProperties")
     public Map<String, String> getDynamicProperties() throws Exception
@@ -2132,7 +2132,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Sets the replicator role. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#setRole(java.lang.String,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#setRole(java.lang.String,
      *      java.lang.String)
      */
     @MethodDesc(description = "Sets the role of the replicator.", usage = "setRole {master | slave | standby} <uri>")
@@ -2172,7 +2172,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Gets status variables from replicator. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#status()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#status()
      */
     @MethodDesc(description = "Gets the replicator's detailed status information.", usage = "status")
     public Map<String, String> status() throws Exception
@@ -2279,7 +2279,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Returns detailed status in a single call. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#getStatus()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#getStatus()
      */
     public TungstenProperties getStatus() throws Exception
     {
@@ -2289,7 +2289,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#statusList(java.lang.String)
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#statusList(java.lang.String)
      */
     @MethodDesc(description = "Provides a list of individual components", usage = "statusList <name>")
     public List<Map<String, String>> statusList(
@@ -2357,7 +2357,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#online()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#online()
      */
     @MethodDesc(description = "Transitions the replicator into the online state.", usage = "online")
     public void online() throws Exception
@@ -2368,7 +2368,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#online()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#online()
      */
     @MethodDesc(description = "Transitions the replicator into the online state.", usage = "online2")
     public void online2(
@@ -2401,7 +2401,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Sends the replicator into the offline state. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#offline()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#offline()
      */
     @MethodDesc(description = "Transitions the replicator into the offline state.", usage = "offline")
     public void offline() throws Exception
@@ -2423,7 +2423,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#online()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#online()
      */
     @MethodDesc(description = "Requests replicator to go offline", usage = "offlineDeferred")
     public void offlineDeferred(
@@ -2449,7 +2449,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
      * Creates a flush event, which in turn causes us to wait for the database
      * to synchronize with THL. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#flush(long)
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#flush(long)
      */
     @MethodDesc(description = "Synchronizes the replicator log with the database as of the returned sequence number", usage = "flush")
     public String flush(
@@ -2486,7 +2486,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Invoke purge on underlying replicator plugin. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#purge(java.util.Map)
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#purge(java.util.Map)
      */
     @MethodDesc(description = "Kill non-replication connections", usage = "purge")
     public int purge(
@@ -2510,7 +2510,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Inserts a heartbeat event. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#heartbeat(Map)
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#heartbeat(Map)
      */
     @MethodDesc(description = "Waits for replicator to achieve a particular state.", usage = "waitForState <stateName> <timeToWait>")
     public void heartbeat(
@@ -2549,7 +2549,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Waits for replicator to achieve a particular state. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#waitForState(java.lang.String,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#waitForState(java.lang.String,
      *      long)
      */
     @MethodDesc(description = "Waits for replicator to achieve a particular state.", usage = "waitForState <stateName> <timeToWait>")
@@ -2617,7 +2617,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#waitForAppliedSequenceNumber(java.lang.String,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#waitForAppliedSequenceNumber(java.lang.String,
      *      long)
      */
     @MethodDesc(description = "Waits for a sequence number to be applied", usage = "waitForAppliedSequenceNumber <seqno> <timeout>")
@@ -2642,7 +2642,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#backup(java.lang.String,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#backup(java.lang.String,
      *      java.lang.String, long)
      */
     @MethodDesc(description = "Backs up the database", usage = "backup <backupAgent> <storageAgent> <timeout>")
@@ -2688,7 +2688,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#restore(java.lang.String,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#restore(java.lang.String,
      *      long)
      */
     @MethodDesc(description = "Restores the database", usage = "restore <uri> <timeout>")
@@ -2731,7 +2731,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManager#createHelper()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManager#createHelper()
      */
     @MethodDesc(description = "Returns a DynamicMBeanHelper to facilitate dynamic JMX calls", usage = "createHelper")
     public DynamicMBeanHelper createHelper() throws Exception
@@ -2742,7 +2742,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManager#createHelper()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManager#createHelper()
      */
     @MethodDesc(description = "Returns an MBean for a replicator extension", usage = "getExtensionMBean")
     public Object getExtensionMBean(
@@ -2758,7 +2758,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#listExtensionMBeans()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#listExtensionMBeans()
      */
     @MethodDesc(description = "Returns a list of all extension MBean names", usage = "listExtensionMBeans")
     public List<String> listExtensionMBeans() throws Exception
@@ -2769,7 +2769,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * Provisions current database from a donor. {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#provision(java.lang.String,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#provision(java.lang.String,
      *      long)
      */
     @MethodDesc(description = "Provisions from another database", usage = "provision <replicatorUri> <timeout>")
@@ -2795,7 +2795,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#consistencyCheck(java.lang.String,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#consistencyCheck(java.lang.String,
      *      java.lang.String, java.lang.String, int, int)
      */
 
@@ -2827,7 +2827,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#signal(int,
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#signal(int,
      *      java.lang.String)
      */
     @MethodDesc(description = "sends a notification to the replicator manager about state changes", usage = "signal <signal_number> <message>")
@@ -2875,7 +2875,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
     /**
      * {@inheritDoc}
      * 
-     * @see com.continuent.tungsten.replicator.management.OpenReplicatorManagerMBean#capabilities()
+     * @see slipstream.replicator.replicator.management.OpenReplicatorManagerMBean#capabilities()
      */
     @MethodDesc(description = "Gets the replicator capabilities", usage = "getCapabilities")
     public Map<String, String> capabilities() throws Exception
@@ -3206,7 +3206,7 @@ public class OpenReplicatorManager extends NotificationBroadcasterSupport
      * to 'localhost' for backwards compatibility.
      * 
      * @deprecated Not used by multi-service Replicator any more. See
-     *             {@link com.continuent.tungsten.replicator.management.ReplicationServiceManager#getHostName(TungstenProperties)}
+     *             {@link slipstream.replicator.replicator.management.ReplicationServiceManager#getHostName(TungstenProperties)}
      */
     @Deprecated
     public static String getHostName()
