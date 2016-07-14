@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.continuent.tungsten.replicator.event.ReplOption;
+import slipstream.replicator.event.ReplOption;
 
 /**
  * Implements the core class for row and SQL statement updates. All update types

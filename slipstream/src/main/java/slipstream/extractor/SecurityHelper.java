@@ -27,13 +27,7 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 
-import slipstream.extractor.TungstenProperties;
-import slipstream.extractor.ClusterConfiguration;
-import slipstream.extractor.ConfigurationException;
-import slipstream.extractor.ServerRuntimeException;
 import slipstream.extractor.SecurityConf.KEYSTORE_TYPE;
-import com.continuent.tungsten.common.sockets.SSLSocketFactoryGenerator;
-import slipstream.extractor.CLUtils;
 
 /**
  * Helper class for security related topics

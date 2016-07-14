@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.continuent.tungsten.replicator.scripting.SqlWrapper;
+import slipstream.replicator.scripting.SqlWrapper;
 
 /**
  * This class defines a table

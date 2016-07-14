@@ -1,7 +1,6 @@
 package slipstream.extractor;
 
-import slipstream.extractor.TungstenProperties;
-import com.continuent.tungsten.fsm.core.Event;
+import slipstream.replicator.fsm.core.Event;
 
 /**
  * Signals that the replicator should move to the off-line state. This event may

@@ -6,7 +6,7 @@ import java.sql.Statement;
 
 import org.apache.log4j.Logger;
 
-import com.continuent.tungsten.replicator.database.Database;
+import slipstream.replicator.database.Database;
 
 /**
  * Provides a simple wrapper for JDBC connections that is suitable for exposure

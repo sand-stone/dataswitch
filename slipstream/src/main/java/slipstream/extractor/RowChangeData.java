@@ -3,7 +3,7 @@ package slipstream.extractor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-import com.continuent.tungsten.replicator.event.ReplOption;
+import slipstream.replicator.event.ReplOption;
 
 /**
  * This class defines a set of one or more row changes.

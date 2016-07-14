@@ -1,0 +1,74 @@
+/**
+ * Tungsten Finite State Machine Library (FSM)
+ * Copyright (C) 2007-2009 Continuent Inc.
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 3 of the License, or (at your option) any later version.
+ * 
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this library.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Initial developer(s): Robert Hodges
+ * Contributor(s):
+ */
+
+package slipstream.replicator.fsm.core;
+
+/**
+ * Denotes a completely failed transition. Actions may throw this exception to
+ * indicate that the state machine should move to the default error state, if
+ * designated. It is an error to throw this exception in a state machine that
+ * does not have a default error state. Any error handling is fully encapsulated
+ * within the action and is complete at the time this exception is thrown.
+ * 
+ * @author <a href="mailto:robert.hodges@continuent.com">Robert Hodges</a>
+ * @version 1.0
+ */
+public final class TransitionFailureException extends FiniteStateException
+{
+    private static final long serialVersionUID = 1L;
+    private final Event event;
+    private final Entity entity; 
+    private final Transition transition;
+    private final int actionType;
+
+    /**
+     * Creates a transition failure exception.  All fields must be filled out. 
+     */
+   public TransitionFailureException(String message, Event event,
+            Entity entity, Transition transition, int actionType, Throwable t)
+    {
+        super(message, t);
+        this.event = event;
+        this.entity = entity;
+        this.transition = transition;
+        this.actionType = actionType;
+    }
+
+    public Event getEvent()
+    {
+        return event;
+    }
+
+    public Entity getEntity()
+    {
+        return entity;
+    }
+
+    public Transition getTransition()
+    {
+        return transition;
+    }
+
+    public int getActionType()
+    {
+        return actionType;
+    }
+}

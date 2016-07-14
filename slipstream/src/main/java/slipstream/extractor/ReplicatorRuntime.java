@@ -11,28 +11,7 @@ import java.util.concurrent.Future;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 
-import slipstream.extractor.OpenReplicatorParams;
-import slipstream.extractor.PropertyException;
-import slipstream.extractor.TungstenProperties;
-import slipstream.extractor.TungstenPropertiesIO;
-import slipstream.extractor.FileIOException;
-import com.continuent.tungsten.fsm.event.EventDispatcher;
-import slipstream.extractor.ReplicatorException;
-import slipstream.extractor.DataSourceService;
-import slipstream.extractor.DummyDataSource;
-import slipstream.extractor.UniversalDataSource;
-import slipstream.extractor.ReplDBMSHeader;
-import slipstream.extractor.FilterManualProperties;
-import slipstream.extractor.OpenReplicatorContext;
-import slipstream.extractor.Pipeline;
-import slipstream.extractor.Stage;
-import slipstream.extractor.PluginContext;
-import slipstream.extractor.PluginException;
-import slipstream.extractor.PluginLoader;
-import slipstream.extractor.PluginSpecification;
-import slipstream.extractor.ReplicatorPlugin;
-import slipstream.extractor.PipelineService;
-import slipstream.extractor.Store;
+import slipstream.replicator.fsm.event.EventDispatcher;
 
 /**
  * Contains run-time data for the replicator, including properties and all
