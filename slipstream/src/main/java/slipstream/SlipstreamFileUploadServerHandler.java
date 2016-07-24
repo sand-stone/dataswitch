@@ -43,14 +43,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import static io.netty.buffer.Unpooled.*;
 
 public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandler<HttpObject> {
-
-  private static final Logger logger = Logger.getLogger(SlipstreamFileUploadServerHandler.class.getName());
+  private static Logger log = LogManager.getLogger(SlipstreamFileUploadServerHandler.class);
 
   private HttpRequest request;
 
@@ -87,24 +86,19 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
     if (msg instanceof HttpRequest) {
       HttpRequest request = this.request = (HttpRequest) msg;
       URI uri = new URI(request.uri());
-      if (!uri.getPath().startsWith("/form")) {
-        // Write Menu
-        writeMenu(ctx);
+      log.info("req path: {}", uri.getPath());
+      responseContent.setLength(0);
+      if (request.method().equals(HttpMethod.GET)) {
+        responseContent.append("\r\n\r\nplease use post\r\n");
         return;
       }
-      responseContent.setLength(0);
+
       responseContent.append("WELCOME TO THE WILD WILD WEB SERVER\r\n");
       responseContent.append("===================================\r\n");
 
       responseContent.append("VERSION: " + request.protocolVersion().text() + "\r\n");
 
       responseContent.append("REQUEST_URI: " + request.uri() + "\r\n\r\n");
-      responseContent.append("\r\n\r\n");
-
-      // new getMethod
-      for (Entry<String, String> entry : request.headers()) {
-        responseContent.append("HEADER: " + entry.getKey() + '=' + entry.getValue() + "\r\n");
-      }
       responseContent.append("\r\n\r\n");
 
       // new getMethod
@@ -129,14 +123,6 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
       }
       responseContent.append("\r\n\r\n");
 
-      // if GET Method: should not try to create a HttpPostRequestDecoder
-      if (request.method().equals(HttpMethod.GET)) {
-        // GET Method: should not try to create a HttpPostRequestDecoder
-        // So stop here
-        responseContent.append("\r\n\r\nEND OF GET CONTENT\r\n");
-        // Not now: LastHttpContent will be sent writeResponse(ctx.channel());
-        return;
-      }
       try {
         decoder = new HttpPostRequestDecoder(factory, request);
       } catch (ErrorDataDecoderException e1) {
@@ -180,7 +166,6 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
         if (chunk instanceof LastHttpContent) {
           writeResponse(ctx.channel());
           readingChunks = false;
-
           reset();
         }
       }
@@ -191,15 +176,10 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
 
   private void reset() {
     request = null;
-
-    // destroy the decoder to release all resources
     decoder.destroy();
     decoder = null;
   }
 
-  /**
-   * Example of reading request by chunk and getting values from chunk to chunk
-   */
   private void readHttpDataChunkByChunk() {
     try {
       while (decoder.hasNext()) {
@@ -207,7 +187,7 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
         if (data != null) {
           // check if current HttpData is a FileUpload and previously set as partial
           if (partialContent == data) {
-            logger.info(" 100% (FinalSize: " + partialContent.length() + ")");
+            log.info(" 100% (FinalSize: " + partialContent.length() + ")");
             partialContent = null;
           }
           try {
@@ -236,10 +216,10 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
         if (partialContent.definedLength() > 0) {
           builder.append(" ").append(partialContent.length() * 100 / partialContent.definedLength())
             .append("% ");
-          logger.info(builder.toString());
+          log.info(builder.toString());
         } else {
           builder.append(" ").append(partialContent.length()).append(" ");
-          logger.info(builder.toString());
+          log.info(builder.toString());
         }
       }
     } catch (EndOfDataDecoderException e1) {
@@ -341,94 +321,8 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
     }
   }
 
-  private void writeMenu(ChannelHandlerContext ctx) {
-    // print several HTML forms
-    // Convert the response content to a ChannelBuffer.
-    responseContent.setLength(0);
-
-    // create Pseudo Menu
-    responseContent.append("<html>");
-    responseContent.append("<head>");
-    responseContent.append("<title>Netty Test Form</title>\r\n");
-    responseContent.append("</head>\r\n");
-    responseContent.append("<body bgcolor=white><style>td{font-size: 12pt;}</style>");
-
-    responseContent.append("<table border=\"0\">");
-    responseContent.append("<tr>");
-    responseContent.append("<td>");
-    responseContent.append("<h1>Netty Test Form</h1>");
-    responseContent.append("Choose one FORM");
-    responseContent.append("</td>");
-    responseContent.append("</tr>");
-    responseContent.append("</table>\r\n");
-
-    // GET
-    responseContent.append("<CENTER>GET FORM<HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-    responseContent.append("<FORM ACTION=\"/formget\" METHOD=\"GET\">");
-    responseContent.append("<input type=hidden name=getform value=\"GET\">");
-    responseContent.append("<table border=\"0\">");
-    responseContent.append("<tr><td>Fill with value: <br> <input type=text name=\"info\" size=10></td></tr>");
-    responseContent.append("<tr><td>Fill with value: <br> <input type=text name=\"secondinfo\" size=20>");
-    responseContent
-      .append("<tr><td>Fill with value: <br> <textarea name=\"thirdinfo\" cols=40 rows=10></textarea>");
-    responseContent.append("</td></tr>");
-    responseContent.append("<tr><td><INPUT TYPE=\"submit\" NAME=\"Send\" VALUE=\"Send\"></INPUT></td>");
-    responseContent.append("<td><INPUT TYPE=\"reset\" NAME=\"Clear\" VALUE=\"Clear\" ></INPUT></td></tr>");
-    responseContent.append("</table></FORM>\r\n");
-    responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-
-    // POST
-    responseContent.append("<CENTER>POST FORM<HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-    responseContent.append("<FORM ACTION=\"/formpost\" METHOD=\"POST\">");
-    responseContent.append("<input type=hidden name=getform value=\"POST\">");
-    responseContent.append("<table border=\"0\">");
-    responseContent.append("<tr><td>Fill with value: <br> <input type=text name=\"info\" size=10></td></tr>");
-    responseContent.append("<tr><td>Fill with value: <br> <input type=text name=\"secondinfo\" size=20>");
-    responseContent
-      .append("<tr><td>Fill with value: <br> <textarea name=\"thirdinfo\" cols=40 rows=10></textarea>");
-    responseContent.append("<tr><td>Fill with file (only file name will be transmitted): <br> "
-                           + "<input type=file name=\"myfile\">");
-    responseContent.append("</td></tr>");
-    responseContent.append("<tr><td><INPUT TYPE=\"submit\" NAME=\"Send\" VALUE=\"Send\"></INPUT></td>");
-    responseContent.append("<td><INPUT TYPE=\"reset\" NAME=\"Clear\" VALUE=\"Clear\" ></INPUT></td></tr>");
-    responseContent.append("</table></FORM>\r\n");
-    responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-
-    // POST with enctype="multipart/form-data"
-    responseContent.append("<CENTER>POST MULTIPART FORM<HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-    responseContent.append("<FORM ACTION=\"/formpostmultipart\" ENCTYPE=\"multipart/form-data\" METHOD=\"POST\">");
-    responseContent.append("<input type=hidden name=getform value=\"POST\">");
-    responseContent.append("<table border=\"0\">");
-    responseContent.append("<tr><td>Fill with value: <br> <input type=text name=\"info\" size=10></td></tr>");
-    responseContent.append("<tr><td>Fill with value: <br> <input type=text name=\"secondinfo\" size=20>");
-    responseContent
-      .append("<tr><td>Fill with value: <br> <textarea name=\"thirdinfo\" cols=40 rows=10></textarea>");
-    responseContent.append("<tr><td>Fill with file: <br> <input type=file name=\"myfile\">");
-    responseContent.append("</td></tr>");
-    responseContent.append("<tr><td><INPUT TYPE=\"submit\" NAME=\"Send\" VALUE=\"Send\"></INPUT></td>");
-    responseContent.append("<td><INPUT TYPE=\"reset\" NAME=\"Clear\" VALUE=\"Clear\" ></INPUT></td></tr>");
-    responseContent.append("</table></FORM>\r\n");
-    responseContent.append("<CENTER><HR WIDTH=\"75%\" NOSHADE color=\"blue\"></CENTER>");
-
-    responseContent.append("</body>");
-    responseContent.append("</html>");
-
-    ByteBuf buf = copiedBuffer(responseContent.toString(), CharsetUtil.UTF_8);
-    // Build the response object.
-    FullHttpResponse response = new DefaultFullHttpResponse(
-                                                            HttpVersion.HTTP_1_1, HttpResponseStatus.OK, buf);
-
-    response.headers().set(HttpHeaderNames.CONTENT_TYPE, "text/html; charset=UTF-8");
-    response.headers().setInt(HttpHeaderNames.CONTENT_LENGTH, buf.readableBytes());
-
-    // Write the response.
-    ctx.channel().writeAndFlush(response);
-  }
-
   @Override
   public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-    logger.log(Level.WARNING, responseContent.toString(), cause);
     ctx.channel().close();
   }
 }
-

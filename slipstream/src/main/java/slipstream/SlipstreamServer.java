@@ -83,7 +83,7 @@ public class SlipstreamServer {
   }
 
   static final boolean SSL = System.getProperty("ssl") != null;
-  static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "8443" : "8080"));
+  static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "9443" : "9080"));
 
   public static void main(String[] args) throws Exception {
     new SlipstreamServer().run();
