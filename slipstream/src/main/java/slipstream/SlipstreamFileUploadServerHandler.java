@@ -55,8 +55,6 @@ import static io.netty.buffer.Unpooled.*;
 
 public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   private static Logger log = LogManager.getLogger(SlipstreamFileUploadServerHandler.class);
-  private final static String MySQLLogFileRoot = "./log/mysql/";
-  private final static String LogFileRoot = "./log/";
   
   private HttpRequest request;
 
@@ -92,8 +90,6 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
     DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
     // exit (in normal exit)
     DiskAttribute.baseDirectory = null; // system temp directory
-    createDirectory(MySQLLogFileRoot);
-    createDirectory(LogFileRoot);
   }
 
   @Override
@@ -277,7 +273,7 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
         FileUpload fileUpload = (FileUpload) data;
         if (fileUpload.isCompleted()) {
           //fileUpload.length() < 1000000)
-          logFileRoot = request.uri().startsWith("/mysql")?MySQLLogFileRoot : LogFileRoot;
+          logFileRoot = request.uri().startsWith("/mysql")?SlipstreamServer.MySQLLogFileRoot : SlipstreamServer.LogFileRoot;
           try {
             fileUpload.renameTo(new File(logFileRoot+fileUpload.getFilename()));
             responseContent.append("\tgot the while file\r\n");

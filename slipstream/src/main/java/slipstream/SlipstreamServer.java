@@ -21,9 +21,29 @@ import io.netty.buffer.*;
 import io.netty.handler.codec.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import java.nio.file.*;
+import java.io.*;
 
 public class SlipstreamServer {
   private static Logger log = LogManager.getLogger(SlipstreamServer.class);
+  final static String MySQLLogFileRoot = "./log/mysql/";
+  final static String LogFileRoot = "./log/";
+
+  static void createDirectory(String dir) {
+    Path path = Paths.get(dir);
+    if (!Files.exists(path)) {
+      try {
+        Files.createDirectories(path);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+
+  static {
+    createDirectory(MySQLLogFileRoot);
+    createDirectory(LogFileRoot);
+  }
 
   public SlipstreamServer() {
   }
@@ -47,7 +67,7 @@ public class SlipstreamServer {
       b.childHandler(new SlipstreamUploadServerInitializer(sslCtx));
 
       Channel ch = b.bind(PORT).sync().channel();
-
+      new Thread(new MySQLBinLogProcessor()).start();
       System.err.println("Open your web browser and navigate to " +
                          (SSL? "https" : "http") + "://127.0.0.1:" + PORT + '/');
 
