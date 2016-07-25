@@ -45,12 +45,19 @@ import java.util.Map.Entry;
 import java.util.Set;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import static io.netty.buffer.Unpooled.*;
 
 public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandler<HttpObject> {
   private static Logger log = LogManager.getLogger(SlipstreamFileUploadServerHandler.class);
-
+  private final static String MySQLLogFileRoot = "./log/mysql/";
+  private final static String LogFileRoot = "./log/";
+  
   private HttpRequest request;
 
   private boolean readingChunks;
@@ -64,6 +71,19 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
 
   private HttpPostRequestDecoder decoder;
 
+  private String logFileRoot;
+  
+  static void createDirectory(String dir) {
+    Path path = Paths.get(dir);
+    if (!Files.exists(path)) {
+      try {
+        Files.createDirectories(path);
+      } catch (IOException e) {
+        e.printStackTrace();
+      }
+    }
+  }
+  
   static {
     DiskFileUpload.deleteOnExitTemporaryFile = true; // should delete file
     // on exit (in normal
@@ -72,6 +92,8 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
     DiskAttribute.deleteOnExitTemporaryFile = true; // should delete file on
     // exit (in normal exit)
     DiskAttribute.baseDirectory = null; // system temp directory
+    createDirectory(MySQLLogFileRoot);
+    createDirectory(LogFileRoot);
   }
 
   @Override
@@ -254,24 +276,14 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
       if (data.getHttpDataType() == HttpDataType.FileUpload) {
         FileUpload fileUpload = (FileUpload) data;
         if (fileUpload.isCompleted()) {
-          if (fileUpload.length() < 10000) {
-            responseContent.append("\tContent of file\r\n");
-            try {
-              responseContent.append(fileUpload.getString(fileUpload.getCharset()));
-            } catch (IOException e1) {
-              // do nothing for the example
-              e1.printStackTrace();
-            }
-            responseContent.append("\r\n");
-          } else {
-            responseContent.append("\tFile too long to be printed out:" + fileUpload.length() + "\r\n");
+          //fileUpload.length() < 1000000)
+          logFileRoot = request.uri().startsWith("/mysql")?MySQLLogFileRoot : LogFileRoot;
+          try {
+            fileUpload.renameTo(new File(logFileRoot+fileUpload.getFilename()));
+            responseContent.append("\tgot the while file\r\n");
+          } catch (IOException e1) {
+            e1.printStackTrace();
           }
-          // fileUpload.isInMemory();// tells if the file is in Memory
-          // or on File
-          // fileUpload.renameTo(dest); // enable to move into another
-          // File dest
-          // decoder.removeFileUploadFromClean(fileUpload); //remove
-          // the File of to delete file
         } else {
           responseContent.append("\tFile to be continued but should not!\r\n");
         }
