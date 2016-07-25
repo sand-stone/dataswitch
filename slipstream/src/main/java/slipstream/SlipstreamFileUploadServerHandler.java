@@ -111,7 +111,7 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
         return;
       }
 
-      responseContent.append("WELCOME TO THE WILD WILD WEB SERVER\r\n");
+      responseContent.append("WELCOME TO Slipstream Service\r\n");
       responseContent.append("===================================\r\n");
 
       responseContent.append("VERSION: " + request.protocolVersion().text() + "\r\n");
