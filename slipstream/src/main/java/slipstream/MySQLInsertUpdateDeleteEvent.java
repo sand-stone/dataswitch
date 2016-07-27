@@ -28,19 +28,16 @@ import java.io.IOException;
 import java.util.*;
 import java.time.*;
 
-public class SlipstreamMySQLEvent {
-
-  String prefix;
-  String filename;
+public class MySQLInsertUpdateDeleteEvent {
   long serverid;
   long timestamp;
+  long nextPosition;
+  int flags;
   EventType eventType;
   EventData eventData;
 
-  public SlipstreamMySQLEvent(String prefix, String filename, long serverid, long timestamp,
+  public MySQLInsertUpdateDeleteEvent(long serverid, long timestamp,
                               EventType eventType, EventData eventData) {
-    this.prefix = prefix;
-    this.filename = filename;
     this.serverid = serverid;
     this.timestamp = timestamp;
     this.eventType = eventType;
