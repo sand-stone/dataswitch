@@ -162,15 +162,23 @@ class MySQLBinLogProcessor implements Runnable {
           eventDeserializer.setEventDataDeserializer(EventType.QUERY, new ByteArrayEventDataDeserializer());
           BinaryLogFileReader reader = new BinaryLogFileReader(new FileInputStream(SlipstreamServer.MySQLLogFileRoot+filename.toString()), eventDeserializer);
           try {
-            boolean n = true, b = true;
-            for (Event dbevent; (dbevent = reader.readEvent()) != null && (n || b); ) {
+            Event mapEvent = null; Event crudEvent = null;
+            for (Event dbevent; (dbevent = reader.readEvent()) != null; ) {
               EventType eventType = dbevent.getHeader().getEventType();
-              if (eventType == EventType.XID) {
-                log.info(dbevent.getData().toString());
-              } else
-                log.info(eventType);
-              if(dbevent.getData()!=null)
-                log.info(dbevent.getData().toString());
+              switch(eventType) {
+              case TABLE_MAP:
+                mapEvent = dbevent;
+                break;
+              case EXT_WRITE_ROWS:
+              case EXT_UPDATE_ROWS:
+              case EXT_DELETE_ROWS:
+                crudEvent = dbevent;
+                break;
+              case XID:
+                log.info("merge commited {} {}",crudEvent, mapEvent);
+                crudEvent = null;
+                mapEvent = null;
+              }
             }
           } finally {
             reader.close();

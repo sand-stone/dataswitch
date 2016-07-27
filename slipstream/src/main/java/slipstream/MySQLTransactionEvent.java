@@ -29,40 +29,52 @@ import java.io.IOException;
 import java.util.*;
 import java.time.*;
 
-public class MySQLMapEvent {
-  private long tableId;
-  private TableMapEventData data;
+public class MySQLTransactionEvent {
+  long serverid;
+  String table;
+  long timestamp;
+  EventType eventType;
+  TableMapEventData mapEvent;
+  EventData cudEvent;
 
-  public MySQLMapEvent(long tableId, TableMapEventData data) {
-    this.tableId = tableId;
-    this.data = data;
+  public MySQLTransactionEvent(long serverid, String table, long timestamp,
+                               EventType eventType, TableMapEventData mapEvent, EventData cudEvent) {
+    this.serverid = serverid;
+    this.table = table;    
+    this.timestamp = timestamp;
+    this.eventType = eventType;
+    this.mapEvent = mapEvent;
+    this.cudEvent = cudEvent;
   }
 
   public ByteIterable getKey() {
-    return null;
-  }
-
-  public ByteIterable getValue() {
-    return null;
-  }
-
-  public static ByteIterable get(String key) {
-    return stringToEntry(key);
-  }
-
-  public static ByteIterable get(String key, long ts) {
-    ByteIterable[] segs = new ByteIterable[2];
-    segs[0] = stringToEntry(key);
-    segs[1] = longToEntry(ts);
+    ByteIterable[] segs = new ByteIterable[3];
+    segs[0] = longToEntry(serverid);
+    segs[1] = stringToEntry(table);
+    segs[2] = longToEntry(timestamp);
     return new CompoundByteIterable(segs);
   }
 
-  public static String getKey(ByteIterable key) {
-    byte[] bytes = key.getBytesUnsafe();
-    return entryToString(key);
+  public ByteIterable getValue() {
+    ByteIterable[] segs = new ByteIterable[3];
+    segs[0] = new ArrayByteIterable(toBytes(eventType));
+    segs[1] = new ArrayByteIterable(toBytes(mapEvent));
+    segs[2] = new ArrayByteIterable(toBytes(cudEvent));
+    return new CompoundByteIterable(segs);
   }
 
-  public static long getTS(ByteIterable key) {
+  public static long getSeverId(ByteIterable key) {
+    return entryToLong(key);
+  }
+
+  public static String getTable(ByteIterable key) {
+    byte[] bytes = key.getBytesUnsafe();
+    byte[] d = new byte[key.getLength()-8];
+    System.arraycopy(bytes, 8, d, 0, d.length);    
+    return entryToString(new ArrayByteIterable(d));
+  }
+  
+  public static long getTimestamp(ByteIterable key) {
     byte[] bytes = key.getBytesUnsafe();
     byte[] d = new byte[8];
     System.arraycopy(bytes, key.getLength()-8, d, 0, 8);

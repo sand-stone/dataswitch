@@ -30,9 +30,8 @@ import java.time.*;
 
 public class MySQLInsertUpdateDeleteEvent {
   long serverid;
+  long tableId;
   long timestamp;
-  long nextPosition;
-  int flags;
   EventType eventType;
   EventData eventData;
 
