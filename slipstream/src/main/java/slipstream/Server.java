@@ -28,8 +28,8 @@ public class Server {
   public Server() {
   }
 
-  public void run(String role, String location) {
-    String[] parts = location.split(":");
+  public void run(String role, String location) throws Exception {
+    //String[] parts = location.split(":");
     // this is the list of members
     Members members = new Members(
                                   new Member(), // this is a reference to a member on the localhost on default port (2440)
@@ -50,12 +50,13 @@ public class Server {
   }
 
   public static void main(String[] args) throws Exception {
-    if(args.length < 2) {
+    /*if(args.length < 2) {
       System.out.println("Sever master/salve localhost:8000");
       return;
-    }
+      }*/
 
-    new Server().run(args[0], args[1]);
+    //new Server().run(args[0], args[1]);
+    new Server().run(null, null);
     log.info("server started");
   }
 }
