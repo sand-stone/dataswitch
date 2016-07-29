@@ -2,12 +2,11 @@ package slipstream;
 
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
-import io.atomix.AtomixReplica;
-import io.atomix.catalyst.transport.Address;
-import io.atomix.catalyst.transport.netty.NettyTransport;
-import io.atomix.copycat.server.storage.Storage;
-import io.atomix.copycat.server.storage.StorageLevel;
-import io.atomix.variables.DistributedValue;
+import slipstream.paxos.*;
+import slipstream.paxos.communication.*;
+import slipstream.paxos.fragmentation.*;
+import java.io.Serializable;
+import java.net.*;
 
 import java.time.Duration;
 import java.util.ArrayList;
@@ -18,26 +17,36 @@ import java.util.UUID;
 public class Server {
   private static Logger log = LogManager.getLogger(Server.class);
   private static String LogData = ".data#";
+
+  public static class MyReceiver implements Receiver {
+    // we follow a reactive pattern here
+    public void receive(Serializable message) {
+      System.out.println("received " + message.toString());
+    }
+  };
+
   public Server() {
   }
 
   public void run(String role, String location) {
     String[] parts = location.split(":");
-    Address address = new Address(parts[0], Integer.valueOf(parts[1]));
-    AtomixReplica.Builder builder = AtomixReplica.builder(address);
-    AtomixReplica atomix = AtomixReplica.builder(address)
-      .withTransport(new NettyTransport())
-      .withStorage(Storage.builder()
-                   .withStorageLevel(StorageLevel.DISK)
-                   .withDirectory(LogData+role)
-                   .withMinorCompactionInterval(Duration.ofSeconds(30))
-                   .withMajorCompactionInterval(Duration.ofMinutes(1))
-                   .withMaxSegmentSize(1024*1024*8)
-                   .withMaxEntriesPerSegment(1024*8)
-                   .build())
-      .build();
+    // this is the list of members
+    Members members = new Members(
+                                  new Member(), // this is a reference to a member on the localhost on default port (2440)
+                                  new Member(2441), // this one is on localhost with the specified port
+                                  new Member(InetAddress.getLocalHost(), 2442)); // you can specify the address and port manually
 
-    atomix.bootstrap().join();
+    // this actually creates the members
+    FragmentingGroup group1 = new FragmentingGroup(members.get(0), new MyReceiver());
+    FragmentingGroup group2 = new FragmentingGroup(members.get(1), new MyReceiver());
+    FragmentingGroup group3 = new FragmentingGroup(members.get(2), new MyReceiver());
+
+    // this will cause all receivers to print "received Hello"
+    group2.broadcast("Hello");
+
+    Thread.sleep(1); // allow the members to receive the message
+
+    group1.close(); group2.close(); group3.close();
   }
 
   public static void main(String[] args) throws Exception {
@@ -45,7 +54,7 @@ public class Server {
       System.out.println("Sever master/salve localhost:8000");
       return;
     }
-    
+
     new Server().run(args[0], args[1]);
     log.info("server started");
   }

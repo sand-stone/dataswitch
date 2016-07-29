@@ -48,7 +48,7 @@
               <include>org.apache.logging.log4j:log4j-core</include>
               <include>commons-net:commons-net</include>
               <include>org.apache.commons:commons-lang3</include>
-              <include>io.atomix:atomix-all</include>
+              <include>javax.validation:validation-api</include>
               <include>mysql:mysql-connector-java</include>
               <include>org.codehaus.jackson:jackson-mapper-asl</include>
               <include>org.codehaus.jackson:jackson-core-asl</include>
@@ -109,11 +109,6 @@
       <groupId>io.netty</groupId>
       <artifactId>netty-all</artifactId>
       <version>4.1.2.Final</version>
-    </dependency>
-    <dependency>
-      <groupId>io.atomix</groupId>
-      <artifactId>atomix-all</artifactId>
-      <version>1.0.0-rc9</version>
     </dependency>
     <dependency>
       <groupId>com.github.shyiko</groupId>
