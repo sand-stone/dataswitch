@@ -14,15 +14,18 @@ import java.io.ObjectOutput;
 import java.io.IOException;
 import jetbrains.exodus.env.*;
 import jetbrains.exodus.ByteIterable;
+import jetbrains.exodus.ByteIterator;
 import jetbrains.exodus.ArrayByteIterable;
 import jetbrains.exodus.CompoundByteIterable;
 import org.jetbrains.annotations.NotNull;
 import jetbrains.exodus.management.*;
+import jetbrains.exodus.bindings.LongBinding;
 import static jetbrains.exodus.bindings.StringBinding.entryToString;
 import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
 import static jetbrains.exodus.bindings.LongBinding.entryToLong;
 import static jetbrains.exodus.bindings.LongBinding.longToEntry;
 import static jetbrains.exodus.env.StoreConfig.WITHOUT_DUPLICATES_WITH_PREFIXING;
+import jetbrains.exodus.util.LightOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -33,52 +36,19 @@ public class MySQLTransactionEvent {
   long serverid;
   String table;
   long timestamp;
+  long position;
   EventType eventType;
   TableMapEventData mapEvent;
   EventData cudEvent;
 
-  public MySQLTransactionEvent(long serverid, String table, long timestamp,
-                               EventType eventType, TableMapEventData mapEvent, EventData cudEvent) {
-    this.serverid = serverid;
-    this.table = table;    
-    this.timestamp = timestamp;
-    this.eventType = eventType;
-    this.mapEvent = mapEvent;
-    this.cudEvent = cudEvent;
-  }
-
-  public ByteIterable getKey() {
-    ByteIterable[] segs = new ByteIterable[3];
-    segs[0] = longToEntry(serverid);
-    segs[1] = stringToEntry(table);
-    segs[2] = longToEntry(timestamp);
-    return new CompoundByteIterable(segs);
-  }
-
-  public ByteIterable getValue() {
-    ByteIterable[] segs = new ByteIterable[3];
-    segs[0] = new ArrayByteIterable(toBytes(eventType));
-    segs[1] = new ArrayByteIterable(toBytes(mapEvent));
-    segs[2] = new ArrayByteIterable(toBytes(cudEvent));
-    return new CompoundByteIterable(segs);
-  }
-
-  public static long getSeverId(ByteIterable key) {
-    return entryToLong(key);
-  }
-
-  public static String getTable(ByteIterable key) {
-    byte[] bytes = key.getBytesUnsafe();
-    byte[] d = new byte[key.getLength()-8];
-    System.arraycopy(bytes, 8, d, 0, d.length);    
-    return entryToString(new ArrayByteIterable(d));
-  }
-  
-  public static long getTimestamp(ByteIterable key) {
-    byte[] bytes = key.getBytesUnsafe();
-    byte[] d = new byte[8];
-    System.arraycopy(bytes, key.getLength()-8, d, 0, 8);
-    return entryToLong(new ArrayByteIterable(d));
+  public static MySQLTransactionEvent get(ByteIterable bytes) {
+    final ByteIterator iterator = bytes.iterator();
+    long serverid = LongBinding.readCompressed(iterator);
+    String table = entryToString(bytes);
+    iterator.skip(table.length()+1);
+    long timestamp = LongBinding.readCompressed(iterator);
+    long position = LongBinding.readCompressed(iterator);
+    return new MySQLTransactionEvent(serverid, table, timestamp, position);
   }
 
   private static byte[] toBytes(Object o) {
@@ -99,6 +69,41 @@ public class MySQLTransactionEvent {
     } catch (ClassNotFoundException e) {
     }
     return null;
+  }
+
+    public ByteIterable getKey() {
+    final LightOutputStream output = new LightOutputStream();
+    LongBinding.writeCompressed(output, serverid);
+    output.writeString(table);
+    LongBinding.writeCompressed(output, timestamp);
+    LongBinding.writeCompressed(output, position);
+    return output.asArrayByteIterable();
+  }
+
+  public ByteIterable getValue() {
+    final LightOutputStream output = new LightOutputStream();
+    output.write(toBytes(eventType));
+    output.write(toBytes(mapEvent));
+    output.write(toBytes(cudEvent));
+    return output.asArrayByteIterable();
+  }
+
+  public MySQLTransactionEvent(long serverid, String table, long timestamp, long position,
+                               EventType eventType, TableMapEventData mapEvent, EventData cudEvent) {
+    this.serverid = serverid;
+    this.table = table;
+    this.timestamp = timestamp;
+    this.position = position;
+    this.eventType = eventType;
+    this.mapEvent = mapEvent;
+    this.cudEvent = cudEvent;
+  }
+
+  public MySQLTransactionEvent(long serverid, String table, long timestamp, long position) {
+    this.serverid = serverid;
+    this.table = table;
+    this.timestamp = timestamp;
+    this.position = position;
   }
 
 }
