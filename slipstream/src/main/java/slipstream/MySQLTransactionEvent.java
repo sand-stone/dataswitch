@@ -35,20 +35,22 @@ import java.time.*;
 public class MySQLTransactionEvent {
   long serverid;
   String table;
+  String database;
   long timestamp;
   long position;
-  EventType eventType;
   TableMapEventData mapEvent;
   EventData cudEvent;
 
   public static MySQLTransactionEvent get(ByteIterable bytes) {
     final ByteIterator iterator = bytes.iterator();
     long serverid = LongBinding.readCompressed(iterator);
+    String database = entryToString(bytes);
+    iterator.skip(database.length()+1);
     String table = entryToString(bytes);
     iterator.skip(table.length()+1);
     long timestamp = LongBinding.readCompressed(iterator);
     long position = LongBinding.readCompressed(iterator);
-    return new MySQLTransactionEvent(serverid, table, timestamp, position);
+    return new MySQLTransactionEvent(serverid, database, table, timestamp, position);
   }
 
   private static byte[] toBytes(Object o) {
@@ -71,9 +73,10 @@ public class MySQLTransactionEvent {
     return null;
   }
 
-    public ByteIterable getKey() {
+  public ByteIterable getKey() {
     final LightOutputStream output = new LightOutputStream();
     LongBinding.writeCompressed(output, serverid);
+    output.writeString(database);
     output.writeString(table);
     LongBinding.writeCompressed(output, timestamp);
     LongBinding.writeCompressed(output, position);
@@ -82,28 +85,33 @@ public class MySQLTransactionEvent {
 
   public ByteIterable getValue() {
     final LightOutputStream output = new LightOutputStream();
-    output.write(toBytes(eventType));
     output.write(toBytes(mapEvent));
     output.write(toBytes(cudEvent));
     return output.asArrayByteIterable();
   }
 
-  public MySQLTransactionEvent(long serverid, String table, long timestamp, long position,
-                               EventType eventType, TableMapEventData mapEvent, EventData cudEvent) {
+  public MySQLTransactionEvent(long serverid, String database, String table, long timestamp, long position,
+                               TableMapEventData mapEvent, EventData cudEvent) {
     this.serverid = serverid;
+    this.database = database;
     this.table = table;
     this.timestamp = timestamp;
     this.position = position;
-    this.eventType = eventType;
     this.mapEvent = mapEvent;
     this.cudEvent = cudEvent;
   }
 
-  public MySQLTransactionEvent(long serverid, String table, long timestamp, long position) {
+  MySQLTransactionEvent(long serverid, String database, String table, long timestamp, long position) {
     this.serverid = serverid;
+    this.database = database;
     this.table = table;
     this.timestamp = timestamp;
     this.position = position;
+  }
+
+  public String toString() {
+    return "<"+ "serverid:" + serverid +
+      " database: "+ database +" table:" + table + " timestamp:" + timestamp + " position:"+ position +">";
   }
 
 }
