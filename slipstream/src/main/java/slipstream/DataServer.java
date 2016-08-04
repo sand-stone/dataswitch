@@ -5,21 +5,18 @@ import org.apache.logging.log4j.LogManager;
 import slipstream.paxos.*;
 import slipstream.paxos.communication.*;
 import slipstream.paxos.fragmentation.*;
-import java.io.Serializable;
 import java.net.*;
-
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
+import java.util.*;
+import java.io.*;
+import org.apache.commons.configuration2.*;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
 
 public class DataServer {
   private static Logger log = LogManager.getLogger(DataServer.class);
   private static String LogData = ".data#";
 
-  public static class MyReceiver implements Receiver {
-    // we follow a reactive pattern here
+  public static class DataHandler implements Receiver {
     public void receive(Serializable message) {
       System.out.println("received " + message.toString());
     }
@@ -28,35 +25,39 @@ public class DataServer {
   public DataServer() {
   }
 
-  public void run(String role, String location) throws Exception {
-    //String[] parts = location.split(":");
-    // this is the list of members
-    Members members = new Members(
-                                  new Member(), // this is a reference to a member on the localhost on default port (2440)
-                                  new Member(2441), // this one is on localhost with the specified port
-                                  new Member(InetAddress.getLocalHost(), 2442)); // you can specify the address and port manually
+  public void run(int id, String[] locations) throws Exception {
+    Member[] members = new Member[locations.length];
+    int i = 0;
+    for(String location : locations) {
+      log.info("location {}", location);
+      String[] parts = location.split(":");
+      members[i++] = new Member(InetAddress.getByName(parts[0]), Integer.parseInt(parts[1]));
+    }
 
-    // this actually creates the members
-    FragmentingGroup group1 = new FragmentingGroup(members.get(0), new MyReceiver());
-    FragmentingGroup group2 = new FragmentingGroup(members.get(1), new MyReceiver());
-    FragmentingGroup group3 = new FragmentingGroup(members.get(2), new MyReceiver());
+    Members council = new Members(Arrays.asList(members));
 
-    // this will cause all receivers to print "received Hello"
-    group2.broadcast("Hello");
+    FragmentingGroup group = new FragmentingGroup(council.get(id), new DataHandler());
 
-    Thread.sleep(1); // allow the members to receive the message
-
-    group1.close(); group2.close(); group3.close();
+    log.info("server started {}", group);
+    try {
+      while (true) {
+        group.broadcast("Ping from server " + id);
+        Thread.sleep(5000);
+      }
+    } finally {
+      group.close();
+    }
   }
 
   public static void main(String[] args) throws Exception {
-    /*if(args.length < 2) {
-      System.out.println("Sever master/salve localhost:8000");
+    if(args.length<1) {
+      System.out.println("java -cp slipstream.jar slipstream.DataSever conf/dataserverX.properties");
       return;
-      }*/
-
-    //new Server().run(args[0], args[1]);
-    new DataServer().run(null, null);
-    log.info("server started");
+    }
+    Configurations configs = new Configurations();
+    File propertiesFile = new File(args[0]);
+    PropertiesConfiguration config = configs.properties(propertiesFile);
+    log.info("config {} {}", config.getInt("serverid"),config.getStringArray("members"));
+    new DataServer().run(config.getInt("serverid"), config.getStringArray("members"));
   }
 }
