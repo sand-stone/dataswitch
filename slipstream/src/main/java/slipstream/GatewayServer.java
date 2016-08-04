@@ -24,8 +24,8 @@ import org.apache.logging.log4j.LogManager;
 import java.nio.file.*;
 import java.io.*;
 
-public class SlipstreamServer {
-  private static Logger log = LogManager.getLogger(SlipstreamServer.class);
+public class GatewayServer {
+  private static Logger log = LogManager.getLogger(GatewayServer.class);
   final static String MySQLLogFileRoot = "./log/mysql/";
   final static String LogFileRoot = "./log/";
 
@@ -45,7 +45,7 @@ public class SlipstreamServer {
     createDirectory(LogFileRoot);
   }
 
-  public SlipstreamServer() {
+  public GatewayServer() {
   }
 
   public void run() throws Exception {
@@ -106,6 +106,6 @@ public class SlipstreamServer {
   static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "9443" : "9080"));
 
   public static void main(String[] args) throws Exception {
-    new SlipstreamServer().run();
+    new GatewayServer().run();
   }
 }

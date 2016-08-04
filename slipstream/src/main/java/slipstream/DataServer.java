@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class Server {
-  private static Logger log = LogManager.getLogger(Server.class);
+public class DataServer {
+  private static Logger log = LogManager.getLogger(DataServer.class);
   private static String LogData = ".data#";
 
   public static class MyReceiver implements Receiver {
@@ -25,7 +25,7 @@ public class Server {
     }
   };
 
-  public Server() {
+  public DataServer() {
   }
 
   public void run(String role, String location) throws Exception {
@@ -56,7 +56,7 @@ public class Server {
       }*/
 
     //new Server().run(args[0], args[1]);
-    new Server().run(null, null);
+    new DataServer().run(null, null);
     log.info("server started");
   }
 }

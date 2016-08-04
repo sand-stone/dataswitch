@@ -21,7 +21,7 @@ class MySQLBinLogProcessor implements Runnable {
 
   public void run() {
     try {
-      Path dir = Paths.get(SlipstreamServer.MySQLLogFileRoot);
+      Path dir = Paths.get(GatewayServer.MySQLLogFileRoot);
       WatchService watchService = FileSystems.getDefault().newWatchService();
       dir.register(watchService,
                    StandardWatchEventKinds.ENTRY_CREATE,
@@ -51,7 +51,7 @@ class MySQLBinLogProcessor implements Runnable {
           EventDeserializer eventDeserializer = new EventDeserializer();
           eventDeserializer.setEventDataDeserializer(EventType.XID, new ByteArrayEventDataDeserializer());
           eventDeserializer.setEventDataDeserializer(EventType.QUERY, new ByteArrayEventDataDeserializer());
-          BinaryLogFileReader reader = new BinaryLogFileReader(new FileInputStream(SlipstreamServer.MySQLLogFileRoot+filename.toString()), eventDeserializer);
+          BinaryLogFileReader reader = new BinaryLogFileReader(new FileInputStream(GatewayServer.MySQLLogFileRoot+filename.toString()), eventDeserializer);
           try {
             TableMapEventData mapEvent = null; EventData crudEvent = null;
             for (Event dbevent; (dbevent = reader.readEvent()) != null; ) {

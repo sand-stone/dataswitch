@@ -273,7 +273,7 @@ public class SlipstreamFileUploadServerHandler extends SimpleChannelInboundHandl
         FileUpload fileUpload = (FileUpload) data;
         if (fileUpload.isCompleted()) {
           //fileUpload.length() < 1000000)
-          logFileRoot = request.uri().startsWith("/mysql")?SlipstreamServer.MySQLLogFileRoot : SlipstreamServer.LogFileRoot;
+          logFileRoot = request.uri().startsWith("/mysql")?GatewayServer.MySQLLogFileRoot : GatewayServer.LogFileRoot;
           try {
             fileUpload.renameTo(new File(logFileRoot+fileUpload.getFilename()));
             responseContent.append("\tSlipstream Service received your data and will process it shortly \r\n");
