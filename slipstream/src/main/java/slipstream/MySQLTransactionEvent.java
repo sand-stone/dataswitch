@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.*;
 import java.time.*;
 
-public class MySQLTransactionEvent {
+public class MySQLTransactionEvent implements Message {
   long serverid;
   String table;
   String database;
@@ -107,6 +107,10 @@ public class MySQLTransactionEvent {
     this.table = table;
     this.timestamp = timestamp;
     this.position = position;
+  }
+
+  public Kind getKind() {
+    return Kind.MySQLTransaction;
   }
 
   public String toString() {

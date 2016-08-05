@@ -3,20 +3,31 @@ package slipstream;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-import java.io.FileInputStream;
 import java.nio.file.*;
 import java.nio.file.StandardWatchEventKinds;
+import java.io.*;
+import java.util.*;
+import java.net.*;
 import com.github.shyiko.mysql.binlog.BinaryLogFileReader;
 import com.github.shyiko.mysql.binlog.event.ByteArrayEventData;
 import com.github.shyiko.mysql.binlog.event.*;
 import com.github.shyiko.mysql.binlog.event.deserialization.ByteArrayEventDataDeserializer;
 import com.github.shyiko.mysql.binlog.event.deserialization.EventDeserializer;
 import com.github.shyiko.mysql.binlog.event.deserialization.NullEventDataDeserializer;
+import org.apache.commons.configuration2.*;
+import org.apache.commons.configuration2.builder.fluent.Configurations;
+import slipstream.paxos.*;
+import slipstream.paxos.communication.*;
+import slipstream.paxos.fragmentation.*;
 
-class MySQLBinLogProcessor implements Runnable {
+class MySQLBinLogProcessor implements Runnable, Receiver {
   private static Logger log = LogManager.getLogger(MySQLBinLogProcessor.class);
 
+  FragmentingGroup group;
+
   public MySQLBinLogProcessor() {
+    group = null;
+    joinCouncil();
   }
 
   public void run() {
@@ -74,7 +85,8 @@ class MySQLBinLogProcessor implements Runnable {
                                                                       header.getNextPosition(),
                                                                       mapEvent,
                                                                       crudEvent);
-                log.info("transaction {}", evt);
+                //log.info("transaction {}", evt);
+                sendMsg(evt);
                 crudEvent = null;
                 mapEvent = null;
               }
@@ -94,6 +106,42 @@ class MySQLBinLogProcessor implements Runnable {
       e.printStackTrace();
     }
     log.info("MySQLBinLogProcessor stops");
+  }
+
+  public void receive(Serializable message) {
+    System.out.println("gateway received: " + message.toString());
+  }
+
+  private void joinCouncil() {
+    try {
+      Configurations configs = new Configurations();
+      File propertiesFile = new File("conf/gateway.properties");
+      PropertiesConfiguration config = configs.properties(propertiesFile);
+      int id = config.getInt("serverid");
+      String[] locations = config.getStringArray("members");
+      Member[] members = new Member[locations.length];
+      int i = 0;
+      for(String location : locations) {
+        String[] parts = location.split(":");
+        members[i++] = new Member(InetAddress.getByName(parts[0]), Integer.parseInt(parts[1]));
+      }
+
+      Members council = new Members(Arrays.asList(members));
+      group = new FragmentingGroup(council.get(id), this);
+    } catch(Exception e) {
+      log.info(e);
+    }
+  }
+
+  private void sendMsg(Message msg) {
+    try {
+      if(group == null)
+        return;
+      log.info("send msg {}", msg);
+      group.broadcast(msg);
+    } catch(Exception e) {
+      log.info(e);
+    }
   }
 
 }
