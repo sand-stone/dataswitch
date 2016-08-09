@@ -1,28 +1,15 @@
 package slipstream;
 
-import io.netty.bootstrap.ServerBootstrap;
-
-import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.util.SelfSignedCertificate;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.handler.codec.http.HttpContentCompressor;
-import io.netty.handler.codec.http.HttpRequestDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.channel.*;
-import io.netty.buffer.*;
-import io.netty.handler.codec.*;
+import static spark.Spark.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import java.nio.file.*;
 import java.io.*;
+import java.util.*;
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.http.*;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.*;
 
 public class GatewayServer {
   private static Logger log = LogManager.getLogger(GatewayServer.class);
@@ -48,64 +35,31 @@ public class GatewayServer {
   public GatewayServer() {
   }
 
-  public void run() throws Exception {
-    final SslContext sslCtx;
-    if (SSL) {
-      SelfSignedCertificate ssc = new SelfSignedCertificate();
-      sslCtx = SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
-    } else {
-      sslCtx = null;
-    }
-
-    EventLoopGroup controlGroup = new NioEventLoopGroup(1);
-    EventLoopGroup workerGroup = new NioEventLoopGroup();
-    try {
-      ServerBootstrap b = new ServerBootstrap();
-      b.group(controlGroup, workerGroup);
-      b.channel(NioServerSocketChannel.class);
-      b.handler(new LoggingHandler(LogLevel.INFO));
-      b.childHandler(new SlipstreamUploadServerInitializer(sslCtx));
-
-      Channel ch = b.bind(PORT).sync().channel();
-      new Thread(new MySQLBinLogProcessor()).start();
-      System.err.println("Open your web browser and navigate to " +
-                         (SSL? "https" : "http") + "://127.0.0.1:" + PORT + '/');
-
-      ch.closeFuture().sync();
-    } finally {
-      controlGroup.shutdownGracefully();
-      workerGroup.shutdownGracefully();
-    }
-  }
-
-  public static class SlipstreamUploadServerInitializer extends ChannelInitializer<SocketChannel> {
-
-    private final SslContext sslCtx;
-
-    public SlipstreamUploadServerInitializer(SslContext sslCtx) {
-      this.sslCtx = sslCtx;
-    }
-
-    @Override
-    public void initChannel(SocketChannel ch) {
-      ChannelPipeline pipeline = ch.pipeline();
-
-      if (sslCtx != null) {
-        pipeline.addLast(sslCtx.newHandler(ch.alloc()));
-      }
-
-      pipeline.addLast(new HttpRequestDecoder());
-      pipeline.addLast(new HttpResponseEncoder());
-      // Remove the following line if you don't want automatic content compression.
-      pipeline.addLast(new HttpContentCompressor());
-      pipeline.addLast(new SlipstreamFileUploadServerHandler());
-    }
-  }
-
   static final boolean SSL = System.getProperty("ssl") != null;
   static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "9443" : "9080"));
 
   public static void main(String[] args) throws Exception {
-    new GatewayServer().run();
+    port(PORT);
+    new Thread(new MySQLBinLogProcessor()).start();
+    System.err.println("Open your web browser and navigate to " +
+                       (SSL? "https" : "http") + "://127.0.0.1:" + PORT + '/');
+    get("/hello", (req, res) -> "Hello World from Slipstream");
+    post("/mysql", (request, response) -> {
+        boolean isMultipart = ServletFileUpload.isMultipartContent(request.raw());
+        if(isMultipart) {
+          ServletFileUpload fileUpload = new ServletFileUpload();
+          FileItemIterator items = fileUpload.getItemIterator(request.raw());
+          while (items.hasNext()) {
+            FileItemStream item = items.next();
+            log.info("item:{}", item);
+            if (!item.isFormField()) {
+              InputStream is = item.openStream();
+              String logFileRoot = request.uri().startsWith("/mysql")?GatewayServer.MySQLLogFileRoot : GatewayServer.LogFileRoot;
+              Files.copy(is, Paths.get(GatewayServer.MySQLLogFileRoot+item.getName()), StandardCopyOption.REPLACE_EXISTING);
+            }
+          }
+        }
+        return "Slipstream got the files\n";
+      });
   }
 }
