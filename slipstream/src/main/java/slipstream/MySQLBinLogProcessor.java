@@ -1,13 +1,12 @@
 package slipstream;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
-
 import java.nio.file.*;
 import java.nio.file.StandardWatchEventKinds;
 import java.io.*;
 import java.util.*;
 import java.net.*;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import com.github.shyiko.mysql.binlog.BinaryLogFileReader;
 import com.github.shyiko.mysql.binlog.event.ByteArrayEventData;
 import com.github.shyiko.mysql.binlog.event.*;
@@ -19,15 +18,22 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import slipstream.paxos.*;
 import slipstream.paxos.communication.*;
 import slipstream.paxos.fragmentation.*;
+import org.asynchttpclient.*;
+import java.util.concurrent.Future;
 
 class MySQLBinLogProcessor implements Runnable, Receiver {
   private static Logger log = LogManager.getLogger(MySQLBinLogProcessor.class);
-
   FragmentingGroup group;
+  final AsyncHttpClientConfig config;
+  AsyncHttpClient client;
+  String url;
 
   public MySQLBinLogProcessor() {
     group = null;
     joinCouncil();
+    config = new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).build();
+    client = new DefaultAsyncHttpClient(config);
+    url = "http://localhost:10000/mysql";
   }
 
   public void run() {
@@ -133,7 +139,21 @@ class MySQLBinLogProcessor implements Runnable, Receiver {
     }
   }
 
-  private void sendMsg(Message msg) {
+  private void sendMsg(Message evt) {
+    byte[] data = PaxosUtils.serialize(evt);
+    Response r;
+    try {
+      r=client.preparePost(url)
+        .setBody(data)
+        .execute()
+        .get();
+      log.info("r: {}", r);
+    } catch(Exception e) {
+      log.info(e);
+    }
+  }
+
+  private void sendRingMsg(Message msg) {
     try {
       if(group == null)
         return;
