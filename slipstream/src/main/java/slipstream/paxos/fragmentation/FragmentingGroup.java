@@ -46,6 +46,10 @@ public class FragmentingGroup {
     }
   }
 
+  public boolean isLeader() {
+    return group.isLeader();
+  }
+  
   public void close() {
     group.close();
   }

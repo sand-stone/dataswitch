@@ -52,6 +52,7 @@ public class DataServer {
         group = new FragmentingGroup(council.get(id), this);
         log.info("data server ring monitor started {}", group);
         while (true) {
+          log.info("leader {}", group.isLeader());
           group.broadcast("Ping from server " + id);
           Thread.sleep(5000);
         }

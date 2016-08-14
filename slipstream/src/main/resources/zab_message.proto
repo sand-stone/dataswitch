@@ -1,0 +1,234 @@
+package jzab;
+
+option java_package = "com.github.zk1931.jzab.proto";
+option java_outer_classname = "ZabMessage";
+
+message Message {
+  enum MessageType {
+    HEARTBEAT = 0;
+    // Corresponds to CEPOCH message in Zab paper.
+    PROPOSED_EPOCH = 1;
+    NEW_EPOCH = 2;
+    ACK_EPOCH = 3;
+    NEW_LEADER = 4;
+    ACK_LEADER = 5;
+    PROPOSE = 7;
+    ACK = 8;
+    COMMIT = 9;
+    PULL_TXN_REQ = 10;
+    PROPOSAL = 11;
+    DIFF = 12;
+    TRUNCATE = 13;
+    REQUEST = 15;
+    HANDSHAKE = 16;
+    DISCONNECTED = 17;
+    QUERY_LEADER = 18;
+    QUERY_LEADER_REPLY = 19;
+    JOIN = 20;
+    // The last message of synchronization. It contains cluster configuration.
+    SYNC_END = 21;
+    REMOVE = 22;
+    SHUT_DOWN = 23;
+    DELIVERED = 24;
+    FILE_HEADER = 25;
+    FILE_RECEIVED = 26;
+    FLUSH_REQ = 27;
+    FLUSH = 28;
+    // The request of synchronizing the log.
+    SYNC_HISTORY = 29;
+    SYNC_HISTORY_REPLY = 30;
+    ELECTION_INFO = 31;
+    // Snapshot.
+    SNAPSHOT = 32;
+    SNAPSHOT_DONE =33;
+    // Invalid message.
+    INVALID_MESSAGE = 100;
+  }
+
+  required MessageType type = 1;
+
+  // One of the following will be filled in depending on the message type. If
+  // the message type is heartbeat message, then none of the following will be
+  // filled in.
+  optional ProposedEpoch proposed_epoch = 2;
+  optional NewEpoch new_epoch = 3;
+  optional AckEpoch ack_epoch = 4;
+  optional PullTxnReq pull_txn_req = 5;
+  optional Proposal proposal = 6;
+  optional Diff diff = 7;
+  optional Truncate truncate = 8;
+  optional NewLeader new_leader = 9;
+  optional Ack ack = 10;
+  optional Request request = 12;
+  optional Commit commit = 13;
+  optional Handshake handshake = 14;
+  optional Disconnected disconnected = 15;
+  optional QueryReply reply = 16;
+  optional ClusterConfiguration config = 17;
+  optional Remove remove = 18;
+  optional Delivered delivered = 19;
+  optional FileHeader file_header = 20;
+  optional FileReceived file_received = 21;
+  optional FlushRequest flush_request = 22;
+  optional Flush flush = 23;
+  optional Join join = 24;
+  optional SyncHistory sync_history = 25;
+  optional SyncHistoryReply sync_history_reply = 26;
+  optional ElectionInfo election_info = 27;
+  optional Snapshot snapshot = 28;
+  optional SnapshotDone snapshot_done  = 29;
+  optional InvalidMessage invalid = 30;
+}
+
+message InvalidMessage {
+  required bytes received_bytes = 1;
+}
+
+// This message corresponds to CEPOCH message in Zab paper.
+message ProposedEpoch {
+  required int64 proposed_epoch = 1;
+  required int64 current_epoch = 2;
+  required ClusterConfiguration config = 3;
+  required int32 sync_timeout = 4;
+}
+
+message NewEpoch {
+  required int64 new_epoch = 1;
+  required int32 sync_timeout = 2;
+}
+
+message AckEpoch {
+  required int64 acknowledged_epoch = 1;
+  required Zxid lastZxid = 2;
+}
+
+// Leader sends this message to ask follower to sync its history to leader
+// from last_zxid.
+message PullTxnReq {
+  // Sync follower's history to leader from last_xid.
+  required Zxid last_zxid = 1;
+}
+
+// Proposal contains transaction id and transaction data.
+message Proposal {
+  enum ProposalType {
+    USER_REQUEST = 0;
+    COP = 1;
+  }
+  // Transaction id.
+  required Zxid zxid = 1;
+  // Transaction body.
+  required bytes body = 2;
+  // The type for this proposal.
+  required ProposalType type = 3;
+  // The id of the client who sends the request.
+  optional string clientId = 4;
+}
+
+message Diff {
+  required Zxid last_zxid = 1;
+}
+
+message Truncate {
+  required Zxid last_prefix_zxid = 1;
+  required Zxid last_zxid = 2;
+}
+
+message Snapshot {
+  required Zxid last_zxid = 1;
+  optional Zxid snap_zxid = 2;
+}
+
+message SnapshotDone {
+  required string file_path = 1;
+}
+
+message Zxid {
+  required int64 epoch = 1;
+  required int64 xid = 2;
+}
+
+message NewLeader {
+  required int64 epoch = 1;
+}
+
+message Ack {
+  required Zxid zxid = 1;
+}
+
+message Commit {
+  required Zxid zxid = 1;
+}
+
+message Request {
+  required bytes request = 1;
+}
+
+// This message is used by NettyTransport. When a TCP connection is established,
+// the TCP client send a Handshake message with its own node ID (hostname:port) to
+// the TCP server, where the port is the port the TCP client is listening to for
+// accepting incoming connections. When the TCP server receives the Handshake
+// message, it sends back a Handshake message with its node ID.
+message Handshake {
+  required string node_id = 1;
+}
+
+// Once onDisconnected callback is called, passe this message to main thread to
+// let it handles the disconnection. This message will not go through network.
+message Disconnected {
+  required string server_id = 1;
+}
+
+message ClusterConfiguration {
+  repeated string servers = 1;
+  required Zxid version = 2;
+}
+
+message QueryReply {
+  required string leader = 1;
+}
+
+message Join {
+  required Zxid lastZxid = 1;
+}
+
+message Remove {
+  required string serverId = 1;
+}
+
+message Delivered {
+  required Zxid zxid = 1;
+}
+
+message FileHeader {
+  required int64 length = 1;
+}
+
+message FileReceived {
+  required string full_path = 1;
+}
+
+message FlushRequest {
+  required bytes body = 2;
+}
+
+message Flush {
+  required Zxid zxid = 1;
+  required bytes body = 2;
+}
+
+message SyncHistory {
+  required Zxid last_zxid = 1;
+}
+
+message SyncHistoryReply {
+  required int32 sync_timeout = 1;
+}
+
+message ElectionInfo {
+  required string vote = 1;
+  required Zxid zxid = 2;
+  required int64 ack_epoch = 3;
+  required bool is_electing = 4;
+  required int64 round = 5;
+}

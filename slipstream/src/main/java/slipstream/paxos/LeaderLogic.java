@@ -66,6 +66,10 @@ public class LeaderLogic implements FailureListener {
     }
   }
 
+  public boolean isLeader() {
+    return iAmElected;
+  }
+  
   private void onAbort(Abort abort) {
     abortBallot(abort.seqNo);
   }

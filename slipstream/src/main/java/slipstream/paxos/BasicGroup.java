@@ -48,6 +48,10 @@ public class BasicGroup implements CommLayer.MessageListener {
     acceptorLogic.broadcast(message);
   }
 
+  public boolean isLeader() {
+    return leaderLogic.isLeader();
+  }
+  
   public void close() {
     commLayer.close();
   }
