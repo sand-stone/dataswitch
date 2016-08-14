@@ -1,22 +1,14 @@
 package slipstream;
 
 import java.io.Serializable;
-import slipstream.paxos.messages.MessageWithSender;
-import slipstream.paxos.communication.Member;
 
-public class ShardMessage implements MessageWithSender {
+public class ShardMessage {
   String shard;
   String[] uris;
-  Member sender;
   
-  public ShardMessage(Member sender, String shard, String[] uris) {
-    this.sender = sender;
+  public ShardMessage(String shard, String[] uris) {
     this.shard = shard;
     this.uris = uris;
-  }
-
-  public Member getSender() {
-    return sender; 
   }
 
   public String getShard() {
