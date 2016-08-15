@@ -53,26 +53,6 @@ public class MySQLTransactionEvent implements Message {
     return new MySQLTransactionEvent(serverid, database, table, timestamp, position);
   }
 
-  private static byte[] toBytes(Object o) {
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         ObjectOutput out = new ObjectOutputStream(bos)) {
-      out.writeObject(o);
-      return bos.toByteArray();
-    } catch (IOException e) {
-    }
-    return null;
-  }
-
-  private static Object toObject(byte[] bytes) {
-    try (ByteArrayInputStream bis = new ByteArrayInputStream(bytes);
-         ObjectInput in = new ObjectInputStream(bis)) {
-      return in.readObject();
-    } catch (IOException e) {
-    } catch (ClassNotFoundException e) {
-    }
-    return null;
-  }
-
   public ByteIterable getKey() {
     final LightOutputStream output = new LightOutputStream();
     LongBinding.writeCompressed(output, serverid);
@@ -83,10 +63,10 @@ public class MySQLTransactionEvent implements Message {
     return output.asArrayByteIterable();
   }
 
-  public ByteIterable getValue() {
+  public ByteIterable getValue() throws IOException {
     final LightOutputStream output = new LightOutputStream();
-    output.write(toBytes(mapEvent));
-    output.write(toBytes(cudEvent));
+    output.write(Serializer.serialize(mapEvent).array());
+    output.write(Serializer.serialize(cudEvent).array());
     return output.asArrayByteIterable();
   }
 

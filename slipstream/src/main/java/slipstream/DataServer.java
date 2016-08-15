@@ -20,27 +20,24 @@ import com.github.zk1931.jzab.Zab;
 import com.github.zk1931.jzab.ZabConfig;
 import com.github.zk1931.jzab.ZabException;
 import com.github.zk1931.jzab.Zxid;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionBuilder;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 public class DataServer {
   private static Logger log = LogManager.getLogger(DataServer.class);
   private static String LogData = ".data#";
   private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
+  private String dataDir;
+  private String serverid;
 
-  public DataServer() {
+  public DataServer(String serverid, String dataDir) {
+    this.serverid = serverid;
+    this.dataDir = dataDir;
   }
 
-  private static class Ring implements Runnable, StateMachine {
+  private class Ring implements Runnable, StateMachine {
     private Zab zab;
     private String serverId;
     private final ZabConfig config = new ZabConfig();
+    private Shard shard;
 
     public Ring(String serverId, String joinPeer, String logDir) {
       try {
@@ -50,18 +47,18 @@ public class DataServer {
           joinPeer = this.serverId;
         }
         if (this.serverId != null && logDir == null) {
-          // If user doesn't specify log directory, default one is
-          // serverId in current directory.
           logDir = this.serverId;
         }
         config.setLogDir(logDir);
-        if (joinPeer != null) {
+        File logdata = new File(logDir);
+        if (!logdata.exists()) {
           zab = new Zab(this, config, this.serverId, joinPeer);
         } else {
           // Recovers from log directory.
           zab = new Zab(this, config);
         }
         this.serverId = zab.getServerId();
+        shard = new Shard(DataServer.this.dataDir+File.separator+DataServer.this.serverid);
       } catch (Exception ex) {
         log.error("Caught exception : ", ex);
         throw new RuntimeException();
@@ -78,7 +75,7 @@ public class DataServer {
     public void deliver(Zxid zxid, ByteBuffer stateUpdate, String clientId,
                         Object ctx) {
       Object o = Serializer.deserialize(stateUpdate);
-      log.debug("client id {} x {} ctx {}", clientId, o, ctx);
+      shard.write(o);
     }
 
     @Override
@@ -180,61 +177,21 @@ public class DataServer {
   }
 
   public static void main(String[] args) throws Exception {
-    Options options = new Options();
-
-    Option port = OptionBuilder.withArgName("port")
-      .hasArg(true)
-      .isRequired(true)
-      .withDescription("port number")
-      .create("port");
-
-    Option addr = OptionBuilder.withArgName("addr")
-      .hasArg(true)
-      .withDescription("addr (ip:port) for Zab.")
-      .create("addr");
-
-    Option join = OptionBuilder.withArgName("join")
-      .hasArg(true)
-      .withDescription("the addr of server to join.")
-      .create("join");
-
-    Option dir = OptionBuilder.withArgName("dir")
-      .hasArg(true)
-      .withDescription("the directory for logs.")
-      .create("dir");
-
-    Option help = OptionBuilder.withArgName("h")
-      .hasArg(false)
-      .withLongOpt("help")
-      .withDescription("print out usages.")
-      .create("h");
-
-    options.addOption(port)
-      .addOption(addr)
-      .addOption(join)
-      .addOption(dir)
-      .addOption(help);
-
-    CommandLineParser parser = new BasicParser();
-    CommandLine cmd;
-
-    try {
-      cmd = parser.parse(options, args);
-      if (cmd.hasOption("h")) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("DataServer", options);
-        return;
-      }
-    } catch (ParseException exp) {
-      HelpFormatter formatter = new HelpFormatter();
-      formatter.printHelp("DataServer", options);
+    if(args.length < 1) {
+      System.out.println("java -cp ./target/slipstream-1.0-SNAPSHOT.jar slipstream.DataServer conf/dataserverX.properties");
       return;
     }
-
-    new DataServer().run(Integer.parseInt(cmd.getOptionValue("port")),
-                         cmd.getOptionValue("addr"),
-                         cmd.getOptionValue("join"),
-                         cmd.getOptionValue("dir"));
+    File propertiesFile = new File(args[0]);
+    if(!propertiesFile.exists()) {
+      System.out.printf("config file %s does not exist", propertiesFile.getName());
+      return;
+    }
+    Configurations configs = new Configurations();
+    PropertiesConfiguration config = configs.properties(propertiesFile);
+    new DataServer(config.getString("serverid"), config.getString("dataDir")).run(config.getInt("port"),
+                                                                                  config.getString("ringaddr"),
+                                                                                  config.getString("leader"),
+                                                                                  config.getString("logDir"));
   }
 
 }

@@ -20,75 +20,36 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.time.*;
 
-public class Shard implements Runnable {
+public class Shard {
   private static Logger log = LogManager.getLogger(Shard.class);
-
-  private LinkedBlockingQueue<MySQLTransactionEvent> evtsq;
   Environment env;
   Store store;
-  int id;
 
-  public Shard(String dir, int id) {
-    this.id = id;
+  public Shard(String dir) {
     env = Environments.newInstance(dir);
     store = env.computeInTransaction(new TransactionalComputable<Store>() {
         @Override
         public Store compute(@NotNull final Transaction txn) {
-          return env.openStore("slipstream#"+dir, WITHOUT_DUPLICATES_WITH_PREFIXING, txn);
+          return env.openStore(dir, WITHOUT_DUPLICATES_WITH_PREFIXING, txn);
         }
       });
-    this.evtsq = new LinkedBlockingQueue<MySQLTransactionEvent>();
-    log.info("create shard {}", dir);
   }
 
-
-  public void run() {
-
-  }
-
-  public Queue getEventQueue() {
-    return evtsq;
-  }
-
-  public Environment getEnv() {
-    return env;
-  }
-
-  public Store getStore() {
-    return store;
-  }
-
-  class WriteTask implements Runnable {
-    public WriteTask() {
-    }
-
-    public void run() {
-      final int[] count = new int[1];
-      log.info("write task starts");
-      while(true) {
-        count[0] = 0;
-        env.executeInTransaction(new TransactionalExecutable() {
-            @Override
-            public void execute(@NotNull final Transaction txn) {
-              try {
-                int batch=10000;
-                long t1 = System.nanoTime();
-                while (evtsq.size() > 0) {
-                  if (count[0] >= batch)
-                    break;
-                  MySQLTransactionEvent evt = evtsq.poll();
-                  if(evt == null) break;
-                  store.put(txn, evt.getKey(), evt.getValue());
-                  count[0]++;
-                }
-                long t2 = System.nanoTime();
-                log.info("commit {} transactions in {} mill-seconds", count[0], (t2-t1)/1e6);
-              } catch (Exception e) {
-                log.info(e);
-              }
+  public void write(Object msg) {
+    log.info("msg {} = {}",msg.getClass(), msg);
+    if(msg instanceof MySQLTransactionEvent) {
+      MySQLTransactionEvent evt = (MySQLTransactionEvent)msg;
+      env.executeInTransaction(new TransactionalExecutable() {
+          @Override
+          public void execute(@NotNull final Transaction txn) {
+            try {
+              store.put(txn, evt.getKey(), evt.getValue());
+            } catch(IOException e) {
+              log.info(e);
+              txn.abort();
             }
-          });
-      }
+          }
+        });
     }
   }
 
