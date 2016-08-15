@@ -23,12 +23,12 @@ class MySQLBinLogProcessor implements Runnable {
   private static Logger log = LogManager.getLogger(MySQLBinLogProcessor.class);
   final AsyncHttpClientConfig config;
   AsyncHttpClient client;
-  String url;
+  String[] urls;
 
-  public MySQLBinLogProcessor() {
+  public MySQLBinLogProcessor(String[] urls) {
     config = new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).build();
     client = new DefaultAsyncHttpClient(config);
-    url = "http://localhost:8080/mysql";
+    this.urls = urls;
   }
 
   public void run() {
@@ -113,7 +113,7 @@ class MySQLBinLogProcessor implements Runnable {
     ByteBuffer data = Serializer.serialize(evt);
     Response r;
     try {
-      r=client.preparePost(url)
+      r=client.preparePost(urls[0])
         .setBody(data.array())
         .execute()
         .get();
