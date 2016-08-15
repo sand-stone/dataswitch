@@ -1,5 +1,6 @@
 package slipstream;
 
+import java.nio.ByteBuffer;
 import java.nio.file.*;
 import java.nio.file.StandardWatchEventKinds;
 import java.io.*;
@@ -27,7 +28,7 @@ class MySQLBinLogProcessor implements Runnable {
   public MySQLBinLogProcessor() {
     config = new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).build();
     client = new DefaultAsyncHttpClient(config);
-    url = "http://localhost:10000/mysql";
+    url = "http://localhost:8080/mysql";
   }
 
   public void run() {
@@ -108,44 +109,12 @@ class MySQLBinLogProcessor implements Runnable {
     log.info("MySQLBinLogProcessor stops");
   }
 
-  public static byte[] serialize(Serializable serializable) {
-    try {
-      ByteArrayOutputStream baos = new ByteArrayOutputStream();
-      ObjectOutputStream out = new ObjectOutputStream(baos);
-      out.writeObject(serializable);
-      out.close();
-      return baos.toByteArray();
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    }
-  }
-
-  public static Object deserialize(byte[] bytes) {
-    ObjectInputStream ois = null;
-    try {
-      ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
-      return ois.readObject();
-    } catch (ClassNotFoundException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    } catch (IOException e) {
-      e.printStackTrace();
-      throw new RuntimeException(e);
-    } finally {
-      if (ois != null) try {
-          ois.close();
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-    }
-  }
-  private void sendMsg(Message evt) {
-    byte[] data = serialize(evt);
+  private void sendMsg(Message evt) throws IOException {
+    ByteBuffer data = Serializer.serialize(evt);
     Response r;
     try {
       r=client.preparePost(url)
-        .setBody(data)
+        .setBody(data.array())
         .execute()
         .get();
       log.info("r: {}", r);

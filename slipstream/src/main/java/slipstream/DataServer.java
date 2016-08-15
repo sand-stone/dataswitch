@@ -77,7 +77,8 @@ public class DataServer {
     @Override
     public void deliver(Zxid zxid, ByteBuffer stateUpdate, String clientId,
                         Object ctx) {
-      log.debug("deliver a message: {}", clientId);
+      Object o = Serializer.deserialize(stateUpdate);
+      log.debug("client id {} x {} ctx {}", clientId, o, ctx);
     }
 
     @Override
@@ -171,6 +172,8 @@ public class DataServer {
     threadPool(maxThreads, minThreads, timeOutMillis);
     get("/echo", (req, res) -> "Hello World from Slipstream");
     post("/mysql", (request, response) -> {
+        byte[] data = request.bodyAsBytes();
+        ring.zab.send(ByteBuffer.wrap(data), null);
         return "writing to shard\n";
       });
     init();
