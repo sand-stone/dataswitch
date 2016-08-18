@@ -1,16 +1,5 @@
 package slipstream;
 
-import jetbrains.exodus.env.*;
-import jetbrains.exodus.ByteIterable;
-import jetbrains.exodus.ArrayByteIterable;
-import jetbrains.exodus.CompoundByteIterable;
-import org.jetbrains.annotations.NotNull;
-import jetbrains.exodus.management.*;
-import static jetbrains.exodus.bindings.StringBinding.entryToString;
-import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
-import static jetbrains.exodus.bindings.LongBinding.entryToLong;
-import static jetbrains.exodus.bindings.LongBinding.longToEntry;
-import static jetbrains.exodus.env.StoreConfig.WITHOUT_DUPLICATES_WITH_PREFIXING;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,37 +8,43 @@ import org.apache.logging.log4j.LogManager;
 import java.util.*;
 import java.util.concurrent.*;
 import java.time.*;
+import com.wiredtiger.db.*;
 
 public class Shard {
   private static Logger log = LogManager.getLogger(Shard.class);
-  Environment env;
-  Store store;
+  Session session;
 
-  public Shard(String dir) {
-    env = Environments.newInstance(dir);
-    store = env.computeInTransaction(new TransactionalComputable<Store>() {
-        @Override
-        public Store compute(@NotNull final Transaction txn) {
-          return env.openStore(dir, WITHOUT_DUPLICATES_WITH_PREFIXING, txn);
-        }
-      });
+  public static boolean checkDir(String dir) {
+    boolean ret = true;
+    File d = new File(dir);
+    if(d.exists()) {
+      if(d.isFile())
+        ret = false;
+    } else {
+      d.mkdirs();
+    }
+    return ret;
   }
 
-  public void write(Object msg) {
+  public Shard(String db) {
+    checkDir(db);
+    Connection conn =  wiredtiger.open(db, "create");
+    session = conn.open_session(null);
+  }
+
+  public void write(Object msg) throws IOException {
     log.info("msg {} = {}",msg.getClass(), msg);
     if(msg instanceof MySQLTransactionEvent) {
       MySQLTransactionEvent evt = (MySQLTransactionEvent)msg;
-      env.executeInTransaction(new TransactionalExecutable() {
-          @Override
-          public void execute(@NotNull final Transaction txn) {
-            try {
-              store.put(txn, evt.getKey(), evt.getValue());
-            } catch(IOException e) {
-              log.info(e);
-              txn.abort();
-            }
-          }
-        });
+      try {
+        session.begin_transaction("isolation=snapshot");
+        Cursor c = session.open_cursor("table:acme", null, null);
+        evt.putKey(c);
+        evt.putValue(c);
+        c.insert();
+      } finally {
+        session.commit_transaction(null);
+      }
     }
   }
 

@@ -12,20 +12,8 @@ import java.io.ObjectOutputStream;
 import java.io.ObjectInput;
 import java.io.ObjectOutput;
 import java.io.IOException;
-import jetbrains.exodus.env.*;
-import jetbrains.exodus.ByteIterable;
-import jetbrains.exodus.ByteIterator;
-import jetbrains.exodus.ArrayByteIterable;
-import jetbrains.exodus.CompoundByteIterable;
-import org.jetbrains.annotations.NotNull;
-import jetbrains.exodus.management.*;
-import jetbrains.exodus.bindings.LongBinding;
-import static jetbrains.exodus.bindings.StringBinding.entryToString;
-import static jetbrains.exodus.bindings.StringBinding.stringToEntry;
-import static jetbrains.exodus.bindings.LongBinding.entryToLong;
-import static jetbrains.exodus.bindings.LongBinding.longToEntry;
-import static jetbrains.exodus.env.StoreConfig.WITHOUT_DUPLICATES_WITH_PREFIXING;
-import jetbrains.exodus.util.LightOutputStream;
+import com.wiredtiger.db.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -41,33 +29,26 @@ public class MySQLTransactionEvent implements Message {
   TableMapEventData mapEvent;
   EventData cudEvent;
 
-  public static MySQLTransactionEvent get(ByteIterable bytes) {
-    final ByteIterator iterator = bytes.iterator();
-    long serverid = LongBinding.readCompressed(iterator);
-    String database = entryToString(bytes);
-    iterator.skip(database.length()+1);
-    String table = entryToString(bytes);
-    iterator.skip(table.length()+1);
-    long timestamp = LongBinding.readCompressed(iterator);
-    long position = LongBinding.readCompressed(iterator);
+  public static MySQLTransactionEvent get(Cursor cursor) {
+    long serverid = cursor.getKeyLong();
+    String database = cursor.getKeyString();
+    String table = cursor.getKeyString();
+    long timestamp = cursor.getKeyLong();
+    long position = cursor.getKeyLong();
     return new MySQLTransactionEvent(serverid, database, table, timestamp, position);
   }
 
-  public ByteIterable getKey() {
-    final LightOutputStream output = new LightOutputStream();
-    LongBinding.writeCompressed(output, serverid);
-    output.writeString(database);
-    output.writeString(table);
-    LongBinding.writeCompressed(output, timestamp);
-    LongBinding.writeCompressed(output, position);
-    return output.asArrayByteIterable();
+  public void putKey(Cursor cursor) {
+    cursor.putKeyLong(serverid)
+      .putKeyString(database)
+      .putKeyString(table)
+      .putKeyLong(timestamp)
+      .putKeyLong(position);
   }
 
-  public ByteIterable getValue() throws IOException {
-    final LightOutputStream output = new LightOutputStream();
-    output.write(Serializer.serialize(mapEvent).array());
-    output.write(Serializer.serialize(cudEvent).array());
-    return output.asArrayByteIterable();
+  public void putValue(Cursor cursor) throws IOException {
+    cursor.putValueByteArray(Serializer.serialize(mapEvent).array())
+      .putValueByteArray(Serializer.serialize(cudEvent).array());
   }
 
   public MySQLTransactionEvent(long serverid, String database, String table, long timestamp, long position,

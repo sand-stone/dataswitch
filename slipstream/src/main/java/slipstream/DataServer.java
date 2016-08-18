@@ -75,7 +75,11 @@ public class DataServer {
     public void deliver(Zxid zxid, ByteBuffer stateUpdate, String clientId,
                         Object ctx) {
       Object o = Serializer.deserialize(stateUpdate);
-      shard.write(o);
+      try {
+        shard.write(o);
+      } catch(IOException e) {
+        log.info(e);
+      }
     }
 
     @Override

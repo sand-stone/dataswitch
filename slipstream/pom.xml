@@ -54,14 +54,7 @@
         <configuration>
           <artifactSet>
             <includes>
-              <include>org.jetbrains.xodus:xodus-environment</include>
-              <include>org.jetbrains.xodus:xodus-util</include>
-              <include>org.jetbrains.xodus:xodus-entity-store</include>
-              <include>org.jetbrains.xodus:xodus-vfs</include>
-              <include>org.jetbrains.xodus:xodus-compress</include>
-              <include>org.jetbrains.xodus:xodus-utils</include>
-              <include>org.jetbrains:annotations</include>
-              <include>org.jetbrains.xodus:xodus-openAPI</include>
+              <include>wiredtiger:wiredtiger</include>
               <include>org.apache.commons:commons-compress</include>
               <include>org.tukaani:xz</include>
               <include>com.github.shyiko:mysql-binlog-connector-java</include>
@@ -151,19 +144,9 @@
   </build>
   <dependencies>
     <dependency>
-      <groupId>org.jetbrains.xodus</groupId>
-      <artifactId>xodus-openAPI</artifactId>
-      <version>1.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jetbrains.xodus</groupId>
-      <artifactId>xodus-environment</artifactId>
-      <version>1.0.1</version>
-    </dependency>
-    <dependency>
-      <groupId>org.jetbrains.xodus</groupId>
-      <artifactId>xodus-entity-store</artifactId>
-      <version>1.0.1</version>
+      <groupId>wiredtiger</groupId>
+      <artifactId>wiredtiger</artifactId>
+      <version>2.8.1</version>
     </dependency>
     <dependency>
       <groupId>com.sparkjava</groupId>
