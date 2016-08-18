@@ -13,13 +13,13 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import static spark.Spark.*;
 import org.eclipse.jetty.websocket.api.*;
 import org.eclipse.jetty.websocket.api.annotations.*;
-import com.github.zk1931.jzab.PendingRequests;
-import com.github.zk1931.jzab.PendingRequests.Tuple;
-import com.github.zk1931.jzab.StateMachine;
-import com.github.zk1931.jzab.Zab;
-import com.github.zk1931.jzab.ZabConfig;
-import com.github.zk1931.jzab.ZabException;
-import com.github.zk1931.jzab.Zxid;
+import slipstream.jzab.PendingRequests;
+import slipstream.jzab.PendingRequests.Tuple;
+import slipstream.jzab.StateMachine;
+import slipstream.jzab.Zab;
+import slipstream.jzab.ZabConfig;
+import slipstream.jzab.ZabException;
+import slipstream.jzab.Zxid;
 
 public class DataServer {
   private static Logger log = LogManager.getLogger(DataServer.class);
