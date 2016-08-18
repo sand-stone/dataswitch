@@ -57,9 +57,9 @@
               <include>wiredtiger:wiredtiger</include>
               <include>org.apache.commons:commons-compress</include>
               <include>org.tukaani:xz</include>
-              <include>com.github.shyiko:mysql-binlog-connector-java</include>
               <include>com.sparkjava:spark-core</include>
               <include>org.slf4j:slf4j-api</include>
+              <include>org.slf4j:slf4j-simple</include>
               <include>org.eclipse.jetty:jetty-server</include>
               <include>javax.servlet:javax.servlet-api</include>
               <include>org.eclipse.jetty:jetty-http</include>
@@ -154,11 +154,6 @@
       <version>2.5</version>
     </dependency>
     <dependency>
-      <groupId>com.github.shyiko</groupId>
-      <artifactId>mysql-binlog-connector-java</artifactId>
-      <version>0.4.0</version>
-    </dependency>
-    <dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>5.1.39</version>
@@ -167,6 +162,11 @@
       <groupId>commons-net</groupId>
       <artifactId>commons-net</artifactId>
       <version>3.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>1.7.21</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>

@@ -24,7 +24,6 @@ import slipstream.jzab.Zxid;
 public class DataServer {
   private static Logger log = LogManager.getLogger(DataServer.class);
   private static String LogData = ".data#";
-  private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
   private String dataDir;
   private String serverid;
 
@@ -52,6 +51,7 @@ public class DataServer {
         config.setLogDir(logDir);
         File logdata = new File(logDir);
         if (!logdata.exists()) {
+          logdata.mkdirs();
           zab = new Zab(this, config, this.serverId, joinPeer);
         } else {
           // Recovers from log directory.
@@ -67,7 +67,7 @@ public class DataServer {
 
     @Override
     public ByteBuffer preprocess(Zxid zxid, ByteBuffer message) {
-      log.debug("Preprocessing a message: {}", message);
+      //log.debug("Preprocessing a message: {}", message);
       return message;
     }
 
@@ -76,6 +76,7 @@ public class DataServer {
                         Object ctx) {
       Object o = Serializer.deserialize(stateUpdate);
       try {
+        log.info("o={}", o);
         shard.write(o);
       } catch(IOException e) {
         log.info(e);
@@ -145,20 +146,25 @@ public class DataServer {
 
   }
 
-  @OnWebSocketConnect
-  public void connected(Session session) {
-    sessions.add(session);
-  }
+  @WebSocket
+  public static class WebSocketHandler {
+    private static final Queue<Session> sessions = new ConcurrentLinkedQueue<>();
+    @OnWebSocketConnect
+    public void connected(Session session) {
+      sessions.add(session);
+    }
 
-  @OnWebSocketClose
-  public void closed(Session session, int statusCode, String reason) {
-    sessions.remove(session);
-  }
+    @OnWebSocketClose
+    public void closed(Session session, int statusCode, String reason) {
+      sessions.remove(session);
+    }
 
-  @OnWebSocketMessage
-  public void message(Session session, String message) throws IOException {
-    System.out.println("Got: " + message);   // Print message
-    session.getRemote().sendString(message); // and send it back
+    @OnWebSocketMessage
+    public void message(Session session, String message) throws IOException {
+      System.out.println("Got: " + message);   // Print message
+      session.getRemote().sendString(message); // and send it back
+    }
+
   }
 
   public void run(int port, String serverId, String joinPeer, String logDir) {
@@ -166,7 +172,7 @@ public class DataServer {
     Thread rt = new Thread(ring);
     rt.start();
     port(port);
-    webSocket("/echo", DataServer.class);
+    webSocket("/echo", WebSocketHandler.class);
     int maxThreads = 8;
     int minThreads = 2;
     int timeOutMillis = 30000;
@@ -174,6 +180,7 @@ public class DataServer {
     get("/echo", (req, res) -> "Hello World from Slipstream");
     post("/mysql", (request, response) -> {
         byte[] data = request.bodyAsBytes();
+        log.info("zab send");
         ring.zab.send(ByteBuffer.wrap(data), null);
         return "writing to shard\n";
       });

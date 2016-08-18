@@ -28,17 +28,18 @@ public class Shard {
 
   public Shard(String db) {
     checkDir(db);
-    Connection conn =  wiredtiger.open(db, "create");
+    Connection conn = wiredtiger.open(db, "create");
     session = conn.open_session(null);
+    session.create("table:slipstream", "type=lsm,key_format=qSSqq,value_format=uu");
   }
 
   public void write(Object msg) throws IOException {
-    log.info("msg {} = {}",msg.getClass(), msg);
+    log.info("write into data shard {} = {}",msg.getClass(), msg);
     if(msg instanceof MySQLTransactionEvent) {
       MySQLTransactionEvent evt = (MySQLTransactionEvent)msg;
       try {
+        Cursor c = session.open_cursor("table:slipstream", null, null);
         session.begin_transaction("isolation=snapshot");
-        Cursor c = session.open_cursor("table:acme", null, null);
         evt.putKey(c);
         evt.putValue(c);
         c.insert();
