@@ -37,9 +37,6 @@ public class GatewayServer {
   public GatewayServer() {
   }
 
-  static final boolean SSL = System.getProperty("ssl") != null;
-  static final int PORT = Integer.parseInt(System.getProperty("port", SSL? "9443" : "9080"));
-
   public static void main(String[] args) throws Exception {
     if(args.length < 1) {
       System.out.println("java -cp ./target/slipstream-1.0-SNAPSHOT.jar slipstream.GatewayServer conf/gateway.properties");
@@ -48,11 +45,10 @@ public class GatewayServer {
     Configurations configs = new Configurations();
     File propertiesFile = new File(args[0]);
     PropertiesConfiguration config = configs.properties(propertiesFile);
-    log.info("config {} {}", config.getInt("port"),config.getStringArray("dataserver"));
+    log.info("config {} {}", config.getInt("port"), config.getStringArray("dataserver"));
     port(config.getInt("port"));
-    new Thread(new MySQLBinLogProcessor(config.getStringArray("dataserver"))).start();
-    System.err.println("Open your web browser and navigate to " +
-                       (SSL? "https" : "http") + "://127.0.0.1:" + PORT + '/');
+    MySQLBinLogProcessor proc = new MySQLBinLogProcessor(config.getStringArray("dataserver"));
+    System.out.println("Open your web browser and navigate to " + "http" + "://127.0.0.1:" + config.getInt("port") + '/');
     get("/hello", (req, res) -> "Hello World from Slipstream");
     post("/mysql", (request, response) -> {
         boolean isMultipart = ServletFileUpload.isMultipartContent(request.raw());
@@ -64,8 +60,11 @@ public class GatewayServer {
             log.info("item:{}", item);
             if (!item.isFormField()) {
               InputStream is = item.openStream();
-              String logFileRoot = request.uri().startsWith("/mysql")?GatewayServer.MySQLLogFileRoot : GatewayServer.LogFileRoot;
-              Files.copy(is, Paths.get(GatewayServer.MySQLLogFileRoot+item.getName()), StandardCopyOption.REPLACE_EXISTING);
+              try {
+                proc.process(is);
+              } catch(IOException e) {
+                log.info("log process {}", e);
+              }
             }
           }
         }
