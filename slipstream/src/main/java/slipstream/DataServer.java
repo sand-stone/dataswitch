@@ -38,7 +38,7 @@ public class DataServer {
     private final ZabConfig config = new ZabConfig();
     private Shard shard;
 
-    public Ring(String serverId, String joinPeer, String logDir) {
+    public Ring(String serverId, String joinPeer, String logDir, boolean applier) {
       try {
         this.serverId = serverId;
         if (this.serverId != null && joinPeer == null) {
@@ -58,7 +58,7 @@ public class DataServer {
           zab = new Zab(this, config);
         }
         this.serverId = zab.getServerId();
-        shard = new Shard(DataServer.this.dataDir+File.separator+DataServer.this.serverid);
+        shard = new Shard(DataServer.this.dataDir+File.separator+DataServer.this.serverid, applier);
       } catch (Exception ex) {
         log.error("Caught exception : ", ex);
         throw new RuntimeException();
@@ -167,8 +167,8 @@ public class DataServer {
 
   }
 
-  public void run(int port, String serverId, String joinPeer, String logDir) {
-    Ring ring = new Ring(serverId, joinPeer, logDir);
+  public void run(int port, String serverId, String joinPeer, String logDir, boolean applier) {
+    Ring ring = new Ring(serverId, joinPeer, logDir, applier);
     Thread rt = new Thread(ring);
     rt.start();
     port(port);
@@ -202,7 +202,8 @@ public class DataServer {
     new DataServer(config.getString("serverid"), config.getString("dataDir")).run(config.getInt("port"),
                                                                                   config.getString("ringaddr"),
                                                                                   config.getString("leader"),
-                                                                                  config.getString("logDir"));
+                                                                                  config.getString("logDir"),
+                                                                                  config.getBoolean("applier"));
   }
 
 }

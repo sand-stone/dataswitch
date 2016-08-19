@@ -13,7 +13,8 @@ import com.wiredtiger.db.*;
 public class Shard {
   private static Logger log = LogManager.getLogger(Shard.class);
   Session session;
-
+  final static String uri = "table:slipstream";
+  
   public static boolean checkDir(String dir) {
     boolean ret = true;
     File d = new File(dir);
@@ -27,10 +28,16 @@ public class Shard {
   }
 
   public Shard(String db) {
+    this(db, false);
+  }
+
+  public Shard(String db, boolean applier) {
     checkDir(db);
     Connection conn = wiredtiger.open(db, "create");
     session = conn.open_session(null);
-    session.create("table:slipstream", "type=lsm,key_format=qSSqq,value_format=uu");
+    session.create(uri, "type=lsm,key_format=qSSqq,value_format=uu");
+    if(applier)
+      new Thread(new MySQLApplier(conn, uri)).start();
   }
 
   public void write(Object msg) throws IOException {
