@@ -5,18 +5,9 @@ import com.github.shyiko.mysql.binlog.event.EventType;
 import com.github.shyiko.mysql.binlog.event.EventHeader;
 import com.github.shyiko.mysql.binlog.event.EventData;
 import com.github.shyiko.mysql.binlog.event.TableMapEventData;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInput;
-import java.io.ObjectOutput;
-import java.io.IOException;
+import java.io.*;
 import com.wiredtiger.db.*;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.time.*;
 
@@ -35,7 +26,9 @@ public class MySQLTransactionEvent implements Message {
     String table = cursor.getKeyString();
     long timestamp = cursor.getKeyLong();
     long position = cursor.getKeyLong();
-    return new MySQLTransactionEvent(serverid, database, table, timestamp, position);
+    TableMapEventData mapEvent = (TableMapEventData)Serializer.deserialize(ByteBuffer.wrap(cursor.getValueByteArray()));
+    EventData cudEvent = (EventData)Serializer.deserialize(ByteBuffer.wrap(cursor.getValueByteArray()));
+    return new MySQLTransactionEvent(serverid, database, table, timestamp, position, mapEvent, cudEvent);
   }
 
   public void putKey(Cursor cursor) {
@@ -62,12 +55,8 @@ public class MySQLTransactionEvent implements Message {
     this.cudEvent = cudEvent;
   }
 
-  MySQLTransactionEvent(long serverid, String database, String table, long timestamp, long position) {
-    this.serverid = serverid;
-    this.database = database;
-    this.table = table;
-    this.timestamp = timestamp;
-    this.position = position;
+  public String getSQL() {
+    return "sql string" + mapEvent + cudEvent;
   }
 
   public Kind getKind() {
