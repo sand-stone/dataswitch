@@ -76,7 +76,7 @@ public class DataServer {
                         Object ctx) {
       Object o = Serializer.deserialize(stateUpdate);
       try {
-        log.info("o={}", o);
+        //log.info("o={}", o);
         shard.write(o);
       } catch(IOException e) {
         log.info(e);
