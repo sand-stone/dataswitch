@@ -18,20 +18,9 @@ public class GatewayServer {
   final static String MySQLLogFileRoot = "./log/mysql/";
   final static String LogFileRoot = "./log/";
 
-  static void createDirectory(String dir) {
-    Path path = Paths.get(dir);
-    if (!Files.exists(path)) {
-      try {
-        Files.createDirectories(path);
-      } catch (IOException e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
   static {
-    createDirectory(MySQLLogFileRoot);
-    createDirectory(LogFileRoot);
+    Util.createDirectory(MySQLLogFileRoot);
+    Util.createDirectory(LogFileRoot);
   }
 
   public GatewayServer() {

@@ -1,6 +1,5 @@
 package slipstream;
 
-
 import java.io.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -9,6 +8,9 @@ import java.util.concurrent.*;
 import java.time.*;
 import com.wiredtiger.db.*;
 import java.sql.*;
+import org.asynchttpclient.*;
+import java.util.concurrent.Future;
+
 
 public class MySQLApplier implements Runnable {
   private static Logger log = LogManager.getLogger(MySQLApplier.class);
@@ -22,9 +24,15 @@ public class MySQLApplier implements Runnable {
   String PASS = "mysql";
   private java.sql.Connection conn;
 
+  AsyncHttpClient client;
+  String[] urls;
+
   public MySQLApplier(com.wiredtiger.db.Connection conn, String uri) {
     session = conn.open_session(null);
     this.uri = uri;
+    AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).build();
+    client = new DefaultAsyncHttpClient(config);
+    this.urls = new String[]{"http://localhost:10000/schema"};
   }
 
   private java.sql.Connection getSQLConn() {
@@ -37,9 +45,26 @@ public class MySQLApplier implements Runnable {
     return null;
   }
 
+  public String getSchema(String database, String table) {
+    Response r = null;
+    try {
+      r=client.prepareGet(urls[0])
+        .addQueryParam("database", database)
+        .addQueryParam("table", table)
+        .execute()
+        .get();
+      log.info("r: {}", r);
+    } catch(Exception e) {
+      log.info(e);
+    }
+    return r==null? "oops" : r.toString();
+  }
+
   private void insert(MySQLTransactionEvent evt) throws SQLException {
     //Statement stmt = conn.createStatement();
+    log.info("schema: {}", getSchema(evt.database, evt.table));
     log.info("sql string:"+ evt.getSQL());
+
     //stmt.close();
   }
 

@@ -15,24 +15,12 @@ public class Shard {
   Session session;
   final static String uri = "table:slipstream";
   
-  public static boolean checkDir(String dir) {
-    boolean ret = true;
-    File d = new File(dir);
-    if(d.exists()) {
-      if(d.isFile())
-        ret = false;
-    } else {
-      d.mkdirs();
-    }
-    return ret;
-  }
-
   public Shard(String db) {
     this(db, false);
   }
 
   public Shard(String db, boolean applier) {
-    checkDir(db);
+    Util.checkDir(db);
     Connection conn = wiredtiger.open(db, "create");
     session = conn.open_session(null);
     session.create(uri, "type=lsm,key_format=qSSqq,value_format=uu");
