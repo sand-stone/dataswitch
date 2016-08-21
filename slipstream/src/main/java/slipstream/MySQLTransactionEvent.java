@@ -195,10 +195,65 @@ public class MySQLTransactionEvent implements Message {
     return ret.toString();
   }
 
+  private String genUpdate(String schema) {
+    StringBuilder ret = new StringBuilder();
+    UpdateRowsEventData evt = (UpdateRowsEventData)cudEvent;
+    Gson gson = new Gson();
+    LinkedHashMap<String, String> cols = gson.fromJson(schema, LinkedHashMap.class);
+    Object[] fields = cols.entrySet().toArray();
+    byte[] types = getFieldTypes();
+    for (Map.Entry<Serializable[], Serializable[]> row : evt.getRows()) {
+      StringBuilder header = new StringBuilder();
+      header.append("update ").append(this.database).append(".").append(this.table).append(" set ");
+      Serializable[] datarow = (Serializable[])row.getValue();
+      StringBuilder body = new StringBuilder();
+      int count = evt.getIncludedColumns().length();
+      for(int i = 0; i < count; i++) {
+        if(evt.getIncludedColumns().get(i)) {
+          MySQLFieldType t = MySQLFieldType.map(types[i]);
+          String name = ((Map.Entry<String,String>)fields[i]).getKey();
+          body.append(name).append("=");
+          switch(t) {
+          case MYSQL_TYPE_VARCHAR:
+            body.append("'"+ new String((byte[])datarow[i]) + "'");
+            break;
+          default:
+            body.append(datarow[i].toString());
+          }
+          if(i < count-1)
+            body.append(",");
+        }
+      }
+      ret.append(header).append(body).append(" where ");
+      datarow = (Serializable[])row.getKey();
+      body = new StringBuilder();
+      for(int i = 0; i < count; i++) {
+        if(evt.getIncludedColumns().get(i)) {
+          MySQLFieldType t = MySQLFieldType.map(types[i]);
+          String name = ((Map.Entry<String,String>)fields[i]).getKey();
+          body.append(name).append("=");
+          switch(t) {
+          case MYSQL_TYPE_VARCHAR:
+            body.append("'"+ new String((byte[])datarow[i]) + "'");
+            break;
+          default:
+            body.append(datarow[i].toString());
+          }
+          if(i < count-1)
+            body.append(" and ");
+        }
+      }
+      ret.append(body).append(";\n");
+    }
+    return ret.toString();
+  }
+
   public String getSQL(String schema) {
     String ret ="";
     if (cudEvent instanceof WriteRowsEventData) {
       ret = genInsert(schema);
+    } else if (cudEvent instanceof UpdateRowsEventData) {
+      ret = genUpdate(schema);
     }
     return ret;
   }

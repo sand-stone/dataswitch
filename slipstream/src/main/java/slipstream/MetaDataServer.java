@@ -58,11 +58,12 @@ public class MetaDataServer {
         String database = request.queryParams("database");
         String table = request.queryParams("table");
         Cursor cursor = mdb.open_cursor(uri, null, null);
-        log.info("search db={} table={}", database, table);
         cursor.putKeyString(database);
         cursor.putKeyString(table);
         if(cursor.search() == 0) {
-          return cursor.getValueString();
+          String v = cursor.getValueString();
+          log.info("schema for {} {} ==> {}", database, table, v);
+          return v;
         }
         return "Slipstream does not have the schema\n";
       });

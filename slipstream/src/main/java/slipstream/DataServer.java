@@ -180,7 +180,6 @@ public class DataServer {
     get("/echo", (req, res) -> "Hello World from Slipstream");
     post("/mysql", (request, response) -> {
         byte[] data = request.bodyAsBytes();
-        log.info("zab send");
         ring.zab.send(ByteBuffer.wrap(data), null);
         return "writing to shard\n";
       });

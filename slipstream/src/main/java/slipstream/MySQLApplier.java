@@ -53,7 +53,6 @@ public class MySQLApplier implements Runnable {
         .addQueryParam("table", table)
         .execute()
         .get();
-      log.info("r: {}", r);
     } catch(Exception e) {
       log.info(e);
     }
@@ -62,9 +61,7 @@ public class MySQLApplier implements Runnable {
 
   private void insert(MySQLTransactionEvent evt) throws SQLException {
     //Statement stmt = conn.createStatement();
-    log.info("schema: {}", getSchema(evt.database, evt.table));
     log.info("sql string:"+ evt.getSQL(getSchema(evt.database, evt.table)));
-
     //stmt.close();
   }
 
@@ -78,7 +75,6 @@ public class MySQLApplier implements Runnable {
         cursor.reset();
         while (cursor.next() == 0) {
           MySQLTransactionEvent evt = MySQLTransactionEvent.get(cursor);
-          log.info("evt:{}", evt);
           insert(evt);
         }
       }
