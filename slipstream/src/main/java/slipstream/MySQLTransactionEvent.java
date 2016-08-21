@@ -2,6 +2,7 @@ package slipstream;
 
 import com.github.shyiko.mysql.binlog.event.*;
 import java.io.*;
+import com.google.gson.*;
 import com.wiredtiger.db.*;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -160,38 +161,44 @@ public class MySQLTransactionEvent implements Message {
     return mapEvent.getColumnTypes();
   }
 
-  private String genInsert() {
+  private String genInsert(String schema) {
     WriteRowsEventData evt = (WriteRowsEventData)cudEvent;
-    String header = "insert into " + this.database + "." + this.table + " Values(";
+    Gson gson = new Gson();
+    LinkedHashMap<String, String> cols = gson.fromJson(schema, LinkedHashMap.class);
+    Object[] fields = cols.entrySet().toArray();
+    StringBuilder header = new StringBuilder();
+    header.append("insert ").append(this.database).append(".").append(this.table).append(" set ");
     byte[] types = getFieldTypes();
-    String ret = "";
+    StringBuilder ret = new StringBuilder();
     for (Serializable row : evt.getRows()) {
-      Serializable[] fields = (Serializable[])row;
-      int c = 0;
-      String body = "";
-      for(Serializable field : fields) {
-        MySQLFieldType t = MySQLFieldType.map(types[c]);
-        String x = null;
-        switch(t) {
-        case MYSQL_TYPE_VARCHAR:
-          body += "'"+ new String((byte[])field) + "'";
-          break;
-        default:
-          body += field.toString();
+      Serializable[] datarow = (Serializable[])row;
+      StringBuilder body = new StringBuilder();
+      int count = evt.getIncludedColumns().length();
+      for(int i = 0; i < count; i++) {
+        if(evt.getIncludedColumns().get(i)) {
+          MySQLFieldType t = MySQLFieldType.map(types[i]);
+          String name = ((Map.Entry<String,String>)fields[i]).getKey();
+          body.append(name).append("=");
+          switch(t) {
+          case MYSQL_TYPE_VARCHAR:
+            body.append("'"+ new String((byte[])datarow[i]) + "'");
+            break;
+          default:
+            body.append(datarow[i].toString());
+          }
+          if(i < count-1)
+            body.append(",");
         }
-        c++;
-        if(c < fields.length)
-          body += ",";
       }
-      ret += header + body + ")";
+      ret.append(header).append(body).append(";");
     }
-    return ret;
+    return ret.toString();
   }
 
-  public String getSQL() {
+  public String getSQL(String schema) {
     String ret ="";
     if (cudEvent instanceof WriteRowsEventData) {
-      ret = genInsert();
+      ret = genInsert(schema);
     }
     return ret;
   }

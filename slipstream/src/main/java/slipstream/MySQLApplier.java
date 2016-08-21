@@ -57,13 +57,13 @@ public class MySQLApplier implements Runnable {
     } catch(Exception e) {
       log.info(e);
     }
-    return r==null? "oops" : r.toString();
+    return r==null? "oops" : r.getResponseBody();
   }
 
   private void insert(MySQLTransactionEvent evt) throws SQLException {
     //Statement stmt = conn.createStatement();
     log.info("schema: {}", getSchema(evt.database, evt.table));
-    log.info("sql string:"+ evt.getSQL());
+    log.info("sql string:"+ evt.getSQL(getSchema(evt.database, evt.table)));
 
     //stmt.close();
   }
@@ -83,7 +83,8 @@ public class MySQLApplier implements Runnable {
         }
       }
     } catch(Exception e) {
-      log.info(e);
+      log.error(e);
+      e.printStackTrace();
     } finally {
     }
   }
