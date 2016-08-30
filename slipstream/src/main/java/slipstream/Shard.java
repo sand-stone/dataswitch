@@ -23,15 +23,15 @@ public class Shard {
     Util.checkDir(db);
     Connection conn = wiredtiger.open(db, "create");
     session = conn.open_session(null);
-    session.create(uri, "type=lsm,key_format=qSSqq,value_format=uu");
+    session.create(uri, "type=lsm,"+DBTransactionEvent.StorageFormat);
     if(applier)
       new Thread(new MySQLApplier(conn, uri)).start();
   }
 
   public void write(Object msg) throws IOException {
     log.info("write into data shard {} = {}",msg.getClass(), msg);
-    if(msg instanceof MySQLTransactionEvent) {
-      MySQLTransactionEvent evt = (MySQLTransactionEvent)msg;
+    if(msg instanceof DBTransactionEvent) {
+      DBTransactionEvent evt = (DBTransactionEvent)msg;
       try {
         Cursor c = session.open_cursor("table:slipstream", null, null);
         session.begin_transaction("isolation=snapshot");

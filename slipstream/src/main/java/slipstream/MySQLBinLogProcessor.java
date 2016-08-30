@@ -18,6 +18,8 @@ import org.apache.commons.configuration2.*;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import org.asynchttpclient.*;
 import java.util.concurrent.Future;
+import slipstream.DBTransactionEvent.FieldType;
+import slipstream.DBTransactionEvent.OperationType;
 
 class MySQLBinLogProcessor {
   private static Logger log = LogManager.getLogger(MySQLBinLogProcessor.class);
@@ -29,6 +31,43 @@ class MySQLBinLogProcessor {
     config = new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(Integer.MAX_VALUE).build();
     client = new DefaultAsyncHttpClient(config);
     this.urls = urls;
+  }
+
+  private FieldType[] getFieldTypes(TableMapEventData mapEvent) {
+    byte[] types = mapEvent.getColumnTypes();
+    FieldType[] ftypes = new FieldType[types.length];
+    for(int i = 0; i < types.length; i++) {
+      ftypes[i] = FieldType.map(types[i]);
+    }
+    return ftypes;
+  }
+
+  private OperationType getOpType(EventData evt) {
+    OperationType ret = OperationType.None;
+    if (evt instanceof WriteRowsEventData) {
+      ret = OperationType.Insert;
+    } else if (evt instanceof UpdateRowsEventData) {
+      ret = OperationType.Update;
+    }
+    return ret;
+  }
+
+  private Object[] getRows(EventData evt) {
+    Object[] rows = null;
+    if(evt instanceof UpdateRowsEventData)
+      rows = ((UpdateRowsEventData)evt).getRows().toArray();
+    else if(evt instanceof WriteRowsEventData)
+      rows = ((WriteRowsEventData)evt).getRows().toArray();
+    return rows;
+  }
+
+  private BitSet getIncludedCols(EventData evt) {
+    BitSet ret = null;
+    if(evt instanceof UpdateRowsEventData)
+      ret = ((UpdateRowsEventData)evt).getIncludedColumns();
+    else if(evt instanceof WriteRowsEventData)
+      ret = ((WriteRowsEventData)evt).getIncludedColumns();
+    return ret;
   }
 
   public void process(InputStream input) throws IOException {
@@ -51,13 +90,15 @@ class MySQLBinLogProcessor {
           break;
         case XID:
           EventHeaderV4 header = dbevent.getHeader();
-          MySQLTransactionEvent evt = new MySQLTransactionEvent(header.getServerId(),
-                                                                mapEvent.getDatabase(),
-                                                                mapEvent.getTable(),
-                                                                header.getTimestamp(),
-                                                                header.getNextPosition(),
-                                                                mapEvent,
-                                                                crudEvent);
+          DBTransactionEvent evt = new DBTransactionEvent(header.getServerId(),
+                                                          mapEvent.getDatabase(),
+                                                          mapEvent.getTable(),
+                                                          getOpType(crudEvent),
+                                                          header.getTimestamp(),
+                                                          header.getNextPosition(),
+                                                          getIncludedCols(crudEvent),
+                                                          getFieldTypes(mapEvent),
+                                                          getRows(crudEvent));
           //log.info("transaction {}", evt);
           sendMsg(evt);
           crudEvent = null;

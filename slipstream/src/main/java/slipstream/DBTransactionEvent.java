@@ -15,14 +15,15 @@ public class DBTransactionEvent implements Message {
   long serverid;
   String table;
   String database;
+  OperationType op;
   long timestamp;
   long position;
-  OperationType op;
 
   FieldType[] colsTypes;
   Object[] colsData;
-  BitSet includedColumns;
+  BitSet includedCols;
 
+  public final static String StorageFormat = "key_format=qSSbqq,value_format=uuu";
   public static enum OperationType {
     None((byte)0),
     Insert((byte)1),
@@ -158,12 +159,13 @@ public class DBTransactionEvent implements Message {
     long serverid = cursor.getKeyLong();
     String database = cursor.getKeyString();
     String table = cursor.getKeyString();
-    byte op = cursor.getKeyByte();
+    OperationType op = OperationType.map(cursor.getKeyByte());
     long timestamp = cursor.getKeyLong();
     long position = cursor.getKeyLong();
+    BitSet includedCols = (BitSet)Serializer.deserialize(ByteBuffer.wrap(cursor.getValueByteArray()));
     FieldType[] colsTypes = (FieldType[])Serializer.deserialize(ByteBuffer.wrap(cursor.getValueByteArray()));
     Object[] colsData = (Object[])Serializer.deserialize(ByteBuffer.wrap(cursor.getValueByteArray()));
-    return new DBTransactionEvent(serverid, database, table, op, timestamp, position, colsTypes, colsData);
+    return new DBTransactionEvent(serverid, database, table, op, timestamp, position, includedCols, colsTypes, colsData);
   }
 
   public void putKey(Cursor cursor) {
@@ -176,18 +178,20 @@ public class DBTransactionEvent implements Message {
   }
 
   public void putValue(Cursor cursor) throws IOException {
-    cursor.putValueByteArray(Serializer.serialize(colsTypes).array())
+    cursor.putValueByteArray(Serializer.serialize(includedCols).array())
+      .putValueByteArray(Serializer.serialize(colsTypes).array())
       .putValueByteArray(Serializer.serialize(colsData).array());
   }
 
-  public DBTransactionEvent(long serverid, String database, String table, byte op, long timestamp, long position,
-                            FieldType[] colsTypes, Object[] colsData) {
+  public DBTransactionEvent(long serverid, String database, String table, OperationType op, long timestamp, long position,
+                            BitSet includedCols, FieldType[] colsTypes, Object[] colsData) {
     this.serverid = serverid;
     this.database = database;
     this.table = table;
-    this.op = OperationType.map(op);
+    this.op = op;
     this.timestamp = timestamp;
     this.position = position;
+    this.includedCols = includedCols;
     this.colsTypes = colsTypes;
     this.colsData = colsData;
   }
@@ -203,7 +207,7 @@ public class DBTransactionEvent implements Message {
       Serializable[] datarow = (Serializable[])row;
       StringBuilder body = new StringBuilder();
       for(int i = 0; i < colsTypes.length; i++) {
-        if(includedColumns.get(i)) {
+        if(includedCols.get(i)) {
           String name = ((Map.Entry<String,String>)fields[i]).getKey();
           body.append(name).append("=");
           switch(colsTypes[i]) {
@@ -234,7 +238,7 @@ public class DBTransactionEvent implements Message {
       Serializable[] datarow = (Serializable[])row.getValue();
       StringBuilder body = new StringBuilder();
       for(int i = 0; i < colsTypes.length; i++) {
-        if(includedColumns.get(i)) {
+        if(includedCols.get(i)) {
           String name = ((Map.Entry<String,String>)fields[i]).getKey();
           body.append(name).append("=");
           switch(colsTypes[i]) {
@@ -252,7 +256,7 @@ public class DBTransactionEvent implements Message {
       datarow = (Serializable[])row.getKey();
       body = new StringBuilder();
       for(int i = 0; i < colsTypes.length; i++) {
-        if(includedColumns.get(i)) {
+        if(includedCols.get(i)) {
           String name = ((Map.Entry<String,String>)fields[i]).getKey();
           body.append(name).append("=");
           switch(colsTypes[i]) {

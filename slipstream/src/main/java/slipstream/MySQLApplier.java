@@ -59,7 +59,7 @@ public class MySQLApplier implements Runnable {
     return r==null? "oops" : r.getResponseBody();
   }
 
-  private void insert(MySQLTransactionEvent evt) throws SQLException {
+  private void insert(DBTransactionEvent evt) throws SQLException {
     //Statement stmt = conn.createStatement();
     log.info("sql string:"+ evt.getSQL(getSchema(evt.database, evt.table)));
     //stmt.close();
@@ -74,7 +74,7 @@ public class MySQLApplier implements Runnable {
         Thread.currentThread().sleep(10000);
         cursor.reset();
         while (cursor.next() == 0) {
-          MySQLTransactionEvent evt = MySQLTransactionEvent.get(cursor);
+          DBTransactionEvent evt = DBTransactionEvent.get(cursor);
           insert(evt);
         }
       }
