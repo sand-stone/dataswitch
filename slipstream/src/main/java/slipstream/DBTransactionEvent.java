@@ -5,10 +5,11 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.time.*;
 import com.wiredtiger.db.*;
+import com.google.gson.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-public class DBTransactionEvent {
+public class DBTransactionEvent implements Message {
   private static Logger log = LogManager.getLogger(DBTransactionEvent.class);
 
   long serverid;
@@ -16,8 +17,41 @@ public class DBTransactionEvent {
   String database;
   long timestamp;
   long position;
+  OperationType op;
+
   FieldType[] colsTypes;
   Object[] colsData;
+  BitSet includedColumns;
+
+  public static enum OperationType {
+    None((byte)0),
+    Insert((byte)1),
+    Update((byte)2),
+    Delete((byte)3);
+
+    private byte t;
+
+    OperationType(byte t) {
+      this.t = t;
+    }
+
+    public byte value() {
+      return t;
+    }
+
+    public static OperationType map(byte t) {
+      switch(t) {
+      case (byte)1:
+        return Insert;
+      case (byte)2:
+        return Update;
+      case (byte)3:
+        return Delete;
+      }
+      return None;
+    }
+
+  }
 
   public static enum FieldType {
     DECIMAL(0),
@@ -124,17 +158,19 @@ public class DBTransactionEvent {
     long serverid = cursor.getKeyLong();
     String database = cursor.getKeyString();
     String table = cursor.getKeyString();
+    byte op = cursor.getKeyByte();
     long timestamp = cursor.getKeyLong();
     long position = cursor.getKeyLong();
     FieldType[] colsTypes = (FieldType[])Serializer.deserialize(ByteBuffer.wrap(cursor.getValueByteArray()));
     Object[] colsData = (Object[])Serializer.deserialize(ByteBuffer.wrap(cursor.getValueByteArray()));
-    return new DBTransactionEvent(serverid, database, table, timestamp, position, colsTypes, colsData);
+    return new DBTransactionEvent(serverid, database, table, op, timestamp, position, colsTypes, colsData);
   }
 
   public void putKey(Cursor cursor) {
     cursor.putKeyLong(serverid)
       .putKeyString(database)
       .putKeyString(table)
+      .putKeyByte(op.value())
       .putKeyLong(timestamp)
       .putKeyLong(position);
   }
@@ -144,16 +180,120 @@ public class DBTransactionEvent {
       .putValueByteArray(Serializer.serialize(colsData).array());
   }
 
-  public DBTransactionEvent(long serverid, String database, String table, long timestamp, long position,
+  public DBTransactionEvent(long serverid, String database, String table, byte op, long timestamp, long position,
                             FieldType[] colsTypes, Object[] colsData) {
     this.serverid = serverid;
     this.database = database;
     this.table = table;
+    this.op = OperationType.map(op);
     this.timestamp = timestamp;
     this.position = position;
     this.colsTypes = colsTypes;
     this.colsData = colsData;
   }
 
+  private String genInsert(String schema) {
+    Gson gson = new Gson();
+    LinkedHashMap<String, String> cols = gson.fromJson(schema, LinkedHashMap.class);
+    Object[] fields = cols.entrySet().toArray();
+    StringBuilder header = new StringBuilder();
+    header.append("insert ").append(this.database).append(".").append(this.table).append(" set ");
+    StringBuilder ret = new StringBuilder();
+    for(Object row: colsData) {
+      Serializable[] datarow = (Serializable[])row;
+      StringBuilder body = new StringBuilder();
+      for(int i = 0; i < colsTypes.length; i++) {
+        if(includedColumns.get(i)) {
+          String name = ((Map.Entry<String,String>)fields[i]).getKey();
+          body.append(name).append("=");
+          switch(colsTypes[i]) {
+          case VARCHAR:
+            body.append("'"+ new String((byte[])datarow[i]) + "'");
+            break;
+          default:
+            body.append(datarow[i].toString());
+          }
+          if(i < colsTypes.length - 1)
+            body.append(",");
+        }
+      }
+      ret.append(header).append(body).append(";");
+    }
+    return ret.toString();
+  }
+
+  private String genUpdate(String schema) {
+    StringBuilder ret = new StringBuilder();
+    Gson gson = new Gson();
+    LinkedHashMap<String, String> cols = gson.fromJson(schema, LinkedHashMap.class);
+    Object[] fields = cols.entrySet().toArray();
+    for (Object chg : colsData) {
+      Map.Entry<Serializable[], Serializable[]> row = (Map.Entry<Serializable[], Serializable[]>)chg;
+      StringBuilder header = new StringBuilder();
+      header.append("update ").append(this.database).append(".").append(this.table).append(" set ");
+      Serializable[] datarow = (Serializable[])row.getValue();
+      StringBuilder body = new StringBuilder();
+      for(int i = 0; i < colsTypes.length; i++) {
+        if(includedColumns.get(i)) {
+          String name = ((Map.Entry<String,String>)fields[i]).getKey();
+          body.append(name).append("=");
+          switch(colsTypes[i]) {
+          case VARCHAR:
+            body.append("'"+ new String((byte[])datarow[i]) + "'");
+            break;
+          default:
+            body.append(datarow[i].toString());
+          }
+          if(i < colsTypes.length - 1)
+            body.append(",");
+        }
+      }
+      ret.append(header).append(body).append(" where ");
+      datarow = (Serializable[])row.getKey();
+      body = new StringBuilder();
+      for(int i = 0; i < colsTypes.length; i++) {
+        if(includedColumns.get(i)) {
+          String name = ((Map.Entry<String,String>)fields[i]).getKey();
+          body.append(name).append("=");
+          switch(colsTypes[i]) {
+          case VARCHAR:
+            body.append("'"+ new String((byte[])datarow[i]) + "'");
+            break;
+          default:
+            body.append(datarow[i].toString());
+          }
+          if(i < colsTypes.length - 1)
+            body.append(" and ");
+        }
+      }
+      ret.append(body).append(";\n");
+    }
+    return ret.toString();
+  }
+
+  public String getSQL(String schema) {
+    String ret ="";
+    switch(op) {
+    case Insert:
+      ret = genInsert(schema);
+      break;
+    case Update:
+      ret = genUpdate(schema);
+      break;
+    default:
+      log.info("not supported yet");
+      break;
+    }
+    return ret;
+  }
+
+  public Kind getKind() {
+    return Kind.DBTransaction;
+  }
+
+  public String toString() {
+    return "<"+ "serverid:" + serverid +
+      " database: "+ database +" table:" + table + " timestamp:" + timestamp + " position:"+ position +">";
+  }
 
 }

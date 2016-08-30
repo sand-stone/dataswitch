@@ -259,7 +259,7 @@ public class MySQLTransactionEvent implements Message {
   }
 
   public Kind getKind() {
-    return Kind.MySQLTransaction;
+    return Kind.DBTransaction;
   }
 
   public String toString() {
