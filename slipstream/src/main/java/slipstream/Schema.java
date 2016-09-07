@@ -26,4 +26,11 @@ public class Schema {
     public List<String> ensemable;
   }
 
+  public static class TableSchema {
+    public String uri;
+    public String database;
+    public String table;
+    public LinkedHashMap<String, String> cols;
+  }
+
 }

@@ -10,15 +10,17 @@ import java.util.concurrent.*;
 import java.time.*;
 import com.wiredtiger.db.*;
 
-class MetaDataTable {
-  final static String datasource = "table:datasource";
-  final static String ensemble = "table:ensemble";
-  final static String shard = "table:shard";
-  final static String schema = "table:schema";
+class MetaDataTable implements AutoCloseable {
+  private final static String datasource = "table:datasource";
+  private final static String ensemble = "table:ensemble";
+  private final static String shard = "table:shard";
+  private final static String schema = "table:schema";
   private static final String storage_format = "key_format=S,value_format=u";
+  private static final String schema_format = "key_format=SSS,value_format=u";
 
   private static Logger log = LogManager.getLogger(MetaDataTable.class);
-  Connection conn;
+
+  private Connection conn;
 
   public MetaDataTable(String db) {
     Util.checkDir(db);
@@ -30,7 +32,7 @@ class MetaDataTable {
     check(ret);
     ret = session.create(shard, storage_format);
     check(ret);
-    ret = session.create(schema, "key_format=SS,value_format=S");
+    ret = session.create(schema, schema_format);
     check(ret);
     session.close(null);
   }
@@ -38,6 +40,24 @@ class MetaDataTable {
   private void check(int ret) {
     if(ret != 0)
       throw new RuntimeException("wt DataTable creation error:"+ret);
+  }
+
+  public Context get(String db) {
+    return new Context(db);
+  }
+
+  public class Context implements AutoCloseable {
+    public Context(String db) {
+
+    }
+
+    public void write(Object... args) {
+
+    }
+
+    public void close() {
+
+    }
   }
 
   public void close() {
