@@ -68,7 +68,8 @@ class MetaDataTable implements AutoCloseable {
       case "schema":
         cursor
           .putKeyString((String)args[0])
-          .putKeyString((String)args[1]);
+          .putKeyString((String)args[1])
+          .putKeyString((String)args[2]);
         if(cursor.search() == 0) {
           ret = cursor.getValueString();
         }
@@ -85,7 +86,8 @@ class MetaDataTable implements AutoCloseable {
         cursor
           .putKeyString((String)args[0])
           .putKeyString((String)args[1])
-          .putValueString((String)args[2]);
+          .putKeyString((String)args[2])
+          .putValueString((String)args[3]);
         cursor.insert();
         break;
       default:

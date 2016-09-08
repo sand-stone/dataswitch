@@ -15,6 +15,6 @@ const getContent = function(url) {
   })
 };
 
-getContent('http://localhost:10000/schema?database=acme&table=employees')
+getContent('http://localhost:10000/schema?uri=acme&database=acme&table=employees')
   .then((data) => console.log(data))
   .catch((err) => console.error(err));

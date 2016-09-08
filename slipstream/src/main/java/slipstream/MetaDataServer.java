@@ -34,7 +34,7 @@ public class MetaDataServer {
       for(String schema : schemas) {
         Schema.TableSchema s = gson.fromJson(schema, Schema.TableSchema.class);
         log.info("init db={} table={}", s.database, s.table);
-        cxt.insert(s.database, s.table, gson.toJson(s.cols));
+        cxt.insert(s.uri, s.database, s.table, gson.toJson(s.cols));
       }
     }
 
@@ -42,10 +42,11 @@ public class MetaDataServer {
     port(config.getInt("port"));
     get("/", (req, res) -> "This is MetaDataServer micro service");
     get("/schema", (request, response) -> {
+        String uri = request.queryParams("uri");
         String database = request.queryParams("database");
         String table = request.queryParams("table");
         try (MetaDataTable.Context cxt = mdb.getContext("schema")) {
-          String ret = (String)cxt.search(database, table);
+          String ret = (String)cxt.search(uri, database, table);
           if(ret != null) {
             return ret;
           }
