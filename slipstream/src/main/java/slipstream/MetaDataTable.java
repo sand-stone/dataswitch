@@ -16,7 +16,7 @@ class MetaDataTable implements AutoCloseable {
   private final static String shard = "table:shard";
   private final static String schema = "table:schema";
   private static final String storage_format = "key_format=S,value_format=u";
-  private static final String schema_format = "key_format=SSS,value_format=u";
+  private static final String schema_format = "key_format=SSS,value_format=S";
 
   private static Logger log = LogManager.getLogger(MetaDataTable.class);
 
@@ -42,22 +42,62 @@ class MetaDataTable implements AutoCloseable {
       throw new RuntimeException("wt DataTable creation error:"+ret);
   }
 
-  public Context get(String db) {
+  public Context getContext(String db) {
     return new Context(db);
   }
 
   public class Context implements AutoCloseable {
+    String db;
+    Session session;
+    Cursor cursor;
     public Context(String db) {
-
+      this.db = db;
+      switch(db) {
+      case "schema":
+        session = MetaDataTable.this.conn.open_session(null);
+        cursor = session.open_cursor(schema, null, null);
+        break;
+      default:
+        break;
+      }
     }
 
-    public void write(Object... args) {
+    public Object search(Object ... args) {
+      Object ret = null;
+      switch(db) {
+      case "schema":
+        cursor
+          .putKeyString((String)args[0])
+          .putKeyString((String)args[1]);
+        if(cursor.search() == 0) {
+          ret = cursor.getValueString();
+        }
+        break;
+      default:
+        break;
+      }
+      return ret;
+    }
 
+    public void insert(Object... args) {
+      switch(db) {
+      case "schema":
+        cursor
+          .putKeyString((String)args[0])
+          .putKeyString((String)args[1])
+          .putValueString((String)args[2]);
+        cursor.insert();
+        break;
+      default:
+        break;
+      }
     }
 
     public void close() {
-
+      cursor.close();
+      session.close(null);
     }
+
   }
 
   public void close() {
