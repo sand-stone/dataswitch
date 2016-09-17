@@ -19,6 +19,7 @@ public final class Table {
   public static class Column {
     String name;
     ColumnType type;
+    boolean iskey;
 
     public String getName() {
       return name;
@@ -26,6 +27,10 @@ public final class Table {
 
     public ColumnType getType() {
       return type;
+    }
+
+    public boolean iskey() {
+      return iskey;
     }
   }
 
@@ -46,6 +51,10 @@ public final class Table {
 
     public void type(ColumnType type) {
       c.type = type;
+    }
+
+    public void key(boolean iskey) {
+      c.iskey = iskey;
     }
 
     public void value(Object o) {
@@ -73,15 +82,6 @@ public final class Table {
     }
   }
 
-  public static class KeyedTableBuilder {
-    Table t;
-
-    public KeyedTableBuilder() {
-      t = new Table();
-    }
-
-  }
-
   public void addColumn(Column c) {
     cols.add(c);
   }
@@ -103,14 +103,15 @@ public final class Table {
     builder.append("table<");
     for(Column c : cols) {
       builder.append(c.getName());
-      builder.append(":");
+      builder.append("::"+c.iskey());
+      builder.append("::");
       builder.append(c.getType());
       builder.append(" ");
     }
     builder.append(">");
     return builder.toString();
   }
-  
+
   public static void main(String[] args) {
     Table tbl = TableBuilder.Table(t -> {
         t.column( c -> {
@@ -126,4 +127,3 @@ public final class Table {
   }
 
 }
-
