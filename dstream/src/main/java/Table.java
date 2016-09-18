@@ -82,6 +82,14 @@ public final class Table {
     }
   }
 
+  public static class Row {
+
+  }
+  
+  public static class RowBuilder {
+    Row r;
+  }
+  
   public void addColumn(Column c) {
     cols.add(c);
   }
