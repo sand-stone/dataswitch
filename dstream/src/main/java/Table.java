@@ -82,14 +82,89 @@ public final class Table {
     }
   }
 
-  public static class Row {
+  public static class Field {
+    private String name;
+    private String sval;
+    private int ival;
+    private long lval;
+    private double dval;
+    
+  }
 
+  public static class FieldBuilder {
+    private Field f;
+    
+    public FieldBuilder() {
+      f = new Field();
+    }
+    
+    public Field field(){
+      return f;
+    }
+    
+    public void field(String name, int val) {
+      f.name = name;
+      f.ival = val;
+    }
+
+    public void field(String name, long val) {
+      f.name = name;
+      f.lval = val;      
+    }
+
+    public void field(String name, double val) {
+      f.name = name;
+      f.dval = val;
+    }
+
+    public void field(String name, String val) {
+      f.name = name;
+      f.sval = val;
+    }
+  }
+
+  public static class Row {
+    List<Field> fields = new ArrayList<Field>();
+    
+    public void add(Field f) {
+      fields.add(f);
+    }
+
+    public String toString() {
+      StringBuilder builder = new StringBuilder();
+      builder.append("row<");
+      for(Field f : fields) {
+      builder.append(f.name);
+      builder.append("::");
+      builder.append(f.ival);
+      builder.append(" ");
+    }
+      builder.append(">");
+      return builder.toString();
+    }
   }
   
   public static class RowBuilder {
     Row r;
+    
+    public static Row Row(Consumer<RowBuilder> consumer) {
+      RowBuilder builder = new RowBuilder();
+      consumer.accept(builder);
+      return builder.r;
+    }
+
+    public RowBuilder() {
+      this.r = new Row();
+    }
+
+    public void field(Consumer<FieldBuilder> consumer) {
+      FieldBuilder builder = new FieldBuilder();
+      consumer.accept(builder);
+      Field f = builder.field();
+      r.add(f);
+    }
   }
-  
+
   public void addColumn(Column c) {
     cols.add(c);
   }
@@ -106,6 +181,10 @@ public final class Table {
     return tbl;
   }
 
+  public void insert(Row r) {
+    System.out.println(r);
+  }
+
   public String toString() {
     StringBuilder builder = new StringBuilder();
     builder.append("table<");
@@ -118,20 +197,6 @@ public final class Table {
     }
     builder.append(">");
     return builder.toString();
-  }
-
-  public static void main(String[] args) {
-    Table tbl = TableBuilder.Table(t -> {
-        t.column( c -> {
-            c.name("col1");
-            c.type(ColumnType.Int8);
-          });
-        t.column( c -> {
-            c.name("col2");
-            c.type(ColumnType.Varchar);
-          });
-      });
-    System.out.println(tbl);
   }
 
 }

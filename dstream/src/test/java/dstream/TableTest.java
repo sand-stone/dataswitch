@@ -6,35 +6,19 @@ import junit.framework.TestSuite;
 
 import static dstream.Table.*;
 import static dstream.Table.TableBuilder.*;
+import static dstream.Table.RowBuilder.*;
 
-/**
- * Unit test for simple App.
- */
 public class TableTest extends TestCase
 {
-  /**
-   * Create the test case
-   *
-   * @param testName name of the test case
-   */
-  public TableTest(String testName)
-  {
+  public TableTest(String testName) {
     super(testName);
   }
 
-  /**
-   * @return the suite of tests being tested
-   */
-  public static Test suite()
-  {
+  public static Test suite() {
     return new TestSuite(TableTest.class);
   }
 
-  /**
-   * Rigourous Test :-)
-   */
-  public void testApp()
-  {
+  public void testCreateTable() {
     Table tbl = Table(t -> {
         t.column( c -> {
             c.name("col1");
@@ -45,10 +29,32 @@ public class TableTest extends TestCase
             c.type(ColumnType.Varchar);
           });
       });
-    System.out.println(tbl);
-
-    assertTrue( true );
+    assertTrue(true);
   }
 
+  public void testInsertRow() {
+    Table tbl = Table(t -> {
+        t.column(c -> {
+            c.name("col1");
+            c.type(ColumnType.Int8);
+          });
+        t.column( c -> {
+            c.name("col2");
+            c.type(ColumnType.Varchar);
+          });
+      });
+    
+    Row row = Row(r -> {
+        r.field(f -> {
+            f.field("col1", 12345);
+          });
+        r.field(f -> {
+            f.field("col2", "acme");
+          });        
+      });
+    tbl.insert(row);
+    assertTrue(true);
+  }
+  
 }
 
