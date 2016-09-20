@@ -7,16 +7,17 @@ import java.nio.ByteBuffer;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
-public final class Table {
+public final class Table implements Serializable {
   private static Logger log = LogManager.getLogger(Table.class);
   List<Column> cols;
+  String name;
 
   public enum ColumnType {
     Int8, Int16, Int32, Int64, Float, Double,
-    Varchar, Symbol, Timestamp, DateTime,
+    Varchar, Symbol, Blob, Timestamp, DateTime,
   }
 
-  public static class Column {
+  public static class Column implements Serializable {
     String name;
     ColumnType type;
     boolean iskey;
@@ -64,12 +65,12 @@ public final class Table {
   public static class TableBuilder {
     Table t;
 
-    public TableBuilder() {
-      t = new Table();
+    public TableBuilder(String name) {
+      t = new Table(name);
     }
 
-    public static Table Table(Consumer<TableBuilder> consumer) {
-      TableBuilder builder = new TableBuilder();
+    public static Table Table(String name, Consumer<TableBuilder> consumer) {
+      TableBuilder builder = new TableBuilder(name);
       consumer.accept(builder);
       return builder.t;
     }
@@ -88,20 +89,20 @@ public final class Table {
     private int ival;
     private long lval;
     private double dval;
-    
+
   }
 
   public static class FieldBuilder {
     private Field f;
-    
+
     public FieldBuilder() {
       f = new Field();
     }
-    
+
     public Field field(){
       return f;
     }
-    
+
     public void field(String name, int val) {
       f.name = name;
       f.ival = val;
@@ -109,7 +110,7 @@ public final class Table {
 
     public void field(String name, long val) {
       f.name = name;
-      f.lval = val;      
+      f.lval = val;
     }
 
     public void field(String name, double val) {
@@ -125,7 +126,7 @@ public final class Table {
 
   public static class Row {
     List<Field> fields = new ArrayList<Field>();
-    
+
     public void add(Field f) {
       fields.add(f);
     }
@@ -143,10 +144,10 @@ public final class Table {
       return builder.toString();
     }
   }
-  
+
   public static class RowBuilder {
     Row r;
-    
+
     public static Row Row(Consumer<RowBuilder> consumer) {
       RowBuilder builder = new RowBuilder();
       consumer.accept(builder);
@@ -169,12 +170,13 @@ public final class Table {
     cols.add(c);
   }
 
-  private Table() {
+  private Table(String name) {
     cols = new ArrayList<Column>();
+    this.name = name;
   }
 
-  public static Table Table(Column... cols) {
-    Table tbl = new Table();
+  public static Table Table(String name, Column... cols) {
+    Table tbl = new Table(name);
     for(Column c : cols) {
       tbl.addColumn(c);
     }

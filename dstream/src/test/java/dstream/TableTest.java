@@ -19,7 +19,7 @@ public class TableTest extends TestCase
   }
 
   public void testCreateTable() {
-    Table tbl = Table(t -> {
+    Table tbl = Table("acme", t -> {
         t.column( c -> {
             c.name("col1");
             c.type(ColumnType.Int8);
@@ -33,28 +33,27 @@ public class TableTest extends TestCase
   }
 
   public void testInsertRow() {
-    Table tbl = Table(t -> {
-        t.column(c -> {
-            c.name("col1");
-            c.type(ColumnType.Int8);
-          });
-        t.column( c -> {
-            c.name("col2");
-            c.type(ColumnType.Varchar);
-          });
-      });
-    
+    Table tbl = Table("acme", (t -> {
+          t.column(c -> {
+              c.name("col1");
+              c.type(ColumnType.Int8);
+            });
+          t.column( c -> {
+              c.name("col2");
+              c.type(ColumnType.Varchar);
+            });
+        }));
+
     Row row = Row(r -> {
         r.field(f -> {
             f.field("col1", 12345);
           });
         r.field(f -> {
             f.field("col2", "acme");
-          });        
+          });
       });
     tbl.insert(row);
     assertTrue(true);
   }
-  
-}
 
+}
