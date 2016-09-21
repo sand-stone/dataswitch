@@ -2,6 +2,7 @@ package dstream;
 
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.*;
 import java.nio.ByteBuffer;
 import org.apache.logging.log4j.Logger;
@@ -21,16 +22,20 @@ public final class Client implements Closeable {
     client = new DefaultAsyncHttpClient(config);
   }
 
-  public void sendMsg(String url, Serializable evt) throws IOException {
-    ByteBuffer data = Serializer.serialize(evt);
-    Response r;
+  public void sendMsg(String url, Serializable evt) {
     try {
+      ByteBuffer data = Serializer.serialize(evt);
+      Response r;
       r=client.preparePost(url)
         .setBody(data.array())
         .execute()
         .get();
       log.info("r: {}", r);
-    } catch(Exception e) {
+    } catch(IOException e) {
+      log.info(e);
+    } catch(InterruptedException e) {
+      log.info(e);
+    } catch(ExecutionException e) {
       log.info(e);
     }
   }
@@ -41,7 +46,33 @@ public final class Client implements Closeable {
     } catch(IOException e) {}
   }
 
-  public static void main() {
+  private static Table buildTestTable() {
+    return Table.TableBuilder.Table("acme", t -> {
+        t.column( c -> {
+            c.name("col1");
+            c.type(Table.ColumnType.Int8);
+          });
+        t.column( c -> {
+            c.name("col2");
+            c.type(Table.ColumnType.Varchar);
+          });
+      });
+  }
+
+  private static Message.UpsertTable genTestData() {
+    List<String> names = Arrays.asList("col1", "col2");
+    List<Object> values = new ArrayList<Object>();
+    int[] col1 = { 1, 2, 3};
+    String[] col2 = {"aaa", "bbb", "ccc"};
+    values.add(col1);
+    values.add(col2);
+    return new Message.UpsertTable("acme", names, values);
+  }
+
+  public static void main(String[] args) {
+    Client client = new Client();
+    client.sendMsg("http://localhost:8000/createtable", new Message.CreateTable(buildTestTable()));
+    client.sendMsg("http://localhost:8000/upsertable", genTestData());
   }
 
 }

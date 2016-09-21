@@ -38,6 +38,7 @@ public class Tablet implements Closeable {
     this.table = table;
     conn = wiredtiger.open(location, dbconfig);
     Session session = conn.open_session(null);
+    log.info("storage: {}", getStorage());
     session.create("table:"+table.name, getStorage());
     session.close(null);
   }
@@ -88,7 +89,6 @@ public class Tablet implements Closeable {
     StringBuilder cols = new StringBuilder();
     key_format.append("key_format=");
     value_format.append(",value_format=");
-    cols.append("columns=(");
     boolean haskey = false; boolean start = true;
     for(Table.Column col : table.cols) {
       if(col.iskey()) {
@@ -99,14 +99,23 @@ public class Tablet implements Closeable {
       }
       if(!start) {
         cols.append(",");
-        start = false;
       }
+      start = false;
       cols.append(col.getName());
     }
-    if(!haskey)
-      key_format.append("key_format=r");
+    if(!haskey) {
+      key_format.append("r");
+      cols.insert(0,"columns=(id,");
+    } else {
+      cols.append("columns=(");
+    }
     cols.append(")");
-    return "(type=lsm," + key_format.toString() + "," + value_format.toString() + "," + cols;
+    return "(type=lsm," + key_format.toString() + "," + value_format.toString() + "," + cols + ")";
+  }
+
+  public void upsert(Message.UpsertTable msg) {
+    log.info("cols: {}", msg.names);
+    log.info("values: {}", msg.values);
   }
 
   public void close() {

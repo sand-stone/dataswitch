@@ -21,6 +21,10 @@ final class Serializer {
     }
   }
 
+  public static Object deserialize(byte[] data) {
+    return deserialize(ByteBuffer.wrap(data));
+  }
+
   public static Object deserialize(ByteBuffer bb) {
     byte[] bytes = new byte[bb.remaining()];
     bb.get(bytes);
@@ -32,5 +36,5 @@ final class Serializer {
       throw new RuntimeException("Failed to deserialize ByteBuffer");
     }
   }
-  
+
 }

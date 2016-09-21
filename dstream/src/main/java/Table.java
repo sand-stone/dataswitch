@@ -166,8 +166,12 @@ public final class Table implements Serializable {
     }
   }
 
-  public void addColumn(Column c) {
-    cols.add(c);
+  public static Table Table(String name, Column... cols) {
+    Table tbl = new Table(name);
+    for(Column c : cols) {
+      tbl.addColumn(c);
+    }
+    return tbl;
   }
 
   private Table(String name) {
@@ -175,12 +179,12 @@ public final class Table implements Serializable {
     this.name = name;
   }
 
-  public static Table Table(String name, Column... cols) {
-    Table tbl = new Table(name);
-    for(Column c : cols) {
-      tbl.addColumn(c);
-    }
-    return tbl;
+  public String getName() {
+    return name;
+  }
+
+  public void addColumn(Column c) {
+    cols.add(c);
   }
 
   public void insert(Row r) {
