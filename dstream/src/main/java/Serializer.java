@@ -37,4 +37,8 @@ final class Serializer {
     }
   }
 
+  public static ByteBuffer serialize(Expression.SerializableFunction lambda) throws IOException {
+    return Expression.WireSerializedLambda.write(lambda);
+  }
+
 }

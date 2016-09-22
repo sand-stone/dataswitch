@@ -57,7 +57,16 @@ public final class DataNode {
     post("/querytable", (request, response) -> {
         byte[] data = request.bodyAsBytes();
         Message.QueryTable msg = (Message.QueryTable)Serializer.deserialize(data);
-        log.info("msg {}", msg);
+        log.info("msg {}", msg.table);
+        Expression.WireSerializedLambda f = Expression.WireSerializedLambda.read(ByteBuffer.wrap(msg.expr));
+        Tablet tablet = shards.get(msg.table);
+        try(Tablet.Context ctx = tablet.getContext()) {
+          try {
+            tablet.filter(ctx, f);
+          } catch(Exception ex) {
+            log.info(ex.toString());
+          }
+        }
         return "query table\n";
       });
     init();

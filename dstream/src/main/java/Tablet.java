@@ -148,6 +148,18 @@ public class Tablet implements Closeable {
     return new Context();
   }
 
+  public void filter(Context ctx, Expression.WireSerializedLambda lambda) {
+    log.info("filter {} {}", lambda, lambda.args());
+    for(Object o: lambda.args()) {
+      log.info("arg {}", o);
+    }
+    Expression.SerializableFunction<Integer, Boolean> filter = (Expression.SerializableFunction<Integer, Boolean>)lambda.readResolve();
+    ctx.cursor.reset();
+    while(ctx.cursor.next()==0) {
+      log.info("v = {}", ctx.cursor.getKeyInt());
+    }
+  }
+
   public void upsert(Context ctx, Message.UpsertTable msg) {
     log.info("cols: {}", msg.names);
     log.info("values: {}", msg.values);

@@ -39,9 +39,10 @@ public final class Message implements Serializable {
 
   public static final class QueryTable implements Serializable {
     public String table;
-
-    public QueryTable(String table) {
+    public byte[] expr;
+    public QueryTable(String table, byte[] expr) {
       this.table = table;
+      this.expr = expr;
     }
   }
 

@@ -70,10 +70,17 @@ public final class Client implements Closeable {
     return new Message.UpsertTable("acme", names, values);
   }
 
+  private static Message.QueryTable genExpr() {
+    int v = 2;
+    Expression.SerializableFunction<Integer, Boolean> filter = i -> i > v;
+    return new Message.QueryTable("acme", Expression.WireSerializedLambda.write(filter).array());
+  }
+
   public static void main(String[] args) {
     Client client = new Client();
     client.sendMsg("http://localhost:8000/createtable", new Message.CreateTable(buildTestTable()));
     client.sendMsg("http://localhost:8000/upsertable", genTestData());
+    client.sendMsg("http://localhost:8000/querytable", genExpr());
   }
 
 }

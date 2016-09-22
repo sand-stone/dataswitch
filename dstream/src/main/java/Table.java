@@ -17,7 +17,7 @@ public final class Table implements Serializable {
     Varchar, Symbol, Blob, Timestamp, DateTime,
   }
 
-  public static class Column implements Serializable {iskey
+  public static class Column implements Serializable {
     String name;
     ColumnType type;
     boolean iskey;
