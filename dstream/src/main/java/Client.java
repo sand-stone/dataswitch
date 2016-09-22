@@ -50,7 +50,8 @@ public final class Client implements Closeable {
     return Table.TableBuilder.Table("acme", t -> {
         t.column( c -> {
             c.name("col1");
-            c.type(Table.ColumnType.Int8);
+            c.type(Table.ColumnType.Int32);
+            c.key(true);
           });
         t.column( c -> {
             c.name("col2");

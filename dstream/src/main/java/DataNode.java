@@ -38,7 +38,13 @@ public final class DataNode {
         byte[] data = request.bodyAsBytes();
         Message.UpsertTable msg = (Message.UpsertTable)Serializer.deserialize(data);
         Tablet tablet = shards.get(msg.table);
-        tablet.upsert(msg);
+        try(Tablet.Context ctx = tablet.getContext()) {
+          try {
+            tablet.upsert(ctx, msg);
+          } catch(Exception ex) {
+            log.info(ex.toString());
+          }
+        }
         log.info("msg {}", msg);
         return "upsert table\n";
       });

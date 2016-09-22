@@ -3,6 +3,7 @@ package dstream;
 import com.wiredtiger.db.*;
 import java.nio.*;
 import java.io.*;
+import java.lang.reflect.Array;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import com.google.gson.*;
@@ -39,7 +40,7 @@ public class Tablet implements Closeable {
     conn = wiredtiger.open(location, dbconfig);
     Session session = conn.open_session(null);
     log.info("storage: {}", getStorage());
-    session.create("table:"+table.name, getStorage());
+    session.create("table:" + table.name, getStorage());
     session.close(null);
   }
 
@@ -107,15 +108,84 @@ public class Tablet implements Closeable {
       key_format.append("r");
       cols.insert(0,"columns=(id,");
     } else {
-      cols.append("columns=(");
+      cols.insert(0,"columns=(");
     }
     cols.append(")");
     return "(type=lsm," + key_format.toString() + "," + value_format.toString() + "," + cols + ")";
   }
 
-  public void upsert(Message.UpsertTable msg) {
+  private int[] getPerm(List<String> names) {
+    List<Table.Column> cols = table.getCols();
+    int[] perm = new int[cols.size()];
+    for(int i = 0; i < perm.length; i++) {
+      int j = 0;
+      for(String name: names) {
+        if(cols.get(i).getName().equals(name)) {
+          perm[i] = j;
+          break;
+        }
+        j++;
+      }
+    }
+    return perm;
+  }
+
+  public class Context implements Closeable {
+    Session session;
+    Cursor cursor;
+
+    public Context() {
+      session = Tablet.this.conn.open_session(null);
+      cursor = session.open_cursor("table:" + Tablet.this.table.name, null, null);
+    }
+
+    public void close() {
+      session.close(null);
+    }
+  }
+
+  public Context getContext() {
+    return new Context();
+  }
+
+  public void upsert(Context ctx, Message.UpsertTable msg) {
     log.info("cols: {}", msg.names);
     log.info("values: {}", msg.values);
+    int[] perm = getPerm(msg.names);
+    List<Object> values = msg.values;
+    int len = Array.getLength(values.get(0));
+    List<Table.Column> cols = table.getCols();
+    ctx.cursor.reset();
+    for(int i = 0; i < len; i++) {
+      for(int j = 0; j < perm.length; j++) {
+        Table.Column col = cols.get(j);
+        switch(col.getType()) {
+        case Int32:
+          {
+            int[] vals = (int[])values.get(perm[j]);
+            log.info("put int: {}", vals[i]);
+            if(col.iskey())
+              ctx.cursor.putKeyInt(vals[i]);
+            else
+              ctx.cursor.putValueInt(vals[i]);
+          }
+          break;
+        case Varchar:
+          {
+            String[] vals = (String[])values.get(perm[j]);
+            log.info("put string: {}", vals[i]);
+            if(col.iskey())
+              ctx.cursor.putKeyString(vals[i]);
+            else
+              ctx.cursor.putValueString(vals[i]);
+          }
+          break;
+        default:
+          assert false: "unhandled type";
+        }
+      }
+      ctx.cursor.insert();
+    }
   }
 
   public void close() {
