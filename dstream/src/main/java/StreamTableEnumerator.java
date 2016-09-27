@@ -28,7 +28,7 @@ import java.util.zip.GZIPInputStream;
  *
  * @param <E> Row type
  */
-class STableEnumerator<E> implements Enumerator<E> {
+class StreamTableEnumerator<E> implements Enumerator<E> {
   private final String[] filterValues;
   private final AtomicBoolean cancelFlag;
   private final RowConverter<E> rowConverter;
@@ -46,19 +46,19 @@ class STableEnumerator<E> implements Enumerator<E> {
       FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss", gmt);
   }
 
-  public STableEnumerator(File file, AtomicBoolean cancelFlag,
-                          List<SFieldType> fieldTypes) {
+  public StreamTableEnumerator(File file, AtomicBoolean cancelFlag,
+                          List<StreamFieldType> fieldTypes) {
     this(file, cancelFlag, fieldTypes, identityList(fieldTypes.size()));
   }
 
-  public STableEnumerator(File file, AtomicBoolean cancelFlag,
-                          List<SFieldType> fieldTypes, int[] fields) {
+  public StreamTableEnumerator(File file, AtomicBoolean cancelFlag,
+                          List<StreamFieldType> fieldTypes, int[] fields) {
     //noinspection unchecked
     this(file, cancelFlag, false, null,
          (RowConverter<E>) converter(fieldTypes, fields));
   }
 
-  public STableEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
+  public StreamTableEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
                           String[] filterValues, RowConverter<E> rowConverter) {
     this.cancelFlag = cancelFlag;
     this.rowConverter = rowConverter;
@@ -74,7 +74,7 @@ class STableEnumerator<E> implements Enumerator<E> {
     }
   }
 
-  private static RowConverter<?> converter(List<SFieldType> fieldTypes,
+  private static RowConverter<?> converter(List<StreamFieldType> fieldTypes,
                                            int[] fields) {
     if (fields.length == 1) {
       final int field = fields[0];
@@ -85,7 +85,7 @@ class STableEnumerator<E> implements Enumerator<E> {
   }
 
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
-                                   List<SFieldType> fieldTypes) {
+                                   List<StreamFieldType> fieldTypes) {
     return null;
   }
 
@@ -159,7 +159,7 @@ class STableEnumerator<E> implements Enumerator<E> {
   abstract static class RowConverter<E> {
     abstract E convertRow(String[] rows);
 
-    protected Object convert(SFieldType fieldType, String string) {
+    protected Object convert(StreamFieldType fieldType, String string) {
       if (fieldType == null) {
         return string;
       }
@@ -238,19 +238,19 @@ class STableEnumerator<E> implements Enumerator<E> {
 
   /** Array row converter. */
   static class ArrayRowConverter extends RowConverter<Object[]> {
-    private final SFieldType[] fieldTypes;
+    private final StreamFieldType[] fieldTypes;
     private final int[] fields;
     //whether the row to convert is from a stream
     private final boolean stream;
 
-    ArrayRowConverter(List<SFieldType> fieldTypes, int[] fields) {
-      this.fieldTypes = fieldTypes.toArray(new SFieldType[fieldTypes.size()]);
+    ArrayRowConverter(List<StreamFieldType> fieldTypes, int[] fields) {
+      this.fieldTypes = fieldTypes.toArray(new StreamFieldType[fieldTypes.size()]);
       this.fields = fields;
       this.stream = false;
     }
 
-    ArrayRowConverter(List<SFieldType> fieldTypes, int[] fields, boolean stream) {
-      this.fieldTypes = fieldTypes.toArray(new SFieldType[fieldTypes.size()]);
+    ArrayRowConverter(List<StreamFieldType> fieldTypes, int[] fields, boolean stream) {
+      this.fieldTypes = fieldTypes.toArray(new StreamFieldType[fieldTypes.size()]);
       this.fields = fields;
       this.stream = stream;
     }
@@ -285,10 +285,10 @@ class STableEnumerator<E> implements Enumerator<E> {
 
   /** Single column row converter. */
   private static class SingleColumnRowConverter extends RowConverter {
-    private final SFieldType fieldType;
+    private final StreamFieldType fieldType;
     private final int fieldIndex;
 
-    private SingleColumnRowConverter(SFieldType fieldType, int fieldIndex) {
+    private SingleColumnRowConverter(StreamFieldType fieldType, int fieldIndex) {
       this.fieldType = fieldType;
       this.fieldIndex = fieldIndex;
     }

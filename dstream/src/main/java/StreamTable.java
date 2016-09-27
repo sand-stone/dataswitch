@@ -12,15 +12,14 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class STable extends AbstractTable {
-  private static Logger log = LogManager.getLogger(STable.class);
+public abstract class StreamTable extends AbstractTable {
+  private static Logger log = LogManager.getLogger(StreamTable.class);
 
   protected final File file;
   protected final RelProtoDataType protoRowType;
-  protected List<SFieldType> fieldTypes;
+  protected List<StreamFieldType> fieldTypes;
 
-  /** Creates a SAbstractTable. */
-  STable(File file, RelProtoDataType protoRowType) {
+  StreamTable(File file, RelProtoDataType protoRowType) {
     this.file = file;
     this.protoRowType = protoRowType;
   }
@@ -30,11 +29,11 @@ public abstract class STable extends AbstractTable {
       return protoRowType.apply(typeFactory);
     }
     if (fieldTypes == null) {
-      fieldTypes = new ArrayList<SFieldType>();
-      return STableEnumerator.deduceRowType((JavaTypeFactory) typeFactory, file,
+      fieldTypes = new ArrayList<StreamFieldType>();
+      return StreamTableEnumerator.deduceRowType((JavaTypeFactory) typeFactory, file,
                                             fieldTypes);
     } else {
-      return STableEnumerator.deduceRowType((JavaTypeFactory) typeFactory,
+      return StreamTableEnumerator.deduceRowType((JavaTypeFactory) typeFactory,
                                             file,
                                             null);
     }

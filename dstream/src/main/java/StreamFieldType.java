@@ -14,7 +14,7 @@ import java.util.Map;
  * of type {@link #STRING}. But specifying the field type in the header row
  * makes it easier to write SQL.</p>
  */
-enum SFieldType {
+enum StreamFieldType {
   STRING(String.class, "string"),
   BOOLEAN(Primitive.BOOLEAN),
   BYTE(Primitive.BYTE),
@@ -31,20 +31,20 @@ enum SFieldType {
   private final Class clazz;
   private final String simpleName;
 
-  private static final Map<String, SFieldType> MAP =
-    new HashMap<String, SFieldType>();
+  private static final Map<String, StreamFieldType> MAP =
+    new HashMap<String, StreamFieldType>();
 
   static {
-    for (SFieldType value : values()) {
+    for (StreamFieldType value : values()) {
       MAP.put(value.simpleName, value);
     }
   }
 
-  SFieldType(Primitive primitive) {
+  StreamFieldType(Primitive primitive) {
     this(primitive.boxClass, primitive.primitiveClass.getSimpleName());
   }
 
-  SFieldType(Class clazz, String simpleName) {
+  StreamFieldType(Class clazz, String simpleName) {
     this.clazz = clazz;
     this.simpleName = simpleName;
   }
@@ -53,7 +53,7 @@ enum SFieldType {
     return typeFactory.createJavaType(clazz);
   }
 
-  public static SFieldType of(String typeString) {
+  public static StreamFieldType of(String typeString) {
     return MAP.get(typeString);
   }
   
