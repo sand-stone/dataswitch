@@ -47,19 +47,19 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
   }
 
   public StreamTableEnumerator(File file, AtomicBoolean cancelFlag,
-                          List<StreamFieldType> fieldTypes) {
+                               List<StreamFieldType> fieldTypes) {
     this(file, cancelFlag, fieldTypes, identityList(fieldTypes.size()));
   }
 
   public StreamTableEnumerator(File file, AtomicBoolean cancelFlag,
-                          List<StreamFieldType> fieldTypes, int[] fields) {
+                               List<StreamFieldType> fieldTypes, int[] fields) {
     //noinspection unchecked
     this(file, cancelFlag, false, null,
          (RowConverter<E>) converter(fieldTypes, fields));
   }
 
   public StreamTableEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
-                          String[] filterValues, RowConverter<E> rowConverter) {
+                               String[] filterValues, RowConverter<E> rowConverter) {
     this.cancelFlag = cancelFlag;
     this.rowConverter = rowConverter;
     this.filterValues = filterValues;
@@ -86,9 +86,13 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
                                    List<StreamFieldType> fieldTypes) {
-    return null;
+    return deduceRowType(typeFactory, file, fieldTypes, false);
   }
 
+  static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
+                                   List<StreamFieldType> fieldTypes, Boolean stream) {
+    return null;
+  }
  
   public E current() {
     return current;
