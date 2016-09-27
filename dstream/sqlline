@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# $ ./sqlline
+# sqlline> !connect jdbc:calcite:model=models/model1.json admin admin
+
+# Deduce whether we are running cygwin
+case $(uname -s) in
+(CYGWIN*) cygwin=true;;
+(*) cygwin=;;
+esac
+
+# Build classpath on first call. (To force rebuild, remove .classpath.txt.)
+cd $(dirname $0)
+if [ ! -f target/classpath.txt ]; then
+    mvn dependency:build-classpath -Dmdep.outputFile=target/classpath.txt
+fi
+
+CP="target/classes:target/test-classes:$(cat target/classpath.txt)"
+VM_OPTS=
+if [ "$cygwin" ]; then
+  CP=$(cygpath -wp "$CP")
+
+  # Work around https://github.com/jline/jline2/issues/62
+  VM_OPTS=-Djline.terminal=jline.UnixTerminal
+fi
+
+exec java $VM_OPTS -cp "${CP}" sqlline.SqlLine "$@"
+
+# End sqlline

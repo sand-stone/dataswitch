@@ -1,0 +1,23 @@
+{
+  version: '1.0',
+  defaultSchema: 'STREAM',
+  schemas: [
+    {
+      name: 'SS',
+      tables: [
+        {
+          name: 'ORDERS',
+          type: 'custom',
+          factory: 'org.apache.calcite.adapter.csv.CsvStreamTableFactory',
+          stream: {
+            stream: true
+          },
+          operand: {
+            file: 'sales/SORDERS.csv',
+            flavor: "scannable"
+          }
+        }
+      ]
+    }
+  ]
+}
