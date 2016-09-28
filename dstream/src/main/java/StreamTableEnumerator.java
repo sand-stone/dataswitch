@@ -23,12 +23,13 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
-/** Enumerator that reads from a STable
- *
- * @param <E> Row type
- */
+
 class StreamTableEnumerator<E> implements Enumerator<E> {
+  private static Logger log = LogManager.getLogger(StreamTableEnumerator.class);
+
   private final String[] filterValues;
   private final AtomicBoolean cancelFlag;
   private final RowConverter<E> rowConverter;
@@ -60,12 +61,13 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   public StreamTableEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
                                String[] filterValues, RowConverter<E> rowConverter) {
+    log.info("create");
     this.cancelFlag = cancelFlag;
     this.rowConverter = rowConverter;
     this.filterValues = filterValues;
     try {
       if (stream) {
-        
+
       } else {
         throw new IOException("oops");
       }
@@ -91,9 +93,10 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
                                    List<StreamFieldType> fieldTypes, Boolean stream) {
+    log.info("deduceRowType");
     return null;
   }
- 
+
   public E current() {
     return current;
   }

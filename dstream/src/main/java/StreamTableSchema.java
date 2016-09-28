@@ -4,12 +4,15 @@ import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.impl.AbstractSchema;
 
 import com.google.common.collect.ImmutableMap;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Map;
 
 public class StreamTableSchema extends AbstractSchema {
+  private static Logger log = LogManager.getLogger(StreamTableSchema.class);
   final File directoryFile;
   private final StreamTable.Flavor flavor;
 
@@ -71,6 +74,7 @@ public class StreamTableSchema extends AbstractSchema {
 
   /** Creates different sub-type of table based on the "flavor" attribute. */
   private Table createTable(File file) {
+    log.info("file {}", file);
     switch (flavor) {
     case TRANSLATABLE:
       return new TranslatableTable(file, null);

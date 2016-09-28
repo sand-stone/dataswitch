@@ -15,13 +15,14 @@ import org.apache.logging.log4j.LogManager;
 
 @SuppressWarnings("UnusedDeclaration")
 public class StreamTableFactory implements TableFactory<StreamTable> {
-  private static Logger log = LogManager.getLogger(StreamTable.class);
+  private static Logger log = LogManager.getLogger(StreamTableFactory.class);
 
   public StreamTableFactory() {
   }
 
   public StreamTable create(SchemaPlus schema, String name,
                             Map<String, Object> operand, RelDataType rowType) {
+    log.info("create");
     String fileName = (String) operand.get("file");
     File file = new File(fileName);
     final File base =

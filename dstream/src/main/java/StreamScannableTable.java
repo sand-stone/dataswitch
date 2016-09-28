@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class StreamScannableTable extends ScannableTable
   implements StreamableTable {
-    private static Logger log = LogManager.getLogger(DataNode.class);
+    private static Logger log = LogManager.getLogger(StreamScannableTable.class);
 
   StreamScannableTable(File file, RelProtoDataType protoRowType) {
     super(file, protoRowType);
@@ -43,6 +43,7 @@ public class StreamScannableTable extends ScannableTable
   }
 
   public Enumerable<Object[]> scan(DataContext root) {
+    log.info("scan {}", root);
     final int[] fields = StreamTableEnumerator.identityList(fieldTypes.size());
     final AtomicBoolean cancelFlag = DataContext.Variable.CANCEL_FLAG.get(root);
     return new AbstractEnumerable<Object[]>() {
@@ -54,6 +55,7 @@ public class StreamScannableTable extends ScannableTable
   }
 
   @Override public Table stream() {
+    log.info("stream");
     return this;
   }
 }

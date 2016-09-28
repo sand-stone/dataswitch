@@ -3,10 +3,10 @@
   defaultSchema: 'STREAM',
   schemas: [
     {
-      name: 'AcmeDB',
+      name: 'ACME',
       tables: [
         {
-          name: 'orders',
+          name: 'ORDERS',
           type: 'custom',
           factory: 'dstream.StreamTableFactory',
           stream: {

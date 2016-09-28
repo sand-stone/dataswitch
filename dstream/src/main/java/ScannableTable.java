@@ -23,6 +23,7 @@ public class ScannableTable extends StreamTable
   }
 
   public Enumerable<Object[]> scan(DataContext root) {
+    log.info("scan {}", root);
     final int[] fields = StreamTableEnumerator.identityList(fieldTypes.size());
     final AtomicBoolean cancelFlag = DataContext.Variable.CANCEL_FLAG.get(root);
     return new AbstractEnumerable<Object[]>() {
