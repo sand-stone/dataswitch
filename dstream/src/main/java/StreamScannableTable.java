@@ -10,6 +10,8 @@ import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.schema.StreamableTable;
 import org.apache.calcite.schema.Table;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -17,9 +19,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class StreamScannableTable extends ScannableTable
   implements StreamableTable {
+    private static Logger log = LogManager.getLogger(DataNode.class);
 
   StreamScannableTable(File file, RelProtoDataType protoRowType) {
     super(file, protoRowType);
+    log.info("create table {}", file);
   }
 
   public RelDataType getRowType(RelDataTypeFactory typeFactory) {

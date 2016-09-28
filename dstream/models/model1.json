@@ -3,17 +3,17 @@
   defaultSchema: 'STREAM',
   schemas: [
     {
-      name: 'SS',
+      name: 'AcmeDB',
       tables: [
         {
-          name: 'ORDERS',
+          name: 'orders',
           type: 'custom',
           factory: 'dstream.StreamTableFactory',
           stream: {
             stream: true
           },
           operand: {
-            file: 'sales/SORDERS.csv',
+            file: 'sales/orders',
             flavor: "scannable"
           }
         }

@@ -7,6 +7,7 @@ import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import org.apache.calcite.sql.parser.SqlParser;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,11 +32,11 @@ public abstract class StreamTable extends AbstractTable {
     if (fieldTypes == null) {
       fieldTypes = new ArrayList<StreamFieldType>();
       return StreamTableEnumerator.deduceRowType((JavaTypeFactory) typeFactory, file,
-                                            fieldTypes);
+                                                 fieldTypes);
     } else {
       return StreamTableEnumerator.deduceRowType((JavaTypeFactory) typeFactory,
-                                            file,
-                                            null);
+                                                 file,
+                                                 null);
     }
   }
 
@@ -43,4 +44,17 @@ public abstract class StreamTable extends AbstractTable {
     SCANNABLE, FILTERABLE, TRANSLATABLE
   }
 
+  public static void main(String[] args) throws Exception {
+    String sql = "CREATE TABLE REGISTRATION " +
+      "(id INTEGER not NULL, " +
+      " first VARCHAR(255), " +
+      " last VARCHAR(255), " +
+      " age INTEGER, " +
+      " PRIMARY KEY ( id ))";
+    sql =  "UPDATE Registration " +
+      "SET age = 30 WHERE id in (100, 101)";
+    SqlParser p = SqlParser.create(sql);
+    log.info("sql {}", sql);
+    log.info("p {}", p.parseStmt());
+  }
 }
