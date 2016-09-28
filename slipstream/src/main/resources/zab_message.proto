@@ -1,3 +1,5 @@
+syntax = "proto2";
+
 package jzab;
 
 option java_package = "slipstream.jzab.proto";
