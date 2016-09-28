@@ -1,0 +1,18 @@
+{
+  version: '1.0',
+  defaultSchema: 'foodmart',
+  schemas: [
+    {
+      name: 'ACME',
+      tables: [ {
+        type: 'custom',
+        name: 'ORDERS',
+        factory: 'dstream.StreamTableFactory',
+        operand: {
+          file: 'sales/orders',
+          flavor: 'scannable'
+        }
+      } ]
+    }
+  ]
+}
