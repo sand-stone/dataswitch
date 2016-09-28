@@ -1,6 +1,5 @@
 {
   version: '1.0',
-  defaultSchema: 'STREAM',
   schemas: [
     {
       name: 'ACME',
@@ -9,12 +8,9 @@
           name: 'ORDERS',
           type: 'custom',
           factory: 'dstream.StreamTableFactory',
-          stream: {
-            stream: true
-          },
           operand: {
             file: 'sales/orders',
-            flavor: "scannable"
+            flavor: 'scannable'
           }
         }
       ]

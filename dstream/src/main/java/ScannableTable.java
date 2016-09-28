@@ -10,10 +10,10 @@ import org.apache.logging.log4j.LogManager;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class ScannableTable extends StreamTable                                    
+public class ScannableTable extends StreamTable
   implements org.apache.calcite.schema.ScannableTable {
   private static Logger log = LogManager.getLogger(ScannableTable.class);
-  
+
   ScannableTable(File file, RelProtoDataType protoRowType) {
     super(file, protoRowType);
   }

@@ -32,6 +32,7 @@ public class StreamTableFactory implements TableFactory<StreamTable> {
     }
     final RelProtoDataType protoRowType =
       rowType != null ? RelDataTypeImpl.proto(rowType) : null;
-    return new StreamScannableTable(file, protoRowType);
+    //return new StreamScannableTable(file, protoRowType);
+    return new Acme(file, protoRowType);
   }
 }

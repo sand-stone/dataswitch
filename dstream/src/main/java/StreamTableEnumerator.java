@@ -67,9 +67,9 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
     this.filterValues = filterValues;
     try {
       if (stream) {
-
+        throw new IOException("enum stream oops");
       } else {
-        throw new IOException("oops");
+        throw new IOException("enum oops");
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -93,8 +93,17 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
                                    List<StreamFieldType> fieldTypes, Boolean stream) {
-    log.info("deduceRowType");
-    return null;
+    /*Throwable t = new Throwable();
+    t.printStackTrace();
+    t.fillInStackTrace();
+    log.info("deduceRowType {}", t);*/
+    final List<RelDataType> types = new ArrayList<>();
+    final List<String> names = new ArrayList<>();
+    names.add("timestamp");
+    types.add(typeFactory.createSqlType(SqlTypeName.TIMESTAMP));
+    names.add("line");
+    types.add(typeFactory.createJavaType(String.class));
+    return typeFactory.createStructType(Pair.zip(names, types));
   }
 
   public E current() {
