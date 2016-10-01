@@ -17,7 +17,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class FilterableTable extends StreamTable
+public class FilterableTable extends StreamScannableTable
     implements org.apache.calcite.schema.FilterableTable {
 
   

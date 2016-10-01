@@ -14,12 +14,10 @@ import java.util.Map;
 public class StreamTableSchema extends AbstractSchema {
   private static Logger log = LogManager.getLogger(StreamTableSchema.class);
   final File directoryFile;
-  private final StreamTable.Flavor flavor;
 
-  public StreamTableSchema(File directoryFile, StreamTable.Flavor flavor) {
+  public StreamTableSchema(File directoryFile) {
     super();
     this.directoryFile = directoryFile;
-    this.flavor = flavor;
   }
 
   /** Looks for a suffix on a string and returns
@@ -66,24 +64,10 @@ public class StreamTableSchema extends AbstractSchema {
       }
       tableName = trim(tableName, ".csv");
 
-      final Table table = createTable(file);
+      final Table table = null;
       builder.put(tableName, table);
     }
     return builder.build();
   }
 
-  /** Creates different sub-type of table based on the "flavor" attribute. */
-  private Table createTable(File file) {
-    log.info("file {}", file);
-    switch (flavor) {
-    case TRANSLATABLE:
-      return new TranslatableTable(file, null);
-    case SCANNABLE:
-      return new ScannableTable(file, null);
-    case FILTERABLE:
-      return new FilterableTable(file, null);
-    default:
-      throw new AssertionError("Unknown flavor " + flavor);
-    }
-  }
 }

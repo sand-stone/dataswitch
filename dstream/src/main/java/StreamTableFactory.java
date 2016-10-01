@@ -14,13 +14,13 @@ import org.apache.logging.log4j.LogManager;
 
 
 @SuppressWarnings("UnusedDeclaration")
-public class StreamTableFactory implements TableFactory<StreamTable> {
+public class StreamTableFactory implements TableFactory<StreamScannableTable> {
   private static Logger log = LogManager.getLogger(StreamTableFactory.class);
 
   public StreamTableFactory() {
   }
 
-  public StreamTable create(SchemaPlus schema, String name,
+  public StreamScannableTable create(SchemaPlus schema, String name,
                             Map<String, Object> operand, RelDataType rowType) {
     log.info("create");
     String fileName = (String) operand.get("file");
@@ -32,7 +32,6 @@ public class StreamTableFactory implements TableFactory<StreamTable> {
     }
     final RelProtoDataType protoRowType =
       rowType != null ? RelDataTypeImpl.proto(rowType) : null;
-    //return new StreamScannableTable(file, protoRowType);
-    return new Acme(file, protoRowType);
+    return new StreamScannableTable(file, protoRowType);
   }
 }

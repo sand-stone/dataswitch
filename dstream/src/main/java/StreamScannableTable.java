@@ -8,7 +8,11 @@ import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.rel.type.RelDataTypeFactory;
 import org.apache.calcite.rel.type.RelProtoDataType;
+import org.apache.calcite.schema.impl.AbstractTable;
 import org.apache.calcite.schema.StreamableTable;
+import org.apache.calcite.schema.ScannableTable;
+import org.apache.calcite.schema.Statistic;
+import org.apache.calcite.schema.Statistics;
 import org.apache.calcite.schema.Table;
 import org.apache.calcite.schema.Schema;
 import org.apache.calcite.sql.type.SqlTypeName;
@@ -16,34 +20,29 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class StreamScannableTable extends ScannableTable
-  implements StreamableTable {
+public class StreamScannableTable extends AbstractTable
+  implements StreamableTable, org.apache.calcite.schema.ScannableTable {
   private static Logger log = LogManager.getLogger(StreamScannableTable.class);
 
+  protected final File file;
+  protected final RelProtoDataType protoRowType;
+  protected List<StreamFieldType> fieldTypes;
+
   StreamScannableTable(File file, RelProtoDataType protoRowType) {
-    super(file, protoRowType);
     log.info("create table {}", file);
+    this.file = file;
+    this.protoRowType = protoRowType;
   }
 
-  protected final RelProtoDataType protoRowType = new RelProtoDataType() {
-      public RelDataType apply(RelDataTypeFactory a0) {
-        return a0.builder()
-          .add("ROWTIME", SqlTypeName.TIMESTAMP)
-          .add("ID", SqlTypeName.INTEGER)
-          .add("PRODUCT", SqlTypeName.VARCHAR, 10)
-          .add("UNITS", SqlTypeName.INTEGER)
-          .build();
-      }
-    };
+  public Statistic getStatistic() {
+    return null;
+  }
 
   public RelDataType getRowType(RelDataTypeFactory typeFactory) {
-    return protoRowType.apply(typeFactory);
-  }
-
-  /*public RelDataType getRowType(RelDataTypeFactory typeFactory) {
     if (protoRowType != null) {
       return protoRowType.apply(typeFactory);
     }
@@ -53,7 +52,7 @@ public class StreamScannableTable extends ScannableTable
     } else {
       return StreamTableEnumerator.deduceRowType((JavaTypeFactory) typeFactory, file, null, true);
     }
-    }*/
+  }
 
   public Schema.TableType getJdbcTableType() {
     return Schema.TableType.TABLE;

@@ -18,7 +18,7 @@ import java.io.File;
 import java.lang.reflect.Type;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TranslatableTable extends StreamTable
+public class TranslatableTable extends StreamScannableTable
   implements QueryableTable, org.apache.calcite.schema.TranslatableTable {
 
   TranslatableTable(File file, RelProtoDataType protoRowType) {
