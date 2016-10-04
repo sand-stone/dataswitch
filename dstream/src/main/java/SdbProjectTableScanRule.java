@@ -15,13 +15,13 @@ import java.util.List;
  */
 public class SdbProjectTableScanRule extends RelOptRule {
   public static final SdbProjectTableScanRule INSTANCE =
-      new SdbProjectTableScanRule();
+    new SdbProjectTableScanRule();
 
   private SdbProjectTableScanRule() {
     super(
-        operand(LogicalProject.class,
-            operand(SdbTableScan.class, none())),
-        "SdbProjectTableScanRule");
+          operand(LogicalProject.class,
+                  operand(SdbTableScan.class, none())),
+          "SdbProjectTableScanRule");
   }
 
   @Override public void onMatch(RelOptRuleCall call) {
@@ -33,11 +33,11 @@ public class SdbProjectTableScanRule extends RelOptRule {
       return;
     }
     call.transformTo(
-        new SdbTableScan(
-            scan.getCluster(),
-            scan.getTable(),
-            scan.csvTable,
-            fields));
+                     new SdbTableScan(
+                                      scan.getCluster(),
+                                      scan.getTable(),
+                                      scan.csvTable,
+                                      fields));
   }
 
   private int[] getProjectFields(List<RexNode> exps) {

@@ -31,11 +31,11 @@ public abstract class SdbTable extends AbstractTable {
     if (fieldTypes == null) {
       fieldTypes = new ArrayList<SdbFieldType>();
       return SdbEnumerator.deduceRowType((JavaTypeFactory) typeFactory, file,
-          fieldTypes);
+                                         fieldTypes);
     } else {
       return SdbEnumerator.deduceRowType((JavaTypeFactory) typeFactory,
-          file,
-          null);
+                                         file,
+                                         null);
     }
   }
 

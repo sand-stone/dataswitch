@@ -24,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * data by calling the {@link #scan(DataContext, List)} method.
  */
 public class SdbFilterableTable extends SdbTable
-    implements FilterableTable {
+  implements FilterableTable {
   /** Creates a SdbFilterableTable. */
   SdbFilterableTable(File file, RelProtoDataType protoRowType) {
     super(file, protoRowType);
@@ -47,7 +47,7 @@ public class SdbFilterableTable extends SdbTable
     return new AbstractEnumerable<Object[]>() {
       public Enumerator<Object[]> enumerator() {
         return new SdbEnumerator<>(file, cancelFlag, false, filterValues,
-            new SdbEnumerator.ArrayRowConverter(fieldTypes, fields));
+                                   new SdbEnumerator.ArrayRowConverter(fieldTypes, fields));
       }
     };
   }

@@ -23,16 +23,16 @@ public class SdbTableFactory implements TableFactory<SdbTable> {
   }
 
   public SdbTable create(SchemaPlus schema, String name,
-      Map<String, Object> operand, RelDataType rowType) {
+                         Map<String, Object> operand, RelDataType rowType) {
     String fileName = (String) operand.get("file");
     File file = new File(fileName);
     final File base =
-        (File) operand.get(ModelHandler.ExtraOperand.BASE_DIRECTORY.camelName);
+      (File) operand.get(ModelHandler.ExtraOperand.BASE_DIRECTORY.camelName);
     if (base != null && !file.isAbsolute()) {
       file = new File(base, fileName);
     }
     final RelProtoDataType protoRowType =
-        rowType != null ? RelDataTypeImpl.proto(rowType) : null;
+      rowType != null ? RelDataTypeImpl.proto(rowType) : null;
     return new SdbScannableTable(file, protoRowType);
   }
 }

@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPInputStream;
 
 
-/** Enumerator that reads from a CSV file.
+/** Enumerator that reads from a SdbTable.
  *
  * @param <E> Row type
  */
@@ -47,23 +47,23 @@ class SdbEnumerator<E> implements Enumerator<E> {
     TIME_FORMAT_DATE = FastDateFormat.getInstance("yyyy-MM-dd", gmt);
     TIME_FORMAT_TIME = FastDateFormat.getInstance("HH:mm:ss", gmt);
     TIME_FORMAT_TIMESTAMP =
-        FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss", gmt);
+      FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss", gmt);
   }
 
   public SdbEnumerator(File file, AtomicBoolean cancelFlag,
-      List<SdbFieldType> fieldTypes) {
+                       List<SdbFieldType> fieldTypes) {
     this(file, cancelFlag, fieldTypes, identityList(fieldTypes.size()));
   }
 
   public SdbEnumerator(File file, AtomicBoolean cancelFlag,
-      List<SdbFieldType> fieldTypes, int[] fields) {
+                       List<SdbFieldType> fieldTypes, int[] fields) {
     //noinspection unchecked
     this(file, cancelFlag, false, null,
-        (RowConverter<E>) converter(fieldTypes, fields));
+         (RowConverter<E>) converter(fieldTypes, fields));
   }
 
   public SdbEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
-      String[] filterValues, RowConverter<E> rowConverter) {
+                       String[] filterValues, RowConverter<E> rowConverter) {
     this.cancelFlag = cancelFlag;
     this.rowConverter = rowConverter;
     this.filterValues = filterValues;
@@ -80,7 +80,7 @@ class SdbEnumerator<E> implements Enumerator<E> {
   }
 
   private static RowConverter<?> converter(List<SdbFieldType> fieldTypes,
-      int[] fields) {
+                                           int[] fields) {
     if (fields.length == 1) {
       final int field = fields[0];
       return new SingleColumnRowConverter(fieldTypes.get(field), field);
@@ -90,14 +90,14 @@ class SdbEnumerator<E> implements Enumerator<E> {
   }
 
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
-      List<SdbFieldType> fieldTypes) {
+                                   List<SdbFieldType> fieldTypes) {
     return deduceRowType(typeFactory, file, fieldTypes, false);
   }
 
   /** Deduces the names and types of a table's columns by reading the first line
-  * of a CSV file. */
+   * of a CSV file. */
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
-      List<SdbFieldType> fieldTypes, Boolean stream) {
+                                   List<SdbFieldType> fieldTypes, Boolean stream) {
     final List<RelDataType> types = new ArrayList<>();
     final List<String> names = new ArrayList<>();
     CSVReader reader = null;
@@ -118,9 +118,9 @@ class SdbEnumerator<E> implements Enumerator<E> {
           fieldType = SdbFieldType.of(typeString);
           if (fieldType == null) {
             System.out.println("WARNING: Found unknown type: "
-              + typeString + " in file: " + file.getAbsolutePath()
-              + " for column: " + name
-              + ". Will assume the type of column is string");
+                               + typeString + " in file: " + file.getAbsolutePath()
+                               + " for column: " + name
+                               + ". Will assume the type of column is string");
           }
         } else {
           name = string;
@@ -160,7 +160,7 @@ class SdbEnumerator<E> implements Enumerator<E> {
     final Reader fileReader;
     if (file.getName().endsWith(".gz")) {
       final GZIPInputStream inputStream =
-          new GZIPInputStream(new FileInputStream(file));
+        new GZIPInputStream(new FileInputStream(file));
       fileReader = new InputStreamReader(inputStream);
     } else {
       fileReader = new FileReader(file);
@@ -174,7 +174,7 @@ class SdbEnumerator<E> implements Enumerator<E> {
 
   public boolean moveNext() {
     try {
-    outer:
+      outer:
       for (;;) {
         if (cancelFlag.get()) {
           return false;

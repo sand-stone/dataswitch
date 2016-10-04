@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * data by calling the {@link #scan(DataContext)} method.
  */
 public class SdbScannableTable extends SdbTable
-    implements ScannableTable {
+  implements ScannableTable {
   /** Creates a SdbScannableTable. */
   SdbScannableTable(File file, RelProtoDataType protoRowType) {
     super(file, protoRowType);
@@ -33,7 +33,7 @@ public class SdbScannableTable extends SdbTable
     return new AbstractEnumerable<Object[]>() {
       public Enumerator<Object[]> enumerator() {
         return new SdbEnumerator<>(file, cancelFlag, false,
-            null, new SdbEnumerator.ArrayRowConverter(fieldTypes, fields));
+                                   null, new SdbEnumerator.ArrayRowConverter(fieldTypes, fields));
       }
     };
   }

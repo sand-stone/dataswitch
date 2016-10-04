@@ -43,21 +43,21 @@ public class SdbSchema extends AbstractSchema {
    * or null. */
   private static String trimOrNull(String s, String suffix) {
     return s.endsWith(suffix)
-        ? s.substring(0, s.length() - suffix.length())
-        : null;
+      ? s.substring(0, s.length() - suffix.length())
+      : null;
   }
 
   @Override protected Map<String, Table> getTableMap() {
     // Look for files in the directory ending in ".csv", ".csv.gz", ".json",
     // ".json.gz".
     File[] files = directoryFile.listFiles(
-        new FilenameFilter() {
-          public boolean accept(File dir, String name) {
-            final String nameSansGz = trim(name, ".gz");
-            return nameSansGz.endsWith(".csv")
-                || nameSansGz.endsWith(".json");
-          }
-        });
+                                           new FilenameFilter() {
+                                             public boolean accept(File dir, String name) {
+                                               final String nameSansGz = trim(name, ".gz");
+                                               return nameSansGz.endsWith(".csv")
+                                                 || nameSansGz.endsWith(".json");
+                                             }
+                                           });
     if (files == null) {
       System.out.println("directory " + directoryFile + " not found");
       files = new File[0];
