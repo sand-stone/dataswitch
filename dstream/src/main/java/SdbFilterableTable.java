@@ -9,7 +9,7 @@ import org.apache.calcite.rex.RexCall;
 import org.apache.calcite.rex.RexInputRef;
 import org.apache.calcite.rex.RexLiteral;
 import org.apache.calcite.rex.RexNode;
-//import org.apache.calcite.schema.FilterableTable;
+import org.apache.calcite.schema.FilterableTable;
 import org.apache.calcite.sql.SqlKind;
 
 import java.io.File;
@@ -17,16 +17,21 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class FilterableTable extends StreamScannableTable
-    implements org.apache.calcite.schema.FilterableTable {
-
-  
-  FilterableTable(File file, RelProtoDataType protoRowType) {
+/**
+ * Table based on a CSV file that can implement simple filtering.
+ *
+ * <p>It implements the {@link FilterableTable} interface, so Calcite gets
+ * data by calling the {@link #scan(DataContext, List)} method.
+ */
+public class SdbFilterableTable extends SdbTable
+    implements FilterableTable {
+  /** Creates a SdbFilterableTable. */
+  SdbFilterableTable(File file, RelProtoDataType protoRowType) {
     super(file, protoRowType);
   }
 
   public String toString() {
-    return "FilterableTable";
+    return "SdbFilterableTable";
   }
 
   public Enumerable<Object[]> scan(DataContext root, List<RexNode> filters) {
@@ -37,12 +42,12 @@ public class FilterableTable extends StreamScannableTable
         i.remove();
       }
     }
-    final int[] fields = StreamTableEnumerator.identityList(fieldTypes.size());
+    final int[] fields = SdbEnumerator.identityList(fieldTypes.size());
     final AtomicBoolean cancelFlag = DataContext.Variable.CANCEL_FLAG.get(root);
     return new AbstractEnumerable<Object[]>() {
       public Enumerator<Object[]> enumerator() {
-        return new StreamTableEnumerator<>(file, cancelFlag, false, filterValues,
-            new StreamTableEnumerator.ArrayRowConverter(fieldTypes, fields));
+        return new SdbEnumerator<>(file, cancelFlag, false, filterValues,
+            new SdbEnumerator.ArrayRowConverter(fieldTypes, fields));
       }
     };
   }

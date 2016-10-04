@@ -7,6 +7,9 @@ import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.Pair;
 
 import org.apache.commons.lang3.time.FastDateFormat;
+
+import au.com.bytecode.opencsv.CSVReader;
+
 import com.google.common.base.Throwables;
 
 import java.io.File;
@@ -23,13 +26,13 @@ import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.GZIPInputStream;
 
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
-
-class StreamTableEnumerator<E> implements Enumerator<E> {
-  private static Logger log = LogManager.getLogger(StreamTableEnumerator.class);
-
+/** Enumerator that reads from a CSV file.
+ *
+ * @param <E> Row type
+ */
+class SdbEnumerator<E> implements Enumerator<E> {
+  private final CSVReader reader;
   private final String[] filterValues;
   private final AtomicBoolean cancelFlag;
   private final RowConverter<E> rowConverter;
@@ -44,40 +47,40 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
     TIME_FORMAT_DATE = FastDateFormat.getInstance("yyyy-MM-dd", gmt);
     TIME_FORMAT_TIME = FastDateFormat.getInstance("HH:mm:ss", gmt);
     TIME_FORMAT_TIMESTAMP =
-      FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss", gmt);
+        FastDateFormat.getInstance("yyyy-MM-dd HH:mm:ss", gmt);
   }
 
-  public StreamTableEnumerator(File file, AtomicBoolean cancelFlag,
-                               List<StreamFieldType> fieldTypes) {
+  public SdbEnumerator(File file, AtomicBoolean cancelFlag,
+      List<SdbFieldType> fieldTypes) {
     this(file, cancelFlag, fieldTypes, identityList(fieldTypes.size()));
   }
 
-  public StreamTableEnumerator(File file, AtomicBoolean cancelFlag,
-                               List<StreamFieldType> fieldTypes, int[] fields) {
+  public SdbEnumerator(File file, AtomicBoolean cancelFlag,
+      List<SdbFieldType> fieldTypes, int[] fields) {
     //noinspection unchecked
     this(file, cancelFlag, false, null,
-         (RowConverter<E>) converter(fieldTypes, fields));
+        (RowConverter<E>) converter(fieldTypes, fields));
   }
 
-  public StreamTableEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
-                               String[] filterValues, RowConverter<E> rowConverter) {
-    log.info("create");
+  public SdbEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
+      String[] filterValues, RowConverter<E> rowConverter) {
     this.cancelFlag = cancelFlag;
     this.rowConverter = rowConverter;
     this.filterValues = filterValues;
     try {
       if (stream) {
-        throw new IOException("enum stream oops");
+        this.reader = null;//new SdbStreamReader(file);
       } else {
-        throw new IOException("enum oops");
+        this.reader = openSdb(file);
       }
+      this.reader.readNext(); // skip header row
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
 
-  private static RowConverter<?> converter(List<StreamFieldType> fieldTypes,
-                                           int[] fields) {
+  private static RowConverter<?> converter(List<SdbFieldType> fieldTypes,
+      int[] fields) {
     if (fields.length == 1) {
       final int field = fields[0];
       return new SingleColumnRowConverter(fieldTypes.get(field), field);
@@ -87,23 +90,82 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
   }
 
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
-                                   List<StreamFieldType> fieldTypes) {
+      List<SdbFieldType> fieldTypes) {
     return deduceRowType(typeFactory, file, fieldTypes, false);
   }
 
+  /** Deduces the names and types of a table's columns by reading the first line
+  * of a CSV file. */
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
-                                   List<StreamFieldType> fieldTypes, Boolean stream) {
-    /*Throwable t = new Throwable();
-    t.printStackTrace();
-    t.fillInStackTrace();
-    log.info("deduceRowType {}", t);*/
+      List<SdbFieldType> fieldTypes, Boolean stream) {
     final List<RelDataType> types = new ArrayList<>();
     final List<String> names = new ArrayList<>();
-    names.add("timestamp");
-    types.add(typeFactory.createSqlType(SqlTypeName.TIMESTAMP));
-    names.add("line");
-    types.add(typeFactory.createJavaType(String.class));
+    CSVReader reader = null;
+    if (stream) {
+      names.add(SdbSchemaFactory.ROWTIME_COLUMN_NAME);
+      types.add(typeFactory.createSqlType(SqlTypeName.TIMESTAMP));
+    }
+    try {
+      reader = openSdb(file);
+      final String[] strings = reader.readNext();
+      for (String string : strings) {
+        final String name;
+        final SdbFieldType fieldType;
+        final int colon = string.indexOf(':');
+        if (colon >= 0) {
+          name = string.substring(0, colon);
+          String typeString = string.substring(colon + 1);
+          fieldType = SdbFieldType.of(typeString);
+          if (fieldType == null) {
+            System.out.println("WARNING: Found unknown type: "
+              + typeString + " in file: " + file.getAbsolutePath()
+              + " for column: " + name
+              + ". Will assume the type of column is string");
+          }
+        } else {
+          name = string;
+          fieldType = null;
+        }
+        final RelDataType type;
+        if (fieldType == null) {
+          type = typeFactory.createJavaType(String.class);
+        } else {
+          type = fieldType.toType(typeFactory);
+        }
+        names.add(name);
+        types.add(type);
+        if (fieldTypes != null) {
+          fieldTypes.add(fieldType);
+        }
+      }
+    } catch (IOException e) {
+      // ignore
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException e) {
+          // ignore
+        }
+      }
+    }
+    if (names.isEmpty()) {
+      names.add("line");
+      types.add(typeFactory.createJavaType(String.class));
+    }
     return typeFactory.createStructType(Pair.zip(names, types));
+  }
+
+  public static CSVReader openSdb(File file) throws IOException {
+    final Reader fileReader;
+    if (file.getName().endsWith(".gz")) {
+      final GZIPInputStream inputStream =
+          new GZIPInputStream(new FileInputStream(file));
+      fileReader = new InputStreamReader(inputStream);
+    } else {
+      fileReader = new FileReader(file);
+    }
+    return new CSVReader(fileReader);
   }
 
   public E current() {
@@ -112,17 +174,15 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   public boolean moveNext() {
     try {
-      outer:
+    outer:
       for (;;) {
         if (cancelFlag.get()) {
           return false;
         }
-        final String[] strings = null;//reader.readNext();
+        final String[] strings = reader.readNext();
         if (strings == null) {
-          if(true) {//if (reader instanceof CsvStreamReader) {
+          if (reader instanceof Object/*SdbStreamReader*/) {
             try {
-              if(true)
-                throw new IOException("oops");
               Thread.sleep(1000);
             } catch (InterruptedException e) {
               throw Throwables.propagate(e);
@@ -130,6 +190,7 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
             continue;
           }
           current = null;
+          reader.close();
           return false;
         }
         if (filterValues != null) {
@@ -156,9 +217,9 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   public void close() {
     try {
-      throw new IOException("oops");
+      reader.close();
     } catch (IOException e) {
-      throw new RuntimeException("Error closing reader", e);
+      throw new RuntimeException("Error closing CSV reader", e);
     }
   }
 
@@ -175,7 +236,7 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
   abstract static class RowConverter<E> {
     abstract E convertRow(String[] rows);
 
-    protected Object convert(StreamFieldType fieldType, String string) {
+    protected Object convert(SdbFieldType fieldType, String string) {
       if (fieldType == null) {
         return string;
       }
@@ -254,19 +315,19 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   /** Array row converter. */
   static class ArrayRowConverter extends RowConverter<Object[]> {
-    private final StreamFieldType[] fieldTypes;
+    private final SdbFieldType[] fieldTypes;
     private final int[] fields;
     //whether the row to convert is from a stream
     private final boolean stream;
 
-    ArrayRowConverter(List<StreamFieldType> fieldTypes, int[] fields) {
-      this.fieldTypes = fieldTypes.toArray(new StreamFieldType[fieldTypes.size()]);
+    ArrayRowConverter(List<SdbFieldType> fieldTypes, int[] fields) {
+      this.fieldTypes = fieldTypes.toArray(new SdbFieldType[fieldTypes.size()]);
       this.fields = fields;
       this.stream = false;
     }
 
-    ArrayRowConverter(List<StreamFieldType> fieldTypes, int[] fields, boolean stream) {
-      this.fieldTypes = fieldTypes.toArray(new StreamFieldType[fieldTypes.size()]);
+    ArrayRowConverter(List<SdbFieldType> fieldTypes, int[] fields, boolean stream) {
+      this.fieldTypes = fieldTypes.toArray(new SdbFieldType[fieldTypes.size()]);
       this.fields = fields;
       this.stream = stream;
     }
@@ -301,10 +362,10 @@ class StreamTableEnumerator<E> implements Enumerator<E> {
 
   /** Single column row converter. */
   private static class SingleColumnRowConverter extends RowConverter {
-    private final StreamFieldType fieldType;
+    private final SdbFieldType fieldType;
     private final int fieldIndex;
 
-    private SingleColumnRowConverter(StreamFieldType fieldType, int fieldIndex) {
+    private SingleColumnRowConverter(SdbFieldType fieldType, int fieldIndex) {
       this.fieldType = fieldType;
       this.fieldIndex = fieldIndex;
     }

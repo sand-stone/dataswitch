@@ -1,3 +1,19 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to you under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package dstream;
 
 import org.apache.calcite.adapter.java.JavaTypeFactory;
@@ -8,13 +24,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Type of a field in a STable
+ * Type of a field in a CSV file.
  *
  * <p>Usually, and unless specified explicitly in the header row, a field is
  * of type {@link #STRING}. But specifying the field type in the header row
  * makes it easier to write SQL.</p>
  */
-enum StreamFieldType {
+enum SdbFieldType {
   STRING(String.class, "string"),
   BOOLEAN(Primitive.BOOLEAN),
   BYTE(Primitive.BYTE),
@@ -31,20 +47,20 @@ enum StreamFieldType {
   private final Class clazz;
   private final String simpleName;
 
-  private static final Map<String, StreamFieldType> MAP =
-    new HashMap<String, StreamFieldType>();
+  private static final Map<String, SdbFieldType> MAP =
+    new HashMap<String, SdbFieldType>();
 
   static {
-    for (StreamFieldType value : values()) {
+    for (SdbFieldType value : values()) {
       MAP.put(value.simpleName, value);
     }
   }
 
-  StreamFieldType(Primitive primitive) {
+  SdbFieldType(Primitive primitive) {
     this(primitive.boxClass, primitive.primitiveClass.getSimpleName());
   }
 
-  StreamFieldType(Class clazz, String simpleName) {
+  SdbFieldType(Class clazz, String simpleName) {
     this.clazz = clazz;
     this.simpleName = simpleName;
   }
@@ -53,8 +69,7 @@ enum StreamFieldType {
     return typeFactory.createJavaType(clazz);
   }
 
-  public static StreamFieldType of(String typeString) {
+  public static SdbFieldType of(String typeString) {
     return MAP.get(typeString);
   }
-  
 }
