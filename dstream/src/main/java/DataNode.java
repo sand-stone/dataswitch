@@ -46,6 +46,13 @@ public final class DataNode {
           }
         }
         log.info("msg {}", msg);
+        try(Tablet.Context ctx = tablet.getContext("meta")) {
+          try {
+            tablet.getTables(ctx);
+          } catch(Exception ex) {
+            log.info(ex.toString());
+          }
+        }
         return "upsert table\n";
       });
     post("/deletetable", (request, response) -> {

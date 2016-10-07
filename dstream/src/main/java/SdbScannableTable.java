@@ -19,6 +19,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class SdbScannableTable extends SdbTable
   implements ScannableTable {
   /** Creates a SdbScannableTable. */
+  SdbScannableTable(String file, RelProtoDataType protoRowType) {
+    super(new File(file), protoRowType);
+  }
+
   SdbScannableTable(File file, RelProtoDataType protoRowType) {
     super(file, protoRowType);
   }

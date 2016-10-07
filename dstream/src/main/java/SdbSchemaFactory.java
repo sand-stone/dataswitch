@@ -7,13 +7,13 @@ import org.apache.calcite.schema.SchemaPlus;
 
 import java.io.File;
 import java.util.Map;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 public class SdbSchemaFactory implements SchemaFactory {
-  /** Name of the column that is implicitly created in a CSV stream table
-   * to hold the data arrival time. */
+  private static Logger log = LogManager.getLogger(SdbSchemaFactory.class);
   static final String ROWTIME_COLUMN_NAME = "ROWTIME";
 
-  /** Public singleton, per factory contract. */
   public static final SdbSchemaFactory INSTANCE = new SdbSchemaFactory();
 
   private SdbSchemaFactory() {
@@ -21,20 +21,7 @@ public class SdbSchemaFactory implements SchemaFactory {
 
   public Schema create(SchemaPlus parentSchema, String name,
                        Map<String, Object> operand) {
-    final String directory = (String) operand.get("directory");
-    final File base =
-      (File) operand.get(ModelHandler.ExtraOperand.BASE_DIRECTORY.camelName);
-    File directoryFile = new File(directory);
-    if (base != null && !directoryFile.isAbsolute()) {
-      directoryFile = new File(base, directory);
-    }
-    String flavorName = (String) operand.get("flavor");
-    SdbTable.Flavor flavor;
-    if (flavorName == null) {
-      flavor = SdbTable.Flavor.SCANNABLE;
-    } else {
-      flavor = SdbTable.Flavor.valueOf(flavorName.toUpperCase());
-    }
-    return new SdbSchema(directoryFile, flavor);
+    log.info("name {}", name);
+    return new SdbSchema();
   }
 }

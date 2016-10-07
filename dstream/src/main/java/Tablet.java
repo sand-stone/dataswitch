@@ -19,7 +19,7 @@ public class Tablet implements Closeable {
   private static Logger log = LogManager.getLogger(Tablet.class);
   private Connection conn;
   private String db;
-  private final  String dbconfig = "create,cache_size=1GB,eviction=(threads_max=2,threads_min=2),lsm_manager=(merge=true,worker_thread_max=3), checkpoint=(log_size=2GB,wait=3600)";
+  private static final String dbconfig = "create,cache_size=1GB,eviction=(threads_max=2,threads_min=2),lsm_manager=(merge=true,worker_thread_max=3), checkpoint=(log_size=2GB,wait=3600)";
   private Table table;
 
   private static boolean checkDir(String dir) {
@@ -32,6 +32,33 @@ public class Tablet implements Closeable {
       d.mkdirs();
     }
     return ret;
+  }
+
+  public static List<String> getTables(String location) {
+    Connection conn = wiredtiger.open(location, dbconfig);
+    Session session = conn.open_session(null);
+    Cursor cursor = session.open_cursor("metadata:", null, null);
+    List<String> tables = getTables(cursor);
+    session.close(null);
+    conn.close(null);
+    return tables;
+  }
+
+  public List<String> getTables(Context ctx) {
+    return getTables(ctx.cursor);
+  }
+
+  private static List<String> getTables(Cursor cursor) {
+    List<String> tables = new ArrayList<String>();
+    while(cursor.next() == 0) {
+      String name = cursor.getKeyString();
+      //String val = ctx.cursor.getValueString();
+      int i = name.indexOf("table:");
+      if(i>=0) {
+        tables.add(name.substring(6));
+      }
+    }
+    return tables;
   }
 
   public Tablet(String location, Table table) {
@@ -139,6 +166,11 @@ public class Tablet implements Closeable {
       cursor = session.open_cursor("table:" + Tablet.this.table.name, null, null);
     }
 
+    public Context(String meta) {
+      session = Tablet.this.conn.open_session(null);
+      cursor = session.open_cursor("metadata:", null, null);
+    }
+
     public void close() {
       session.close(null);
     }
@@ -146,6 +178,10 @@ public class Tablet implements Closeable {
 
   public Context getContext() {
     return new Context();
+  }
+
+  public Context getContext(String meta) {
+    return new Context(meta);
   }
 
   public void filter(Context ctx, Expression.WireSerializedLambda lambda) {
