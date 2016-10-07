@@ -17,24 +17,21 @@ import java.util.List;
  * is a CSV file in that directory.
  */
 public class SdbSchema extends AbstractSchema {
-  private static Logger log = LogManager.getLogger(SdbSchemaFactory.class);
+  private static Logger log = LogManager.getLogger(SdbSchema.class);
 
   public SdbSchema() {
     super();
   }
 
   @Override protected Map<String, Table> getTableMap() {
-    log.info("get Table map");
     final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
     for(String name : SdbSchemaFactory.get().getTables()) {
-      log.info("name {}", name);
-      builder.put("SALES", createTable(null));
+      builder.put(name, createTable(name));
     }
     return builder.build();
   }
 
-  private Table createTable(Tablet tablet) {
-    //log.info("tablet {}", tablet);
-    return new SdbScannableTable((String)null, null);
+  private Table createTable(String name) {
+    return new SdbScannableTable(name, null);
   }
 }

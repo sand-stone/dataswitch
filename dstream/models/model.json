@@ -18,14 +18,14 @@
  */
 {
   version: '1.0',
-  defaultSchema: 'SALES',
+  defaultSchema: 'acme',
   schemas: [
     {
-      name: 'SALES',
+      name: 'acme',
       type: 'custom',
       factory: 'dstream.SdbSchemaFactory',
       operand: {
-        directory: 'sales'
+        uri: 'http://http://localhost:8000'
       }
     }
   ]

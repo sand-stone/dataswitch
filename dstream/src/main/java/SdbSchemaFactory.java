@@ -34,6 +34,7 @@ public class SdbSchemaFactory implements SchemaFactory {
     if(!exists) {
       Session session = conn.open_session(null);
       session.create("table:metabase", "key_format=Si,value_format=Su,columns=(name,pid,location,schema)");
+      session.checkpoint(null);
       session.close(null);
     }
     cache = new HashMap<String, Tablet>();

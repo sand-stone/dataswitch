@@ -20,7 +20,8 @@ public class SdbScannableTable extends SdbTable
   implements ScannableTable {
   /** Creates a SdbScannableTable. */
   SdbScannableTable(String file, RelProtoDataType protoRowType) {
-    super(new File(file), protoRowType);
+    //super(new File(file), protoRowType);
+    super(null, protoRowType);
   }
 
   SdbScannableTable(File file, RelProtoDataType protoRowType) {
