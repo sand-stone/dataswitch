@@ -26,32 +26,44 @@ public final class DataNode {
     threadPool(maxThreads, minThreads, timeOutMillis);
     get("/", (req, res) -> "DStream DataNode");
     post("/createtable", (request, response) -> {
-        byte[] data = request.bodyAsBytes();
-        Message.CreateTable msg = (Message.CreateTable)Serializer.deserialize(data);
-        SdbSchemaFactory.get().addTable(msg);
-        log.info("msg {}", msg);
-        return "create table\n";
+        try {
+          byte[] data = request.bodyAsBytes();
+          Message.CreateTable msg = (Message.CreateTable)Serializer.deserialize(data);
+          SdbSchemaFactory.get().addTable(msg);
+          log.info("msg {}", msg);
+          return "create table\n";
+        } catch(Exception e) {
+          e.printStackTrace();
+          log.info(e.toString());
+          throw e;
+        }
       });
     post("/upsertable", (request, response) -> {
-        byte[] data = request.bodyAsBytes();
-        Message.UpsertTable msg = (Message.UpsertTable)Serializer.deserialize(data);
-        Tablet tablet = SdbSchemaFactory.get().getTablet(msg.table, 0);
-        try(Tablet.Context ctx = tablet.getContext()) {
-          try {
-            tablet.upsert(ctx, msg);
-          } catch(Exception ex) {
-            log.info(ex.toString());
+        try {
+          byte[] data = request.bodyAsBytes();
+          Message.UpsertTable msg = (Message.UpsertTable)Serializer.deserialize(data);
+          Tablet tablet = SdbSchemaFactory.get().getTablet(msg.table, 0);
+          try(Tablet.Context ctx = tablet.getContext()) {
+            try {
+              tablet.upsert(ctx, msg);
+            } catch(Exception ex) {
+              log.info(ex.toString());
+            }
           }
-        }
-        log.info("msg {}", msg);
-        try(Tablet.Context ctx = tablet.getContext("meta")) {
-          try {
-            tablet.getTables(ctx);
-          } catch(Exception ex) {
-            log.info(ex.toString());
+          log.info("msg {}", msg);
+          try(Tablet.Context ctx = tablet.getContext("meta")) {
+            try {
+              tablet.getTables(ctx);
+            } catch(Exception ex) {
+              log.info(ex.toString());
+            }
           }
+          return "upsert table\n";
+        }  catch(Exception e) {
+          e.printStackTrace();
+          log.info(e.toString());
+          throw e;
         }
-        return "upsert table\n";
       });
     post("/deletetable", (request, response) -> {
         byte[] data = request.bodyAsBytes();

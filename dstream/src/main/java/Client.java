@@ -78,7 +78,7 @@ public final class Client implements Closeable {
     Client client = new Client();
     client.sendMsg("http://localhost:8000/createtable", new Message.CreateTable(buildTestTable(), 10));
     client.sendMsg("http://localhost:8000/upsertable", genTestData());
-    client.sendMsg("http://localhost:8000/querytable", genExpr());
+    //client.sendMsg("http://localhost:8000/querytable", genExpr());
   }
 
 }

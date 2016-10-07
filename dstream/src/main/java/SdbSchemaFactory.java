@@ -29,14 +29,12 @@ public class SdbSchemaFactory implements SchemaFactory {
   }
 
   private SdbSchemaFactory() {
-    boolean exists = Utils.checkDir(metaDir);
+    Utils.checkDir(metaDir);
     conn = wiredtiger.open(metaDir, dbconfig);
     Session session = conn.open_session(null);
-    if(!exists) {
-      session.create("table:metabase", "key_format=Si,value_format=Su,columns=(name,pid,location,schema)");
-    }
+    session.create("table:metabase", "key_format=Si,value_format=Su,columns=(name,pid,location,schema)");
     session.close(null);
-    //shards = Tablet.getTablets("./datanode");
+    cache = new HashMap<String, Tablet>();
   }
 
   public List<Tablet> getTablet(String table) {
@@ -76,15 +74,15 @@ public class SdbSchemaFactory implements SchemaFactory {
     Session session = conn.open_session(null);
     session.begin_transaction(tnx);
     try {
-      session.commit_transaction(null);
       Cursor cursor = session.open_cursor("table:metabase", null, null);
       for(int p = 0; p < msg.shards; p++) {
         cursor.putKeyString(msg.table.getName());
         cursor.putKeyInt(p);
         cursor.putValueString(dataDir+File.separator+msg.table.getName()+File.separator+p);
         cursor.putValueByteArray(Serializer.serialize(msg.table).array());
+        cursor.insert();
       }
-      cursor.insert();
+      session.commit_transaction(null);
     } catch(WiredTigerRollbackException e) {
       session.rollback_transaction(tnx);
     }
