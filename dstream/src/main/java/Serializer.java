@@ -12,13 +12,16 @@ final class Serializer {
   private Serializer() {
   }
 
-  public static ByteBuffer serialize(Object msg) throws IOException {
-    try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
-         ObjectOutputStream oos = new ObjectOutputStream(bos)) {
-      oos.writeObject(msg);
-      oos.close();
-      return ByteBuffer.wrap(bos.toByteArray());
-    }
+  public static ByteBuffer serialize(Object msg) {
+    try {
+      try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
+           ObjectOutputStream oos = new ObjectOutputStream(bos)) {
+        oos.writeObject(msg);
+        oos.close();
+        return ByteBuffer.wrap(bos.toByteArray());
+      }
+    } catch(IOException e) {}
+    return null;
   }
 
   public static Object deserialize(byte[] data) {

@@ -24,20 +24,18 @@ public final class DataNode {
     int port = 8000;
     port(port);
     threadPool(maxThreads, minThreads, timeOutMillis);
-    HashMap<String, Tablet> shards = new HashMap<String, Tablet>();
     get("/", (req, res) -> "DStream DataNode");
     post("/createtable", (request, response) -> {
         byte[] data = request.bodyAsBytes();
         Message.CreateTable msg = (Message.CreateTable)Serializer.deserialize(data);
-        Tablet tablet = new Tablet(rootData, msg.table);
-        shards.put(msg.table.getName(), tablet);
+        SdbSchemaFactory.get().addTable(msg);
         log.info("msg {}", msg);
         return "create table\n";
       });
     post("/upsertable", (request, response) -> {
         byte[] data = request.bodyAsBytes();
         Message.UpsertTable msg = (Message.UpsertTable)Serializer.deserialize(data);
-        Tablet tablet = shards.get(msg.table);
+        Tablet tablet = SdbSchemaFactory.get().getTablet(msg.table, 0);
         try(Tablet.Context ctx = tablet.getContext()) {
           try {
             tablet.upsert(ctx, msg);
@@ -66,7 +64,7 @@ public final class DataNode {
         Message.QueryTable msg = (Message.QueryTable)Serializer.deserialize(data);
         log.info("msg {}", msg.table);
         Expression.WireSerializedLambda f = Expression.WireSerializedLambda.read(ByteBuffer.wrap(msg.expr));
-        Tablet tablet = shards.get(msg.table);
+        Tablet tablet = SdbSchemaFactory.get().getTablet(msg.table, 0);
         try(Tablet.Context ctx = tablet.getContext()) {
           try {
             tablet.filter(ctx, f);

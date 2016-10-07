@@ -11,10 +11,17 @@ public final class Message implements Serializable {
 
   public static final class CreateTable implements Serializable {
     public Table table;
-
+    public int shards;
+    
     public CreateTable(Table table) {
-      this.table = table;
+      this(table, 1);
     }
+
+    public CreateTable(Table table, int shards) {
+      this.table = table;
+      this.shards = shards;
+    }
+
   }
 
    public static final class UpsertTable implements Serializable {

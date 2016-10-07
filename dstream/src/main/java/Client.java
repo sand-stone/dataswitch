@@ -31,8 +31,6 @@ public final class Client implements Closeable {
         .execute()
         .get();
       log.info("r: {}", r);
-    } catch(IOException e) {
-      log.info(e);
     } catch(InterruptedException e) {
       log.info(e);
     } catch(ExecutionException e) {
@@ -78,7 +76,7 @@ public final class Client implements Closeable {
 
   public static void main(String[] args) {
     Client client = new Client();
-    client.sendMsg("http://localhost:8000/createtable", new Message.CreateTable(buildTestTable()));
+    client.sendMsg("http://localhost:8000/createtable", new Message.CreateTable(buildTestTable(), 10));
     client.sendMsg("http://localhost:8000/upsertable", genTestData());
     client.sendMsg("http://localhost:8000/querytable", genExpr());
   }
