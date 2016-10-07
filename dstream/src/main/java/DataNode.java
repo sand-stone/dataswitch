@@ -42,7 +42,11 @@ public final class DataNode {
         try {
           byte[] data = request.bodyAsBytes();
           Message.UpsertTable msg = (Message.UpsertTable)Serializer.deserialize(data);
-          Tablet tablet = SdbSchemaFactory.get().getTablet(msg.table, 0);
+          String table = request.queryParams("table");
+          if(table == null)
+            return "table not found";
+          String pid = request.queryParams("partition");
+          Tablet tablet = SdbSchemaFactory.get().getTablet(table, pid == null? 0 : Integer.parseInt(pid));
           try(Tablet.Context ctx = tablet.getContext()) {
             try {
               tablet.upsert(ctx, msg);
@@ -58,7 +62,7 @@ public final class DataNode {
               log.info(ex.toString());
             }
           }
-          return "upsert table\n";
+          return "upsert table";
         }  catch(Exception e) {
           e.printStackTrace();
           log.info(e.toString());
