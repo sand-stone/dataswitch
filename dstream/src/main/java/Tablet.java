@@ -44,8 +44,48 @@ public class Tablet implements Closeable {
     return tables;
   }
 
+  public static Tablet getTablet(String location, String table) {
+    Tablet tablet = null;
+    Connection conn = wiredtiger.open(location, dbconfig);
+    Session session = conn.open_session(null);
+    Cursor cursor = session.open_cursor("metadata:", null, null);
+    while(cursor.next() == 0) {
+      String name = cursor.getKeyString();
+      int i = name.indexOf("table:");
+      if(i>=0) {
+        String tbln = name.substring(6);
+        if(table.equals(tbln)) {
+          String val = cursor.getValueString();
+          log.info("val {}", val);
+        }
+      }
+    }
+    session.close(null);
+    conn.close(null);
+    return tablet;
+  }
+
   public List<String> getTables(Context ctx) {
     return getTables(ctx.cursor);
+  }
+
+  public static Map<String, Tablet> getTablets(String location) {
+    HashMap<String, Tablet> shards = new HashMap<String, Tablet>();
+    Connection conn = wiredtiger.open(location, dbconfig);
+    Session session = conn.open_session(null);
+    Cursor cursor = session.open_cursor("metadata:", null, null);
+    while(cursor.next() == 0) {
+      String name = cursor.getKeyString();
+      int i = name.indexOf("table:");
+      if(i>=0) {
+        String tbln = name.substring(6);
+        String val = cursor.getValueString();
+        log.info("{}={}", tbln, val);
+      }
+    }
+    session.close(null);
+    conn.close(null);
+    return shards;
   }
 
   private static List<String> getTables(Cursor cursor) {

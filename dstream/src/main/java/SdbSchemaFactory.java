@@ -13,15 +13,21 @@ import org.apache.logging.log4j.LogManager;
 public class SdbSchemaFactory implements SchemaFactory {
   private static Logger log = LogManager.getLogger(SdbSchemaFactory.class);
   static final String ROWTIME_COLUMN_NAME = "ROWTIME";
+  static Map<String, Tablet> shards;
 
   public static final SdbSchemaFactory INSTANCE = new SdbSchemaFactory();
 
   private SdbSchemaFactory() {
+    shards = Tablet.getTablets("./datanode");
+  }
+
+  public Map<String, Tablet> getShards() {
+    return shards;
   }
 
   public Schema create(SchemaPlus parentSchema, String name,
                        Map<String, Object> operand) {
     log.info("name {}", name);
-    return new SdbSchema();
+    return new SdbSchema(this);
   }
 }
