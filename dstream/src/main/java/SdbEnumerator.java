@@ -98,6 +98,7 @@ class SdbEnumerator<E> implements Enumerator<E> {
    * of a CSV file. */
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
                                    List<SdbFieldType> fieldTypes, Boolean stream) {
+    System.out.println("file:"+file);
     final List<RelDataType> types = new ArrayList<>();
     final List<String> names = new ArrayList<>();
     CSVReader reader = null;

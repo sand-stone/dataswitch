@@ -16,12 +16,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class Utils {
   public static boolean checkDir(String dir) {
-    boolean ret = true;
     File d = new File(dir);
-    if(d.exists()) {
-      if(d.isFile())
-        ret = false;
-    } else {
+    boolean ret = d.exists();
+    if(ret && d.isFile())
+      throw new RuntimeException("wrong directory:" + dir);
+    if(!ret) {
       d.mkdirs();
     }
     return ret;

@@ -18,25 +18,23 @@ import java.util.List;
  */
 public class SdbSchema extends AbstractSchema {
   private static Logger log = LogManager.getLogger(SdbSchemaFactory.class);
-  private SdbSchemaFactory factory;
 
-  public SdbSchema(SdbSchemaFactory factory) {
+  public SdbSchema() {
     super();
-    this.factory = factory;
   }
 
   @Override protected Map<String, Table> getTableMap() {
     log.info("get Table map");
     final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
-    List<String> tableNames = Tablet.getTables("./datanode");
-    for(Map.Entry<String, Tablet> entry : factory.getShards().entrySet()) {
-      builder.put(entry.getKey(), createTable(entry.getValue()));
+    for(String name : SdbSchemaFactory.get().getTables()) {
+      log.info("name {}", name);
+      builder.put("SALES", createTable(null));
     }
     return builder.build();
   }
 
   private Table createTable(Tablet tablet) {
-    log.info("tablet {}", tablet);
+    //log.info("tablet {}", tablet);
     return new SdbScannableTable((String)null, null);
   }
 }

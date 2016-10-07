@@ -24,12 +24,15 @@ public final class DataNode {
     int port = 8000;
     port(port);
     threadPool(maxThreads, minThreads, timeOutMillis);
+    SdbSchemaFactory.get().getTables();
     get("/", (req, res) -> "DStream DataNode");
     post("/createtable", (request, response) -> {
         try {
           byte[] data = request.bodyAsBytes();
           Message.CreateTable msg = (Message.CreateTable)Serializer.deserialize(data);
+          SdbSchemaFactory.get().getTables();
           SdbSchemaFactory.get().addTable(msg);
+          SdbSchemaFactory.get().getTables();
           log.info("msg {}", msg);
           return "create table\n";
         } catch(Exception e) {

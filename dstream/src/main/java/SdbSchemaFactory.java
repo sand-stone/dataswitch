@@ -22,18 +22,20 @@ public class SdbSchemaFactory implements SchemaFactory {
   private final String metaDir = "./meta";
   private final String dbconfig = "create";
 
-  private static final SdbSchemaFactory instance = new SdbSchemaFactory();
+  public static final SdbSchemaFactory INSTANCE = new SdbSchemaFactory();
 
   public static SdbSchemaFactory get() {
-    return instance;
+    return INSTANCE;
   }
 
   private SdbSchemaFactory() {
-    Utils.checkDir(metaDir);
+    boolean exists = Utils.checkDir(metaDir);
     conn = wiredtiger.open(metaDir, dbconfig);
-    Session session = conn.open_session(null);
-    session.create("table:metabase", "key_format=Si,value_format=Su,columns=(name,pid,location,schema)");
-    session.close(null);
+    if(!exists) {
+      Session session = conn.open_session(null);
+      session.create("table:metabase", "key_format=Si,value_format=Su,columns=(name,pid,location,schema)");
+      session.close(null);
+    }
     cache = new HashMap<String, Tablet>();
   }
 
@@ -54,19 +56,36 @@ public class SdbSchemaFactory implements SchemaFactory {
     return tablets;
   }
 
-  public Tablet getTablet(String name, int pid) {
-    Tablet tablet = null;
+  public List<String> getTables() {
+    List<String> tables = new ArrayList<String>();
     Session session = conn.open_session(null);
     Cursor cursor = session.open_cursor("table:metabase", null, null);
-    cursor.putKeyString(name);
-    cursor.putKeyInt(pid);
-    if(cursor.search() == 0) {
-      String location = cursor.getValueString();
-      Table tbl = (Table)Serializer.deserialize(cursor.getValueByteArray());
-      tablet = new Tablet(location, tbl);
-      cache.put(name, tablet);
+    while(cursor.next() == 0) {
+      String name = cursor.getKeyString();
+      int pid = cursor.getKeyInt();
+      if(pid == 0)
+        tables.add(name);
     }
     session.close(null);
+    return tables;
+  }
+
+  public Tablet getTablet(String name, int pid) {
+    String key = name+pid;
+    Tablet tablet = cache.get(key);
+    if(tablet == null) {
+      Session session = conn.open_session(null);
+      Cursor cursor = session.open_cursor("table:metabase", null, null);
+      cursor.putKeyString(name);
+      cursor.putKeyInt(pid);
+      if(cursor.search() == 0) {
+        String location = cursor.getValueString();
+        Table tbl = (Table)Serializer.deserialize(cursor.getValueByteArray());
+        tablet = new Tablet(location, tbl);
+        cache.put(key, tablet);
+      }
+      session.close(null);
+    }
     return tablet;
   }
 
@@ -86,6 +105,7 @@ public class SdbSchemaFactory implements SchemaFactory {
     } catch(WiredTigerRollbackException e) {
       session.rollback_transaction(tnx);
     }
+    session.checkpoint(null);
     session.close(null);
   }
 
@@ -96,6 +116,6 @@ public class SdbSchemaFactory implements SchemaFactory {
   public Schema create(SchemaPlus parentSchema, String name,
                        Map<String, Object> operand) {
     log.info("name {}", name);
-    return new SdbSchema(this);
+    return new SdbSchema();
   }
 }
