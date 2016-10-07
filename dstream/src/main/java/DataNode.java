@@ -45,6 +45,7 @@ public final class DataNode {
         try {
           byte[] data = request.bodyAsBytes();
           Message.UpsertTable msg = (Message.UpsertTable)Serializer.deserialize(data);
+          log.info("msg {}", msg);
           String table = request.queryParams("table");
           if(table == null)
             return "table not found";
@@ -53,14 +54,6 @@ public final class DataNode {
           try(Tablet.Context ctx = tablet.getContext()) {
             try {
               tablet.upsert(ctx, msg);
-            } catch(Exception ex) {
-              log.info(ex.toString());
-            }
-          }
-          log.info("msg {}", msg);
-          try(Tablet.Context ctx = tablet.getContext("meta")) {
-            try {
-              tablet.getTables(ctx);
             } catch(Exception ex) {
               log.info(ex.toString());
             }

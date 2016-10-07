@@ -22,87 +22,8 @@ public class Tablet implements Closeable {
   private static final String dbconfig = "create,cache_size=1GB,eviction=(threads_max=2,threads_min=2),lsm_manager=(merge=true,worker_thread_max=3), checkpoint=(log_size=2GB,wait=3600)";
   private Table table;
 
-  private static boolean checkDir(String dir) {
-    boolean ret = true;
-    File d = new File(dir);
-    if(d.exists()) {
-      if(d.isFile())
-        ret = false;
-    } else {
-      d.mkdirs();
-    }
-    return ret;
-  }
-
-  public static List<String> getTables(String location) {
-    Connection conn = wiredtiger.open(location, dbconfig);
-    Session session = conn.open_session(null);
-    Cursor cursor = session.open_cursor("metadata:", null, null);
-    List<String> tables = getTables(cursor);
-    session.close(null);
-    conn.close(null);
-    return tables;
-  }
-
-  public static Tablet getTablet(String location, String table) {
-    Tablet tablet = null;
-    Connection conn = wiredtiger.open(location, dbconfig);
-    Session session = conn.open_session(null);
-    Cursor cursor = session.open_cursor("metadata:", null, null);
-    while(cursor.next() == 0) {
-      String name = cursor.getKeyString();
-      int i = name.indexOf("table:");
-      if(i>=0) {
-        String tbln = name.substring(6);
-        if(table.equals(tbln)) {
-          String val = cursor.getValueString();
-          log.info("val {}", val);
-        }
-      }
-    }
-    session.close(null);
-    conn.close(null);
-    return tablet;
-  }
-
-  public List<String> getTables(Context ctx) {
-    return getTables(ctx.cursor);
-  }
-
-  public static Map<String, Tablet> getTablets(String location) {
-    HashMap<String, Tablet> shards = new HashMap<String, Tablet>();
-    Connection conn = wiredtiger.open(location, dbconfig);
-    Session session = conn.open_session(null);
-    Cursor cursor = session.open_cursor("metadata:", null, null);
-    while(cursor.next() == 0) {
-      String name = cursor.getKeyString();
-      int i = name.indexOf("table:");
-      if(i>=0) {
-        String tbln = name.substring(6);
-        String val = cursor.getValueString();
-        log.info("{}={}", tbln, val);
-      }
-    }
-    session.close(null);
-    conn.close(null);
-    return shards;
-  }
-
-  private static List<String> getTables(Cursor cursor) {
-    List<String> tables = new ArrayList<String>();
-    while(cursor.next() == 0) {
-      String name = cursor.getKeyString();
-      //String val = ctx.cursor.getValueString();
-      int i = name.indexOf("table:");
-      if(i>=0) {
-        tables.add(name.substring(6));
-      }
-    }
-    return tables;
-  }
-
   public Tablet(String location, Table table) {
-    checkDir(location);
+    Utils.checkDir(location);
     this.table = table;
     conn = wiredtiger.open(location, dbconfig);
     Session session = conn.open_session(null);
@@ -212,6 +133,8 @@ public class Tablet implements Closeable {
     }
 
     public void close() {
+      cursor.close();
+      session.checkpoint(null);
       session.close(null);
     }
   }

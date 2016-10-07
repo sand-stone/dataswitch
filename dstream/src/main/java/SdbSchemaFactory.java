@@ -53,6 +53,7 @@ public class SdbSchemaFactory implements SchemaFactory {
         tablets.add(tablet);
       } while(cursor.next() == 0);
     }
+    cursor.close();
     session.close(null);
     return tablets;
   }
@@ -67,6 +68,7 @@ public class SdbSchemaFactory implements SchemaFactory {
       if(pid == 0)
         tables.add(name);
     }
+    cursor.close();
     session.close(null);
     return tables;
   }
@@ -85,6 +87,7 @@ public class SdbSchemaFactory implements SchemaFactory {
         tablet = new Tablet(location, tbl);
         cache.put(key, tablet);
       }
+      cursor.close();
       session.close(null);
     }
     return tablet;
@@ -93,8 +96,9 @@ public class SdbSchemaFactory implements SchemaFactory {
   public void addTable(Message.CreateTable msg) {
     Session session = conn.open_session(null);
     session.begin_transaction(tnx);
+    Cursor cursor = null;
     try {
-      Cursor cursor = session.open_cursor("table:metabase", null, null);
+      cursor = session.open_cursor("table:metabase", null, null);
       for(int p = 0; p < msg.shards; p++) {
         cursor.putKeyString(msg.table.getName());
         cursor.putKeyInt(p);
@@ -103,10 +107,12 @@ public class SdbSchemaFactory implements SchemaFactory {
         cursor.insert();
       }
       session.commit_transaction(null);
+      session.checkpoint(null);
     } catch(WiredTigerRollbackException e) {
       session.rollback_transaction(tnx);
     }
-    session.checkpoint(null);
+    if(cursor != null)
+      cursor.close();
     session.close(null);
   }
 
