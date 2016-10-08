@@ -6,7 +6,8 @@ import org.apache.calcite.linq4j.Enumerable;
 import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.schema.ScannableTable;
-
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -18,10 +19,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class SdbScannableTable extends SdbTable
   implements ScannableTable {
-  /** Creates a SdbScannableTable. */
+  private static Logger log = LogManager.getLogger(SdbScannableTable.class);
+
   SdbScannableTable(String file, RelProtoDataType protoRowType) {
     //super(new File(file), protoRowType);
     super(null, protoRowType);
+    log.info("scan table ctor");
   }
 
   SdbScannableTable(File file, RelProtoDataType protoRowType) {
@@ -33,6 +36,7 @@ public class SdbScannableTable extends SdbTable
   }
 
   public Enumerable<Object[]> scan(DataContext root) {
+    log.info("scan");
     final int[] fields = SdbEnumerator.identityList(fieldTypes.size());
     final AtomicBoolean cancelFlag = DataContext.Variable.CANCEL_FLAG.get(root);
     return new AbstractEnumerable<Object[]>() {

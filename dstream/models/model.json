@@ -18,10 +18,10 @@
  */
 {
   version: '1.0',
-  defaultSchema: 'acme',
+  defaultSchema: 'Foo',
   schemas: [
     {
-      name: 'acme',
+      name: 'bar',
       type: 'custom',
       factory: 'dstream.SdbSchemaFactory',
       operand: {

@@ -15,18 +15,18 @@ import java.util.List;
  * Base class for table that reads CSV files.
  */
 public abstract class SdbTable extends AbstractTable {
-  private static Logger log = LogManager.getLogger(SdbSchemaFactory.class);
+  private static Logger log = LogManager.getLogger(SdbTable.class);
   protected final File file;
   protected final RelProtoDataType protoRowType;
   protected List<SdbFieldType> fieldTypes;
 
-  /** Creates a SdbAbstractTable. */
   SdbTable(File file, RelProtoDataType protoRowType) {
     this.file = file;
     this.protoRowType = protoRowType;
   }
 
   public RelDataType getRowType(RelDataTypeFactory typeFactory) {
+    log.info("getRowType");
     if (protoRowType != null) {
       return protoRowType.apply(typeFactory);
     }

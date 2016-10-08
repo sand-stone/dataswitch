@@ -24,14 +24,18 @@ public class SdbSchema extends AbstractSchema {
   }
 
   @Override protected Map<String, Table> getTableMap() {
+    Throwable t = new Throwable();
+    t.fillInStackTrace();
+    t.printStackTrace();
     final ImmutableMap.Builder<String, Table> builder = ImmutableMap.builder();
     for(String name : SdbSchemaFactory.get().getTables()) {
-      builder.put(name, createTable(name));
+      builder.put("ACME", createTable(name));
     }
     return builder.build();
   }
 
   private Table createTable(String name) {
+    log.info("create {}", name);
     return new SdbScannableTable(name, null);
   }
 }

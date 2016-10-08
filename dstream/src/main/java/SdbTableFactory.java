@@ -6,7 +6,8 @@ import org.apache.calcite.rel.type.RelDataTypeImpl;
 import org.apache.calcite.rel.type.RelProtoDataType;
 import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.schema.TableFactory;
-
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import java.io.File;
 import java.util.Map;
 
@@ -18,12 +19,14 @@ import java.util.Map;
  */
 @SuppressWarnings("UnusedDeclaration")
 public class SdbTableFactory implements TableFactory<SdbTable> {
-  // public constructor, per factory contract
+  private static Logger log = LogManager.getLogger(SdbTableFactory.class);
+
   public SdbTableFactory() {
   }
 
   public SdbTable create(SchemaPlus schema, String name,
                          Map<String, Object> operand, RelDataType rowType) {
+    log.info("create");
     String fileName = (String) operand.get("file");
     File file = new File(fileName);
     final File base =

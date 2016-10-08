@@ -5,6 +5,8 @@ import org.apache.calcite.linq4j.Enumerator;
 import org.apache.calcite.rel.type.RelDataType;
 import org.apache.calcite.sql.type.SqlTypeName;
 import org.apache.calcite.util.Pair;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import org.apache.commons.lang3.time.FastDateFormat;
 
@@ -32,6 +34,7 @@ import java.util.zip.GZIPInputStream;
  * @param <E> Row type
  */
 class SdbEnumerator<E> implements Enumerator<E> {
+  private static Logger log = LogManager.getLogger(SdbSchemaFactory.class);
   private final CSVReader reader;
   private final String[] filterValues;
   private final AtomicBoolean cancelFlag;
@@ -64,6 +67,7 @@ class SdbEnumerator<E> implements Enumerator<E> {
 
   public SdbEnumerator(File file, AtomicBoolean cancelFlag, boolean stream,
                        String[] filterValues, RowConverter<E> rowConverter) {
+    log.info("sdb enum");
     this.cancelFlag = cancelFlag;
     this.rowConverter = rowConverter;
     this.filterValues = filterValues;
@@ -81,6 +85,7 @@ class SdbEnumerator<E> implements Enumerator<E> {
 
   private static RowConverter<?> converter(List<SdbFieldType> fieldTypes,
                                            int[] fields) {
+    log.info("sdb enum converter");
     if (fields.length == 1) {
       final int field = fields[0];
       return new SingleColumnRowConverter(fieldTypes.get(field), field);
@@ -98,7 +103,7 @@ class SdbEnumerator<E> implements Enumerator<E> {
    * of a CSV file. */
   static RelDataType deduceRowType(JavaTypeFactory typeFactory, File file,
                                    List<SdbFieldType> fieldTypes, Boolean stream) {
-    System.out.println("file:"+file);
+    log.info("sdb enum deduceRowType");
     final List<RelDataType> types = new ArrayList<>();
     final List<String> names = new ArrayList<>();
     CSVReader reader = null;
