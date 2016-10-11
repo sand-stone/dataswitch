@@ -271,6 +271,7 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
   }
 
   public List<SqlMoniker> getAllSchemaObjectNames(List<String> names) {
+    //log.info("getAllSchemaObjectNames:{}", names);
     List<SqlMoniker> result;
     switch (names.size()) {
     case 0:
@@ -316,6 +317,7 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
   }
 
   public RelDataTypeField field(RelDataType rowType, String alias) {
+    //log.info("field:{}", alias);
     return SqlValidatorUtil.lookupField(caseSensitive, rowType, alias);
   }
 

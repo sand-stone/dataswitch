@@ -39,6 +39,7 @@ import org.apache.calcite.sql2rel.StandardConvertletTable;
 import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.Util;
+import org.apache.calcite.rex.RexNode;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -62,7 +63,7 @@ public class Sdb {
   }
 
   public Prepare.CatalogReader createCatalogReader(RelDataTypeFactory typeFactory) {
-    return new SdbCatalogReader(typeFactory, true).init();
+    return new SdbCatalogReader(typeFactory, false).init();
   }
 
   public SqlConformance getConformance() {
@@ -145,9 +146,16 @@ public class Sdb {
     return parser.parseQuery();
   }
 
+  private static void print(RelNode node) {
+    for(RelNode c : node.getInputs()) {
+      log.info("children {}", c);
+      print(c);
+    }
+  }
+
   public static void main(String[] args) throws Exception {
     Sdb sdb = new Sdb();
-    SqlNode sqlQuery = sdb.parseQuery("select * from acme.acme");
+    SqlNode sqlQuery = sdb.parseQuery("select id, name from acme.acme where id>3 order by id desc");
     final RelDataTypeFactory typeFactory = sdb.getTypeFactory();
     final Prepare.CatalogReader catalogReader =
       sdb.createCatalogReader(typeFactory);
@@ -157,6 +165,7 @@ public class Sdb {
     localConfig = SqlToRelConverter.configBuilder()
       .withTrimUnusedFields(true).withExpand(enableExpand).build();
     final SqlNode validatedQuery = validator.validate(sqlQuery);
+    log.info("***sqlQuery {}", validatedQuery);
     final SqlToRelConverter converter =
       sdb.createSqlToRelConverter(
                                   validator,
@@ -167,5 +176,6 @@ public class Sdb {
       converter.convertQuery(validatedQuery, false, true);
     assert root != null;
     log.info("root {}", root);
+    print(root.rel);
   }
 }
