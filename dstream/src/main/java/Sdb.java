@@ -4,6 +4,7 @@ import org.apache.calcite.linq4j.tree.Expression;
 import org.apache.calcite.plan.RelOptCluster;
 import org.apache.calcite.plan.RelOptPlanner;
 import org.apache.calcite.plan.RelOptSchema;
+import org.apache.calcite.schema.SchemaPlus;
 import org.apache.calcite.plan.RelOptSchemaWithSampling;
 import org.apache.calcite.plan.RelOptTable;
 import org.apache.calcite.plan.RelOptUtil;
@@ -40,6 +41,9 @@ import org.apache.calcite.tools.RelBuilder;
 import org.apache.calcite.util.ImmutableBitSet;
 import org.apache.calcite.util.Util;
 import org.apache.calcite.rex.RexNode;
+import org.apache.calcite.tools.FrameworkConfig;
+import org.apache.calcite.tools.Frameworks;
+import org.apache.calcite.tools.Planner;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
@@ -147,15 +151,59 @@ public class Sdb {
   }
 
   private static void print(RelNode node) {
+    log.info("children {}={}", node, node.getClass());
+    if(node instanceof org.apache.calcite.rel.logical.LogicalTableScan) {
+      log.info("table {}", ((org.apache.calcite.rel.logical.LogicalTableScan)node).getTable());
+    } else if (node instanceof org.apache.calcite.rel.logical.LogicalFilter) {
+      log.info("filter {}", ((org.apache.calcite.rel.logical.LogicalFilter)node).getCondition());
+    } else if (node instanceof org.apache.calcite.rel.logical.LogicalProject) {
+      log.info("project {}", ((org.apache.calcite.rel.logical.LogicalProject)node).getProjects());
+    } else if (node instanceof org.apache.calcite.rel.logical.LogicalSort) {
+      log.info("sort {}", ((org.apache.calcite.rel.logical.LogicalSort)node).getChildExps());
+      log.info("sort {}", ((org.apache.calcite.rel.logical.LogicalSort)node).getCollationList());
+    }
+
     for(RelNode c : node.getInputs()) {
-      log.info("children {}", c);
       print(c);
     }
   }
 
+  /*public static SdbDataContext implements DataContext {
+    private final Planner planner;
+    private SchemaPlus rootSchema;
+
+    public SdbDataContext() {
+      rootSchema = Frameworks.createRootSchema(true);
+      final FrameworkConfig config = Frameworks.newConfigBuilder()
+        .parserConfig(SqlParser.Config.DEFAULT)
+        .defaultSchema(
+                       CalciteAssert.addSchema(rootSchema, CalciteAssert.SchemaSpec.HR))
+        .build();
+    planner = Frameworks.getPlanner(config);
+    dataContext = new MyDataContext(planner);
+
+    }
+
+    public SchemaPlus getRootSchema() {
+      return rootSchema;
+    }
+
+    public JavaTypeFactory getTypeFactory() {
+      return (JavaTypeFactory) planner.getTypeFactory();
+    }
+
+    public QueryProvider getQueryProvider() {
+      return null;
+    }
+
+    public Object get(String name) {
+      return null;
+    }
+    }*/
+
   public static void main(String[] args) throws Exception {
     Sdb sdb = new Sdb();
-    SqlNode sqlQuery = sdb.parseQuery("select id, name from acme.acme where id>3 order by id desc");
+    SqlNode sqlQuery = sdb.parseQuery("select id, name from acme.acme where id>3 order by id desc, name desc");
     final RelDataTypeFactory typeFactory = sdb.getTypeFactory();
     final Prepare.CatalogReader catalogReader =
       sdb.createCatalogReader(typeFactory);
@@ -175,7 +223,6 @@ public class Sdb {
     RelRoot root =
       converter.convertQuery(validatedQuery, false, true);
     assert root != null;
-    log.info("root {}", root);
     print(root.rel);
   }
 }
