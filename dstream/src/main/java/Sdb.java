@@ -51,13 +51,93 @@ import org.apache.logging.log4j.LogManager;
 
 public class Sdb {
   private static Logger log = LogManager.getLogger(Sdb.class);
-  
+
+  private SqlOperatorTable opTab;
+  private RelDataTypeFactory typeFactory;
+  private RelOptPlanner planner;
+  private Function<RelOptCluster, RelOptCluster> clusterFactory;
+
   public RelDataTypeFactory createTypeFactory() {
     return new SqlTypeFactoryImpl(RelDataTypeSystem.DEFAULT);
   }
 
+  public Prepare.CatalogReader createCatalogReader(RelDataTypeFactory typeFactory) {
+    return new SdbCatalogReader(typeFactory, true).init();
+  }
+
+  public SqlConformance getConformance() {
+    return SqlConformance.DEFAULT;
+  }
+
+  public final SqlOperatorTable getOperatorTable() {
+    if (opTab == null) {
+      opTab = createOperatorTable();
+    }
+    return opTab;
+  }
+
+  public RelDataTypeFactory getTypeFactory() {
+    if(typeFactory == null)
+      typeFactory = createTypeFactory();
+    return typeFactory;
+  }
+
   public RelOptPlanner createPlanner() {
-    return null;
+    return new SdbRelOptPlanner();
+  }
+
+  public RelOptPlanner getPlanner() {
+    if (planner == null) {
+      planner = createPlanner();
+    }
+    return planner;
+  }
+
+  private SqlOperatorTable createOperatorTable() {
+    final SdbSqlOperatorTable opTab =
+      new SdbSqlOperatorTable(SqlStdOperatorTable.instance());
+    SdbSqlOperatorTable.addRamp(opTab);
+    return opTab;
+  }
+
+  private static class SdbValidator extends SqlValidatorImpl {
+    public SdbValidator(
+                        SqlOperatorTable opTab,
+                        SqlValidatorCatalogReader catalogReader,
+                        RelDataTypeFactory typeFactory,
+                        SqlConformance conformance) {
+      super(opTab, catalogReader, typeFactory, conformance);
+    }
+
+    // override SqlValidator
+    public boolean shouldExpandIdentifiers() {
+      return true;
+    }
+  }
+
+  public SqlToRelConverter createSqlToRelConverter(
+                                                   final SqlValidator validator,
+                                                   final Prepare.CatalogReader catalogReader,
+                                                   final RelDataTypeFactory typeFactory,
+                                                   final SqlToRelConverter.Config config) {
+    final RexBuilder rexBuilder = new RexBuilder(typeFactory);
+    RelOptCluster cluster =
+      RelOptCluster.create(getPlanner(), rexBuilder);
+    if (clusterFactory != null) {
+      cluster = clusterFactory.apply(cluster);
+    }
+    return new SqlToRelConverter(null, validator, catalogReader, cluster,
+                                 StandardConvertletTable.INSTANCE, config);
+  }
+
+  public SqlValidator createValidator(
+                                      SqlValidatorCatalogReader catalogReader,
+                                      RelDataTypeFactory typeFactory) {
+    return new SdbValidator(
+                            getOperatorTable(),
+                            catalogReader,
+                            typeFactory,
+                            getConformance());
   }
 
   public SqlNode parseQuery(String sql) throws Exception {
@@ -67,6 +147,26 @@ public class Sdb {
 
   public static void main(String[] args) throws Exception {
     Sdb sdb = new Sdb();
-    log.info("{}", sdb.parseQuery("select * from acme"));
+    SqlNode sqlQuery = sdb.parseQuery("select * from acme");
+    final RelDataTypeFactory typeFactory = sdb.getTypeFactory();
+    final Prepare.CatalogReader catalogReader =
+      sdb.createCatalogReader(typeFactory);
+    final SqlValidator validator = sdb.createValidator(catalogReader, typeFactory);
+    final SqlToRelConverter.Config localConfig;
+    boolean enableExpand = false;
+    localConfig = SqlToRelConverter.configBuilder()
+      .withTrimUnusedFields(true).withExpand(enableExpand).build();
+    final SqlNode validatedQuery = validator.validate(sqlQuery);
+    final SqlToRelConverter converter =
+      sdb.createSqlToRelConverter(
+                              validator,
+                              catalogReader,
+                              typeFactory,
+                              localConfig);
+
+    RelRoot root =
+      converter.convertQuery(validatedQuery, false, true);
+    assert root != null;
+    log.info("root {}", root);
   }
 }
