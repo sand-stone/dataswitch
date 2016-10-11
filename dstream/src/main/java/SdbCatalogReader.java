@@ -151,65 +151,16 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
       typeFactory.createSqlType(SqlTypeName.DATE);
     final RelDataType booleanType =
       typeFactory.createSqlType(SqlTypeName.BOOLEAN);
-    final RelDataType rectilinearCoordType =
-      typeFactory.builder()
-      .add("X", intType)
-      .add("Y", intType)
-      .build();
-    final RelDataType rectilinearPeekCoordType =
-      typeFactory.builder()
-      .add("X", intType)
-      .add("Y", intType)
-      .kind(StructKind.PEEK_FIELDS)
-      .build();
 
     SdbSchema acmeSchema = new SdbSchema("ACME");
     registerSchema(acmeSchema);
 
     SdbTable acmeTable =
       SdbTable.create(this, acmeSchema, "ACME", false, 4);
-    acmeTable.addColumn("id", intType);
     acmeTable.addColumn("name", varchar10Type);
+    acmeTable.addColumn("id", intType);
     registerTable(acmeTable);
 
-    addressType =
-      new ObjectSqlType(
-                        SqlTypeName.STRUCTURED,
-                        new SqlIdentifier("ADDRESS", SqlParserPos.ZERO),
-                        false,
-                        Arrays.asList(
-                                      new RelDataTypeFieldImpl("STREET", 0, varchar20Type),
-                                      new RelDataTypeFieldImpl("CITY", 1, varchar20Type),
-                                      new RelDataTypeFieldImpl("ZIP", 2, intType),
-                                      new RelDataTypeFieldImpl("STATE", 3, varchar20Type)),
-                        RelDataTypeComparability.NONE);
-
-    SdbSchema structTypeSchema = new SdbSchema("STRUCT");
-    registerSchema(structTypeSchema);
-    SdbTable structTypeTable = SdbTable.create(this, structTypeSchema, "T",
-                                               false, 100);
-    structTypeTable.addColumn("K0", varchar20Type);
-    structTypeTable.addColumn("C1", varchar20Type);
-    final RelDataType f0Type = typeFactory.builder()
-      .add("C0", intType)
-      .add("C1", intType)
-      .kind(StructKind.PEEK_FIELDS_DEFAULT)
-      .build();
-    structTypeTable.addColumn("F0", f0Type);
-    final RelDataType f1Type = typeFactory.builder()
-      .add("C0", intTypeNull)
-      .add("C2", intType)
-      .add("A0", intType)
-      .kind(StructKind.PEEK_FIELDS)
-      .build();
-    structTypeTable.addColumn("F1", f1Type);
-    final RelDataType f2Type = typeFactory.builder()
-      .add("C3", intType)
-      .add("A0", booleanType)
-      .kind(StructKind.PEEK_FIELDS)
-      .build();
-    structTypeTable.addColumn("F2", f2Type);
-    registerTable(structTypeTable);
     return this;
   }
 
@@ -318,6 +269,9 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
 
   public RelDataTypeField field(RelDataType rowType, String alias) {
     //log.info("field:{}", alias);
+    //Throwable t = new Throwable();
+    //t.fillInStackTrace();
+    //t.printStackTrace();
     return SqlValidatorUtil.lookupField(caseSensitive, rowType, alias);
   }
 
@@ -563,103 +517,4 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
     }
   }
 
-  private static class DelegateStructType implements RelDataType {
-    private RelDataType delegate;
-    private StructKind structKind;
-
-    DelegateStructType(RelDataType delegate, StructKind structKind) {
-      assert delegate.isStruct();
-      this.delegate = delegate;
-      this.structKind = structKind;
-    }
-
-    public boolean isStruct() {
-      return delegate.isStruct();
-    }
-
-    public boolean isDynamicStruct() {
-      return delegate.isDynamicStruct();
-    }
-
-    public List<RelDataTypeField> getFieldList() {
-      return delegate.getFieldList();
-    }
-
-    public List<String> getFieldNames() {
-      return delegate.getFieldNames();
-    }
-
-    public int getFieldCount() {
-      return delegate.getFieldCount();
-    }
-
-    public StructKind getStructKind() {
-      return structKind;
-    }
-
-    public RelDataTypeField getField(String fieldName, boolean caseSensitive,
-                                     boolean elideRecord) {
-      return delegate.getField(fieldName, caseSensitive, elideRecord);
-    }
-
-    public boolean isNullable() {
-      return delegate.isNullable();
-    }
-
-    public RelDataType getComponentType() {
-      return delegate.getComponentType();
-    }
-
-    public RelDataType getKeyType() {
-      return delegate.getKeyType();
-    }
-
-    public RelDataType getValueType() {
-      return delegate.getValueType();
-    }
-
-    public Charset getCharset() {
-      return delegate.getCharset();
-    }
-
-    public SqlCollation getCollation() {
-      return delegate.getCollation();
-    }
-
-    public SqlIntervalQualifier getIntervalQualifier() {
-      return delegate.getIntervalQualifier();
-    }
-
-    public int getPrecision() {
-      return delegate.getPrecision();
-    }
-
-    public int getScale() {
-      return delegate.getScale();
-    }
-
-    public SqlTypeName getSqlTypeName() {
-      return delegate.getSqlTypeName();
-    }
-
-    public SqlIdentifier getSqlIdentifier() {
-      return delegate.getSqlIdentifier();
-    }
-
-    public String getFullTypeString() {
-      return delegate.getFullTypeString();
-    }
-
-    public RelDataTypeFamily getFamily() {
-      return delegate.getFamily();
-    }
-
-    public RelDataTypePrecedenceList getPrecedenceList() {
-      return delegate.getPrecedenceList();
-    }
-
-    public RelDataTypeComparability getComparability() {
-      return delegate.getComparability();
-    }
-  }
 }

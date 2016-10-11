@@ -168,52 +168,20 @@ public class Sdb {
     }
   }
 
-  /*public static SdbDataContext implements DataContext {
-    private final Planner planner;
-    private SchemaPlus rootSchema;
-
-    public SdbDataContext() {
-      rootSchema = Frameworks.createRootSchema(true);
-      final FrameworkConfig config = Frameworks.newConfigBuilder()
-        .parserConfig(SqlParser.Config.DEFAULT)
-        .defaultSchema(
-                       CalciteAssert.addSchema(rootSchema, CalciteAssert.SchemaSpec.HR))
-        .build();
-    planner = Frameworks.getPlanner(config);
-    dataContext = new MyDataContext(planner);
-
-    }
-
-    public SchemaPlus getRootSchema() {
-      return rootSchema;
-    }
-
-    public JavaTypeFactory getTypeFactory() {
-      return (JavaTypeFactory) planner.getTypeFactory();
-    }
-
-    public QueryProvider getQueryProvider() {
-      return null;
-    }
-
-    public Object get(String name) {
-      return null;
-    }
-    }*/
-
   public static void main(String[] args) throws Exception {
     Sdb sdb = new Sdb();
-    SqlNode sqlQuery = sdb.parseQuery("select id, name from acme.acme where id>3 order by id desc, name desc");
+    SqlNode sqlQuery = sdb.parseQuery("select id+1, name from acme.acme where id>3 order by id desc, name desc");
     final RelDataTypeFactory typeFactory = sdb.getTypeFactory();
     final Prepare.CatalogReader catalogReader =
       sdb.createCatalogReader(typeFactory);
     final SqlValidator validator = sdb.createValidator(catalogReader, typeFactory);
     final SqlToRelConverter.Config localConfig;
-    boolean enableExpand = false;
+    boolean enableExpand = true;
     localConfig = SqlToRelConverter.configBuilder()
       .withTrimUnusedFields(true).withExpand(enableExpand).build();
     final SqlNode validatedQuery = validator.validate(sqlQuery);
-    log.info("***sqlQuery {}", validatedQuery);
+    //final SqlNode validatedQuery = sqlQuery;
+    //log.info("***sqlQuery {}", validatedQuery);
     final SqlToRelConverter converter =
       sdb.createSqlToRelConverter(
                                   validator,
@@ -223,6 +191,7 @@ public class Sdb {
     RelRoot root =
       converter.convertQuery(validatedQuery, false, true);
     assert root != null;
+    log.info("root={}", root);
     print(root.rel);
   }
 }
