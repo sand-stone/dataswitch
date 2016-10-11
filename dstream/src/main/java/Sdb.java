@@ -147,7 +147,7 @@ public class Sdb {
 
   public static void main(String[] args) throws Exception {
     Sdb sdb = new Sdb();
-    SqlNode sqlQuery = sdb.parseQuery("select * from acme");
+    SqlNode sqlQuery = sdb.parseQuery("select * from acme.acme");
     final RelDataTypeFactory typeFactory = sdb.getTypeFactory();
     final Prepare.CatalogReader catalogReader =
       sdb.createCatalogReader(typeFactory);
@@ -159,11 +159,10 @@ public class Sdb {
     final SqlNode validatedQuery = validator.validate(sqlQuery);
     final SqlToRelConverter converter =
       sdb.createSqlToRelConverter(
-                              validator,
-                              catalogReader,
-                              typeFactory,
-                              localConfig);
-
+                                  validator,
+                                  catalogReader,
+                                  typeFactory,
+                                  localConfig);
     RelRoot root =
       converter.convertQuery(validatedQuery, false, true);
     assert root != null;

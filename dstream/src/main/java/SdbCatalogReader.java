@@ -108,7 +108,7 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
 
   protected static final String DEFAULT_CATALOG = "CATALOG";
   protected static final String DEFAULT_SCHEMA = "dstream";
-  
+
   public static final Ordering<Iterable<String>>
     CASE_INSENSITIVE_LIST_COMPARATOR =
     Ordering.from(String.CASE_INSENSITIVE_ORDER).lexicographical();
@@ -163,6 +163,15 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
       .kind(StructKind.PEEK_FIELDS)
       .build();
 
+    SdbSchema acmeSchema = new SdbSchema("ACME");
+    registerSchema(acmeSchema);
+
+    SdbTable acmeTable =
+      SdbTable.create(this, acmeSchema, "ACME", false, 4);
+    acmeTable.addColumn("id", intType);
+    acmeTable.addColumn("name", varchar10Type);
+    registerTable(acmeTable);
+
     addressType =
       new ObjectSqlType(
                         SqlTypeName.STRUCTURED,
@@ -174,9 +183,6 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
                                       new RelDataTypeFieldImpl("ZIP", 2, intType),
                                       new RelDataTypeFieldImpl("STATE", 3, varchar20Type)),
                         RelDataTypeComparability.NONE);
-
-
-
 
     SdbSchema structTypeSchema = new SdbSchema("STRUCT");
     registerSchema(structTypeSchema);
@@ -241,6 +247,7 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
   }
 
   public Prepare.PreparingTable getTable(final List<String> names) {
+    log.info("names:{}", names);
     switch (names.size()) {
     case 1:
       return tables.get(
@@ -356,11 +363,11 @@ public class SdbCatalogReader implements Prepare.CatalogReader {
     public void addTable(String name) {
       tableNames.add(name);
     }
-    
+
     public String getCatalogName() {
       return DEFAULT_CATALOG;
     }
-    
+
     public String getName() {
       return name;
     }
