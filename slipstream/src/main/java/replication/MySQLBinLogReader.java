@@ -1,4 +1,4 @@
-package slipstream;
+package replication;
 
 import java.nio.ByteBuffer;
 import java.nio.file.*;
@@ -17,8 +17,9 @@ import com.github.shyiko.mysql.binlog.event.deserialization.NullEventDataDeseria
 import org.apache.commons.configuration2.*;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import java.util.concurrent.Future;
-import slipstream.DBTransactionEvent.FieldType;
-import slipstream.DBTransactionEvent.OperationType;
+
+import replication.MySQLChangeRecord.FieldType;
+import replication.MySQLChangeRecord.OperationType;
 
 class MySQLBinLogReader {
   private static Logger log = LogManager.getLogger(MySQLBinLogReader.class);
@@ -83,15 +84,15 @@ class MySQLBinLogReader {
           break;
         case XID:
           EventHeaderV4 header = dbevent.getHeader();
-          DBTransactionEvent evt = new DBTransactionEvent(header.getServerId(),
-                                                          mapEvent.getDatabase(),
-                                                          mapEvent.getTable(),
-                                                          getOpType(crudEvent),
-                                                          header.getTimestamp(),
-                                                          header.getNextPosition(),
-                                                          getIncludedCols(crudEvent),
-                                                          getFieldTypes(mapEvent),
-                                                          getRows(crudEvent));
+          MySQLChangeRecord evt = new MySQLChangeRecord(header.getServerId(),
+                                                        mapEvent.getDatabase(),
+                                                        mapEvent.getTable(),
+                                                        getOpType(crudEvent),
+                                                        header.getTimestamp(),
+                                                        header.getNextPosition(),
+                                                        getIncludedCols(crudEvent),
+                                                        getFieldTypes(mapEvent),
+                                                        getRows(crudEvent));
           crudEvent = null;
           mapEvent = null;
         }
