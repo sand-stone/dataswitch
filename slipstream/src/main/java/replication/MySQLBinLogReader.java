@@ -65,7 +65,8 @@ class MySQLBinLogReader {
   }
 
   private void send(MySQLChangeRecord evt) {
-    log.info("evt {} => {} ", evt, MySQLChangeRecord.get(evt.key(), evt.value()));
+    String schema="{\"uri\":\"acme\", \"database\":\"acme\",\"table\":\"employees\", \"cols\":{\"id\":\"int\",\"first\":\"string\",\"last\":\"string\",\"age\":\"int\"}}";
+    log.info("evt {}=>{} : {} ", evt, MySQLChangeRecord.get(evt.key(), evt.value()), evt.toSQL(schema));
   }
 
   public void process(InputStream input) throws IOException {

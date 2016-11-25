@@ -309,7 +309,7 @@ public class MySQLChangeRecord {
     return ret.toString();
   }
 
-  public String getSQL(String schema) {
+  public String toSQL(String schema) {
     String ret ="";
     switch(op) {
     case Insert:
