@@ -1,4 +1,4 @@
-package replication;
+package slipstream;
 
 import java.sql.*;
 import org.apache.logging.log4j.Logger;

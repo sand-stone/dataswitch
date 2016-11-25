@@ -1,4 +1,4 @@
-package replication;
+package slipstream;
 
 import java.nio.ByteBuffer;
 import java.nio.file.*;
@@ -18,8 +18,8 @@ import org.apache.commons.configuration2.*;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
 import java.util.concurrent.Future;
 
-import replication.MySQLChangeRecord.FieldType;
-import replication.MySQLChangeRecord.OperationType;
+import slipstream.MySQLChangeRecord.FieldType;
+import slipstream.MySQLChangeRecord.OperationType;
 
 class MySQLBinLogReader {
   private static Logger log = LogManager.getLogger(MySQLBinLogReader.class);
