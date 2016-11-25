@@ -64,6 +64,10 @@ class MySQLBinLogReader {
     return ret;
   }
 
+  private void send(MySQLChangeRecord evt) {
+    log.info("key {} ==> value {}", evt.key(), evt.value());
+  }
+
   public void process(InputStream input) throws IOException {
     EventDeserializer eventDeserializer = new EventDeserializer();
     eventDeserializer.setEventDataDeserializer(EventType.XID, new ByteArrayEventDataDeserializer());
@@ -93,6 +97,7 @@ class MySQLBinLogReader {
                                                         getIncludedCols(crudEvent),
                                                         getFieldTypes(mapEvent),
                                                         getRows(crudEvent));
+          send(evt);
           crudEvent = null;
           mapEvent = null;
         }
@@ -102,4 +107,8 @@ class MySQLBinLogReader {
     }
   }
 
+  public static void main(String[] args) throws Exception {
+    FileInputStream in = new FileInputStream(args[0]);
+    new MySQLBinLogReader().process(in);
+  }
 }

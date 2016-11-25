@@ -3,8 +3,8 @@ package replication;
 import java.util.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.time.*;
-import com.wiredtiger.db.*;
 import com.google.gson.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
@@ -165,6 +165,36 @@ public class MySQLChangeRecord {
     this.includedCols = includedCols;
     this.colsTypes = colsTypes;
     this.colsData = colsData;
+  }
+
+  public byte[] key() {
+    byte[] db = database.getBytes();
+    byte[] dt = table.getBytes();
+    return ByteBuffer
+      .allocate(8+db.length+dt.length+1+8+8)
+      .order(ByteOrder.BIG_ENDIAN)
+      .putLong(serverid)
+      .put(db)
+      .put(dt)
+      .put(op.value())
+      .putLong(timestamp)
+      .putLong(position)
+      .array();
+  }
+
+  public byte[] value() {
+    try {
+      byte[] v1 = Utils.serialize(includedCols).array();
+      byte[] v2 = Utils.serialize(colsTypes).array();
+      byte[] v3 = Utils.serialize(colsData).array();
+      return ByteBuffer
+        .allocate(v1.length+v2.length+v3.length)
+        .put(v1)
+        .put(v2)
+        .put(v3)
+        .array();
+    } catch(IOException e) {}
+    return null;
   }
 
   private String genInsert(String schema) {
