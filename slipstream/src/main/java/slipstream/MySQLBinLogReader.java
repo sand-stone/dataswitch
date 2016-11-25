@@ -24,7 +24,10 @@ import slipstream.MySQLChangeRecord.OperationType;
 class MySQLBinLogReader {
   private static Logger log = LogManager.getLogger(MySQLBinLogReader.class);
 
-  public MySQLBinLogReader() {
+  private KdbConnector kdb;
+
+  public MySQLBinLogReader(List<String> uris, String table) {
+    kdb = new KdbConnector(uris, table);
   }
 
   private FieldType[] getFieldTypes(TableMapEventData mapEvent) {
@@ -67,6 +70,11 @@ class MySQLBinLogReader {
   private void send(MySQLChangeRecord evt) {
     String schema="{\"uri\":\"acme\", \"database\":\"acme\",\"table\":\"employees\", \"cols\":{\"id\":\"int\",\"first\":\"string\",\"last\":\"string\",\"age\":\"int\"}}";
     log.info("evt {}=>{} : {} ", evt, MySQLChangeRecord.get(evt.key(), evt.value()), evt.toSQL(schema));
+    List<byte[]> keys = new ArrayList<byte[]>();
+    List<byte[]> values = new ArrayList<byte[]>();
+    keys.add(evt.key());
+    values.add(evt.value());
+    kdb.write(keys, values);
   }
 
   public void process(InputStream input) throws IOException {
@@ -106,10 +114,11 @@ class MySQLBinLogReader {
     } finally {
       reader.close();
     }
+    log.info("total evts {}", kdb.count());
   }
 
   public static void main(String[] args) throws Exception {
     FileInputStream in = new FileInputStream(args[0]);
-    new MySQLBinLogReader().process(in);
+    new MySQLBinLogReader(Arrays.asList(args[1]), "mysqlevents").process(in);
   }
 }
