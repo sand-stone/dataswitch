@@ -4,14 +4,22 @@ import java.util.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import java.time.*;
 import com.google.gson.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import slipstream.replication.proto.Event;
+import slipstream.replication.proto.Event.MySQLEventKey;
+import slipstream.replication.proto.Event.MySQLEventValue;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
 
 public class MySQLChangeRecord {
   private static Logger log = LogManager.getLogger(MySQLChangeRecord.class);
 
+  private final static int keySize = 8+8+8+1;
   long serverid;
   String table;
   String database;
@@ -167,32 +175,57 @@ public class MySQLChangeRecord {
     this.colsData = colsData;
   }
 
+  public static MySQLChangeRecord get(byte[] key, byte[] value) {
+    try {
+      MySQLEventKey k = MySQLEventKey.parseFrom(key);
+      ByteBuffer kbuf = ByteBuffer.wrap(k.getKeys().toByteArray()).order(ByteOrder.BIG_ENDIAN);
+      long serverid = kbuf.getLong();
+      long timestamp = kbuf.getLong();
+      long position = kbuf.getLong();
+      OperationType op = OperationType.map(kbuf.get());
+
+      String database = k.getDatabase();
+      String table = k.getTable();
+
+      MySQLEventValue v = MySQLEventValue.parseFrom(value);
+      BitSet includedCols = (BitSet)Utils.deserialize(ByteBuffer.wrap(v.getValues(0).toByteArray()));
+      FieldType[] colsTypes = (FieldType[])Utils.deserialize(ByteBuffer.wrap(v.getValues(1).toByteArray()));
+      Object[] colsData = (Object[])Utils.deserialize(ByteBuffer.wrap(v.getValues(2).toByteArray()));
+
+      return new MySQLChangeRecord(serverid, database, table, op, timestamp, position, includedCols, colsTypes, colsData);
+    } catch(InvalidProtocolBufferException e) {}
+    return null;
+  }
+
   public byte[] key() {
-    byte[] db = database.getBytes();
-    byte[] dt = table.getBytes();
-    return ByteBuffer
-      .allocate(8+db.length+dt.length+1+8+8)
+    byte[] key = ByteBuffer
+      .allocate(keySize)
       .order(ByteOrder.BIG_ENDIAN)
       .putLong(serverid)
-      .put(db)
-      .put(dt)
-      .put(op.value())
       .putLong(timestamp)
       .putLong(position)
+      .put(op.value())
       .array();
+    MySQLEventKey eventK = MySQLEventKey
+      .newBuilder()
+      .setKeys(ByteString.copyFrom(key))
+      .setDatabase(database)
+      .setTable(table)
+      .build();
+    return eventK.toByteArray();
   }
 
   public byte[] value() {
     try {
-      byte[] v1 = Utils.serialize(includedCols).array();
-      byte[] v2 = Utils.serialize(colsTypes).array();
-      byte[] v3 = Utils.serialize(colsData).array();
-      return ByteBuffer
-        .allocate(v1.length+v2.length+v3.length)
-        .put(v1)
-        .put(v2)
-        .put(v3)
-        .array();
+      ArrayList<byte[]> values = new ArrayList<byte[]>(3);
+      values.add(Utils.serialize(includedCols).array());
+      values.add(Utils.serialize(colsTypes).array());
+      values.add(Utils.serialize(colsData).array());
+      MySQLEventValue eventV = MySQLEventValue
+        .newBuilder()
+        .addAllValues(values.stream().map(v -> ByteString.copyFrom(v)).collect(toList()))
+        .build();
+      return eventV.toByteArray();
     } catch(IOException e) {}
     return null;
   }

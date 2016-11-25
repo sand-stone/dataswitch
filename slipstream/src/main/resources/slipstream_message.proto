@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package slipstream;
+
+option java_package = "slipstream.replication.proto";
+option java_outer_classname = "Event";
+
+message MySQLEventKey {
+  bytes keys = 1;
+  string database = 2;
+  string table = 3;
+}
+
+message MySQLEventValue {
+  repeated bytes values = 1;
+}

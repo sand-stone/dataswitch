@@ -65,7 +65,7 @@ class MySQLBinLogReader {
   }
 
   private void send(MySQLChangeRecord evt) {
-    log.info("key {} ==> value {}", evt.key(), evt.value());
+    log.info("evt {} => {} ", evt, MySQLChangeRecord.get(evt.key(), evt.value()));
   }
 
   public void process(InputStream input) throws IOException {
