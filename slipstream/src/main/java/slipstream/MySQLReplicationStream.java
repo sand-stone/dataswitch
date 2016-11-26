@@ -42,7 +42,9 @@ public class MySQLReplicationStream {
   }
 
   public void process() {
-
+    while(true) {
+      Thread.yield();
+    }
   }
 
   private synchronized BinaryLogClient allocateBinaryLogClient() {
@@ -136,22 +138,27 @@ public class MySQLReplicationStream {
       case PRE_GA_DELETE_ROWS:
       case DELETE_ROWS:
       case EXT_DELETE_ROWS:
+        log.info("crud {}", event);
         crudEvent = event.getData();
         break;
       case QUERY:
         break;
       case XID:
-        EventHeaderV4 header = event.getHeader();
-        MySQLChangeRecord evt = new MySQLChangeRecord(header.getServerId(),
-                                                      mapEvent.getDatabase(),
-                                                      mapEvent.getTable(),
-                                                      getOpType(crudEvent),
-                                                      header.getTimestamp(),
-                                                      header.getNextPosition(),
-                                                      getIncludedCols(crudEvent),
-                                                      getFieldTypes(mapEvent),
-                                                      getRows(crudEvent));
-        send(evt);
+        if(mapEvent != null) {
+          EventHeaderV4 header = event.getHeader();
+          MySQLChangeRecord evt = new MySQLChangeRecord(header.getServerId(),
+                                                        mapEvent.getDatabase(),
+                                                        mapEvent.getTable(),
+                                                        getOpType(crudEvent),
+                                                        header.getTimestamp(),
+                                                        header.getNextPosition(),
+                                                        getIncludedCols(crudEvent),
+                                                        getFieldTypes(mapEvent),
+                                                        getRows(crudEvent));
+          send(evt);
+        } else {
+          log.info("e {}", event);
+        }
         crudEvent = null;
         mapEvent = null;
       default:
@@ -160,7 +167,9 @@ public class MySQLReplicationStream {
   }
 
   public static void main(String[] args) throws Exception {
-    new MySQLReplicationStream("root", "mysql").connect();
+    MySQLReplicationStream stream = new MySQLReplicationStream("root", "yourpassword");
+    stream.connect();
+    stream.process();
   }
 
 }
