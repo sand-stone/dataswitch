@@ -26,8 +26,6 @@ public class KdbConnector {
   }
 
   public void publish(MySQLChangeRecord evt) {
-    String schema="{\"uri\":\"acme\", \"database\":\"acme\",\"table\":\"employees\", \"cols\":{\"id\":\"int\",\"first\":\"string\",\"last\":\"string\",\"age\":\"int\"}}";
-    //log.info("evt {}=>{} : {} ", evt, MySQLChangeRecord.get(evt.key(), evt.value()), evt.toSQL(schema));
     queue.add(evt);
     if(queue.size() >= batchSize) {
       send();

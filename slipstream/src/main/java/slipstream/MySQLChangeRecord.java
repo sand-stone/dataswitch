@@ -282,8 +282,8 @@ public class MySQLChangeRecord {
 
   private String genInsert(String schema) {
     Gson gson = new Gson();
-    LinkedHashMap<String, String> cols = gson.fromJson(schema, LinkedHashMap.class);
-    Object[] fields = cols.entrySet().toArray();
+    LinkedHashMap<String, Object> schemamap = gson.fromJson(schema, LinkedHashMap.class);
+    Object[] fields = ((Map)schemamap.get("cols")).entrySet().toArray();
     StringBuilder header = new StringBuilder();
     header.append("insert ").append(this.database).append(".").append(this.table).append(" set ");
     StringBuilder ret = new StringBuilder();
