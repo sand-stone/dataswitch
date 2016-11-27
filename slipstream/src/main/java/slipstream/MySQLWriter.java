@@ -28,37 +28,38 @@ public class MySQLWriter implements Runnable {
     return DriverManager.getConnection(url, user, password);
   }
 
-  private void process(Client.Result rsp) throws SQLException {
+  private void process(Statement stmt, Client.Result rsp) throws SQLException {
     for(int i = 0; i < rsp.count(); i++) {
-      apply(rsp.getKey(i), rsp.getValue(i));
+      apply(stmt, rsp.getKey(i), rsp.getValue(i));
     }
   }
 
-  private void apply(byte[] key, byte[] value) throws SQLException {
-    String schema="{\"uri\":\"acme\", \"database\":\"acme\",\"table\":\"employees\", \"cols\":{\"id\":\"int\",\"first\":\"string\",\"last\":\"string\",\"age\":\"int\"}}";
+  private void apply(Statement stmt, byte[] key, byte[] value) throws SQLException {
+    String schema="{\"uri\":\"acme\", \"database\":\"acme\",\"table\":\"employees2\", \"cols\":{\"id\":\"int\",\"first\":\"string\",\"last\":\"string\",\"age\":\"int\"}}";
     MySQLChangeRecord record = MySQLChangeRecord.get(key, value);
     log.info("record <{}>", record.toSQL(schema));
-    //log.info("sql string:"+ evt.getSQL(getSchema(evt.database, evt.table)));
+    stmt.executeUpdate(record.toSQL(schema));
   }
 
   public void run() {
     try {
       log.info("mysql writer started");
-      Connection mysqlconn = getSQLConn();
-      try (Client kclient = new Client("http://localhost:8000", "mysqlevents")) {
-        kclient.open();
-        Client.Result rsp = kclient.scanFirst(10);
-        process(rsp);
-        while(rsp.token().length() > 0) {
-          rsp = kclient.scanNext(10);
-          process(rsp);
+      Connection conn = getSQLConn();
+      try(Statement stmt = conn.createStatement()) {
+        try (Client kclient = new Client("http://localhost:8000", "mysqlevents")) {
+          kclient.open();
+          Client.Result rsp = kclient.scanFirst(10);
+          process(stmt, rsp);
+          while(rsp.token().length() > 0) {
+            rsp = kclient.scanNext(10);
+            process(stmt, rsp);
+          }
         }
+        System.exit(0);
       }
-      System.exit(0);
     } catch(Exception e) {
       log.error(e);
       e.printStackTrace();
-    } finally {
     }
   }
 

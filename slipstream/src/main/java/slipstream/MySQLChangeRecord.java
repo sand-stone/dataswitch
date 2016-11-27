@@ -285,7 +285,9 @@ public class MySQLChangeRecord {
     LinkedHashMap<String, Object> schemamap = gson.fromJson(schema, LinkedHashMap.class);
     Object[] fields = ((Map)schemamap.get("cols")).entrySet().toArray();
     StringBuilder header = new StringBuilder();
-    header.append("insert ").append(this.database).append(".").append(this.table).append(" set ");
+    String database = (String)schemamap.get("database");
+    String table = (String)schemamap.get("table");
+    header.append("insert ").append(database).append(".").append(table).append(" set ");
     StringBuilder ret = new StringBuilder();
     for(Object row: colsData) {
       Serializable[] datarow = (Serializable[])row;
@@ -313,12 +315,14 @@ public class MySQLChangeRecord {
   private String genUpdate(String schema) {
     StringBuilder ret = new StringBuilder();
     Gson gson = new Gson();
-    LinkedHashMap<String, String> cols = gson.fromJson(schema, LinkedHashMap.class);
-    Object[] fields = cols.entrySet().toArray();
+    LinkedHashMap<String, Object> schemamap = gson.fromJson(schema, LinkedHashMap.class);
+    Object[] fields = ((Map)schemamap.get("cols")).entrySet().toArray();
+    String database = (String)schemamap.get("database");
+    String table = (String)schemamap.get("table");
     for (Object chg : colsData) {
       Map.Entry<Serializable[], Serializable[]> row = (Map.Entry<Serializable[], Serializable[]>)chg;
       StringBuilder header = new StringBuilder();
-      header.append("update ").append(this.database).append(".").append(this.table).append(" set ");
+      header.append("update ").append(database).append(".").append(table).append(" set ");
       Serializable[] datarow = (Serializable[])row.getValue();
       StringBuilder body = new StringBuilder();
       for(int i = 0; i < colsTypes.length; i++) {
