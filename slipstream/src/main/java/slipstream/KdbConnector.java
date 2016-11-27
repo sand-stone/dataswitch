@@ -42,14 +42,15 @@ public class KdbConnector {
     queue.forEach(evt -> {
         keys.add(evt.key());
         values.add(evt.value());
-        write(keys, values);
       });
+    write(keys, values);
     queue.clear();
   }
 
   private void write(List<byte[]> keys, List<byte[]> values) {
     try {
       client.put(keys, values);
+      log.info("send {} records", keys.size());
     } catch(KdbException e) {
       log.info(e);
     }
