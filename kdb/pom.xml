@@ -242,7 +242,7 @@
     <dependency>
       <groupId>rocksdb</groupId>
       <artifactId>rocksdb</artifactId>
-      <version>4.13.2</version>
+      <version>5.0.0</version>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>

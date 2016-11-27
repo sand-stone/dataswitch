@@ -13,7 +13,8 @@ import java.util.concurrent.*;
 import java.time.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ConcurrentHashMap;
-
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.rocksdb.*;
 import kdb.proto.Database.*;
 import kdb.proto.Database.Message.MessageType;
@@ -27,6 +28,7 @@ class Store implements Closeable {
   private String location;
   private ConcurrentHashMap<String, DataTable> tables;
   private Timer timer;
+  private Gson gson;
 
   static {
     RocksDB.loadLibrary();
@@ -87,6 +89,7 @@ class Store implements Closeable {
     this.location = location;
     tables = new ConcurrentHashMap<String, DataTable>();
     timer = new Timer();
+    gson = new Gson();
   }
 
   private static TimerTask wrap(Runnable r) {
@@ -144,6 +147,112 @@ class Store implements Closeable {
     return ct;
   }
 
+  private static class KdbOptions extends HashMap<String, String> {};
+
+  private int toInt(String v) {
+    try {
+      return Integer.parseInt(v);
+    } catch(NumberFormatException e) {}
+    return 0;
+  }
+
+  private long toLong(String v) {
+    try {
+      return Long.parseLong(v);
+    } catch(NumberFormatException e) {}
+    return 0;
+  }
+
+  private void parseOptions(Options options, String json) {
+    KdbOptions opts = gson.fromJson(json, KdbOptions.class);
+    if(opts != null) {
+      opts.forEach((name, v)->{
+          switch(name) {
+          case "CompactionStyle":
+            switch(v) {
+            case "FIFO":
+              options.setCompactionStyle(CompactionStyle.FIFO);
+              break;
+            case "LEVEL":
+              options.setCompactionStyle(CompactionStyle.LEVEL);
+              break;
+            default:
+              options.setCompactionStyle(CompactionStyle.UNIVERSAL);
+              break;
+            }
+            break;
+          case "MaxTableFilesSizeFIFO":
+            options.setMaxTableFilesSizeFIFO(toLong(v));
+            break;
+          case "MaxBackgroundFlushes":
+            options.setMaxBackgroundFlushes(toInt(v));
+            break;
+          case "MaxBackgroundCompactions":
+            options.setMaxBackgroundCompactions(toInt(v));
+            break;
+          case "MaxWriteBufferNumber":
+            options.setMaxWriteBufferNumber(toInt(v));
+            break;
+          case "MinWriteBufferNumberToMerge":
+            options.setMinWriteBufferNumberToMerge(toInt(v));
+            break;
+          case "NumLevels":
+            options.setNumLevels(toInt(v));
+            break;
+          case "MaxBytesForLevelBase":
+            options.setMaxBytesForLevelBase(toLong(v));
+            break;
+          case "MaxBytesForLevelMultiplier":
+            options.setMaxBytesForLevelMultiplier(toInt(v));
+            break;
+          case "LevelZeroFileNumCompactionTrigger":
+            options.setLevelZeroFileNumCompactionTrigger(toInt(v));
+            break;
+          case "LevelZeroSlowdownWritesTrigger":
+            options.setLevelZeroSlowdownWritesTrigger(toInt(v));
+            break;
+          case "LevelZeroStopWritesTrigger":
+            options.setLevelZeroStopWritesTrigger(toInt(v));
+            break;
+          }
+        });
+    }
+  }
+
+  private void report(StringBuilder builder, String name, DataTable dt) {
+    builder.append("\n\n\t\t\ttable " + name + "\n");
+    try {
+      builder.append(dt.db.getProperty("rocksdb.stats"));
+    } catch(RocksDBException e) {
+      builder.append("no rocksdb.stats\n");
+    }
+    builder.append("tickers\n");
+    for (TickerType statsType : TickerType.values()) {
+      builder.append(gson.toJson(dt.stats.getTickerCount(statsType)));
+      builder.append("\t");
+    }
+    builder.append("histograms\n");
+    for (HistogramType histogramType : HistogramType.values()) {
+      builder.append(gson.toJson(dt.stats.getHistogramData(histogramType)));
+      builder.append("\n");
+    }
+  }
+
+  public String stats(String table) {
+    StringBuilder builder = new StringBuilder();
+    builder.append("\n\t\t\t\t Kdb Stats \n");
+    Gson gson = new Gson();
+    if(table.length() == 0) {
+      tables.forEach((name, dt)-> report(builder, name, dt));
+    } else {
+      DataTable dt = tables.get(table);
+      if(dt != null) {
+        report(builder, table, dt);
+      }
+    }
+    return builder.toString();
+  }
+
   public synchronized Message open(OpenOperation op) {
     String table = op.getTable();
     if(table == null || table.length() == 0)
@@ -157,15 +266,15 @@ class Store implements Closeable {
       int ttl = op.getTtl();
       //log.info("create {} ttl {}", table, ttl);
       try(Options options = new Options().setCreateIfMissing(true)) {
-        //options.createStatistics();
+        options.createStatistics();
+        //log.info("options <{}>", op.getOptions());
         options.setCompressionType(getCompression(op.getCompression()));
         options.setAllowConcurrentMemtableWrite(true);
         options.setEnableWriteThreadAdaptiveYield(true);
-        options.setMaxBackgroundCompactions(Runtime.getRuntime().availableProcessors()*2);
-        options.setMaxBackgroundFlushes(Runtime.getRuntime().availableProcessors());
-        //dt.stats = options.statisticsPtr();
-        //timer.schedule(wrap(() -> log.info(dt.stats.toString())), 10000);
-        //options.setStatsDumpPeriodSec(10);
+        options.setCompactionStyle(CompactionStyle.UNIVERSAL);
+        options.setIncreaseParallelism(Runtime.getRuntime().availableProcessors());
+        parseOptions(options, op.getOptions());
+        dt.stats = options.statisticsPtr();
         //log.info("{} merge: <{}>", op, mergeOperator);
         if(mergeOperator != null && mergeOperator.length() > 0) {
           if(mergeOperator.equals("add")) {

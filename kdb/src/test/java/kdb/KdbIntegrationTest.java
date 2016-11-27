@@ -17,6 +17,7 @@ import org.apache.commons.configuration2.builder.fluent.Configurations;
 import java.util.concurrent.Future;
 import static java.util.stream.Collectors.*;
 import java.util.stream.Collectors;
+import com.google.gson.Gson;
 
 public class KdbIntegrationTest extends TestCase {
   private static Logger log = LogManager.getLogger(KdbIntegrationTest.class);
@@ -342,6 +343,33 @@ public class KdbIntegrationTest extends TestCase {
         assertTrue(true);
       else
         assertTrue(false);
+    }
+  }
+
+  public static class Options {
+    String CompactionStyle;
+    long MaxTableFilesSizeFIFO;
+    int MaxBackgroundFlushes;
+    int MaxBackgroundCompactions;
+    int MaxWriteBufferNumber;
+    int MinWriteBufferNumberToMerge;
+  }
+
+  public void test11() {
+    String table = "test11";
+    Options options = new Options();
+
+    options.CompactionStyle = "FIFO";
+    options.MaxTableFilesSizeFIFO = 1024*1024*1024*5L;
+    options.MaxBackgroundFlushes = 2;
+    options.MaxBackgroundCompactions = 4;
+    options.MaxWriteBufferNumber = 8;
+    options.MinWriteBufferNumberToMerge = 4;
+    Gson gson = new Gson();
+    String json = gson.toJson(options);
+
+    try(Client client = new Client("http://localhost:8000/", table, json)) {
+      client.open();
     }
   }
 

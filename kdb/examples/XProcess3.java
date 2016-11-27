@@ -16,7 +16,7 @@ public class XProcess3 {
 
   private static String[] uris;
 
-  private final static int hours = 12;
+  private final static int hours = 6;
   private final static int min5 = 12;
 
   public static class EventSource implements Runnable {
@@ -44,14 +44,14 @@ public class XProcess3 {
       List<byte[]> keys = new ArrayList<byte[]>();
       List<byte[]> values = new ArrayList<byte[]>();
       int batchSize = 100;
-      try (Client client = new Client("http://localhost:8000/", events)) {
-        client.open("append", 60);
-        int rounds = 100;
-        while(rounds -- > 0) {
-          init();
-          int hcount = 0;
-          int total = 0;
-          int mtotal, htotal;
+      int rounds = 100;
+      while(rounds -- > 0) {
+        init();
+        int hcount = 0;
+        int total = 0;
+        int mtotal, htotal;
+        try (Client client = new Client("http://localhost:8000/", events)) {
+          client.open();
           while (hcount < hours) {
             int mcount = 0;
             long htime = System.nanoTime();
@@ -59,6 +59,8 @@ public class XProcess3 {
             while(mcount < min5) {
               long mtime = System.nanoTime();
               mtotal = 0;
+              keys.clear();
+              values.clear();
               for(int i = 0; i < deviceIds.length; i++) {
                 UUID guid = deviceIds[i];
                 for(int k = 0; k < 6; k++) {
@@ -72,14 +74,7 @@ public class XProcess3 {
                   values.add(value);
                 }
                 if(keys.size() >= batchSize) {
-                  try {
-                    client.put(keys, values);
-                  } catch(KdbException e) {
-                    System.out.println(e);
-                    keys.clear();
-                    values.clear();
-                    continue;
-                  }
+                  client.put(keys, values);
                   total += keys.size();
                   mtotal += keys.size();
                   htotal += keys.size();
@@ -87,23 +82,12 @@ public class XProcess3 {
                   values.clear();
                 }
               }
-              do {
-                if(keys.size() > 0) {
-                  try {
-                    client.put(keys, values);
-                    total += keys.size();
-                    mtotal += keys.size();
-                    htotal += keys.size();
-                  } catch(KdbException e) {
-                    System.out.println(e);
-                    continue;
-                  }
-                  keys.clear();
-                  values.clear();
-                  break;
-                } else
-                  break;
-              } while (true);
+              if(keys.size() > 0) {
+                client.put(keys, values);
+                total += keys.size();
+                mtotal += keys.size();
+                htotal += keys.size();
+              }
               //System.out.printf("eventsource %d h %d m % d inserted %d events\n", id, hcount, mcount, total);
               double emtime = (System.nanoTime()-mtime)/1e9;
               System.out.printf("eventsource %d h %d m % d inserted %d events in %e seconds avg %e \n", id, hcount, mcount, mtotal,
@@ -113,14 +97,13 @@ public class XProcess3 {
             double hetime = (System.nanoTime()-htime)/1e9;
             System.out.printf("eventsource %d h %d inserted %d events in %e seconds avg %e \n", id, hcount, htotal,
                               hetime, htotal/hetime);
+            //try {Thread.currentThread().sleep(30000);} catch(Exception ex) {}
             hcount++;
-            try {Thread.currentThread().sleep(60000);} catch(Exception ex) {}
-            //long c1 = System.nanoTime();
-            //client.compact();
-            //long c2 = System.nanoTime();
-            //System.out.printf("compaction time %e \n", (c2-c1)/1e9);
           }
+          //try {Thread.currentThread().sleep(300000);} catch(Exception ex) {}
           System.out.printf("round %d eventsource %d inserted %d events\n", rounds, id, total);
+        } catch(KdbException e) {
+          System.out.printf("timeout round %d eventsource %d inserted %d total \n", rounds, id, total);
         }
       }
     }
@@ -184,7 +167,7 @@ public class XProcess3 {
         client.put(keys, values);
       }
       long t2 = System.nanoTime();
-      System.out.printf("query worker hcount %d mcount %d commit %d took %e seconds avg %e existedKeys %d \n", hcount, m5, pcount, (t2-t1)/1e9, pcount/((t2-t1)/1e9), existedKeys);
+      //System.out.printf("query worker hcount %d mcount %d commit %d took %e seconds avg %e existedKeys %d \n", hcount, m5, pcount, (t2-t1)/1e9, pcount/((t2-t1)/1e9), existedKeys);
     }
 
     public void run() {
@@ -194,7 +177,7 @@ public class XProcess3 {
         int total = 0;
         while (hcount < hours) {
           try (Client stateClient = new Client("http://localhost:8000/", states+m5)) {
-            stateClient.openCompressed("lz4");
+            stateClient.openCompressed("snappy");
             ByteBuffer key1 = ByteBuffer.allocate(2).order(ByteOrder.BIG_ENDIAN);
             key1.put((byte)hcount).put((byte)m5);
             ByteBuffer key2 = ByteBuffer.allocate(2).order(ByteOrder.BIG_ENDIAN);
@@ -227,14 +210,16 @@ public class XProcess3 {
               continue;
             }
             double rdetime = (System.nanoTime()-htime)/1e9;
-            System.out.printf("query worker hcount %d  mcount %d read %d events in %e seconds avg %e\n", hcount, m5, htotal, rdetime, htotal/rdetime);
+            //System.out.printf("query worker hcount %d  mcount %d read %d events in %e seconds avg %e\n", hcount, m5, htotal, rdetime, htotal/rdetime);
             process(stateClient, hcount, keys);
             keys.clear();
             double hetime = (System.nanoTime()-htime)/1e9;
             System.out.printf("query worker hcount %d  mcount %d counted %d events in %e seconds avg %e\n", hcount, m5, htotal, hetime, htotal/hetime);
+            try {Thread.currentThread().sleep(rnd.nextInt(30000));} catch(Exception ex) {}
             stateClient.drop();
           } catch(KdbException e) {
-            System.out.println(e);
+            //System.out.println(e);
+            System.out.printf("timeout hcount %d  mcount %d \n", hcount, m5);
             continue;
           }
           hcount++;
@@ -245,6 +230,39 @@ public class XProcess3 {
 
   }
 
+  public static class Compact implements Runnable {
+    private int hour;
+
+    public Compact(int hour) {
+      this.hour = hour;
+    }
+
+    public void run() {
+      Random rnd = new Random();
+      while(true) {
+        for (int m = 0; m < min5; m++) {
+          try (Client client = new Client("http://localhost:8000/", events)) {
+            client.open();
+            long c1 = System.nanoTime();
+            ByteBuffer k1 = ByteBuffer.allocate(2).order(ByteOrder.BIG_ENDIAN);
+            k1.put((byte)hour);
+            k1.put((byte)m);
+            ByteBuffer k2 = ByteBuffer.allocate(2).order(ByteOrder.BIG_ENDIAN);
+            k2.put((byte)hour);
+            k2.put((byte)(m+1));
+            //System.out.printf("starting compact h %d m %d \n", hour, m);
+            client.compact(k1.array(), k2.array());
+            long c2 = System.nanoTime();
+            System.out.printf("compact h %d m %d took %e \n", hour, m, (c2-c1)/1e9);
+            try {Thread.currentThread().sleep(rnd.nextInt(30000));} catch(Exception ex) {}
+          } catch(KdbException e) {
+            System.out.printf("compacting time out for h %d m = %d\n", hour, m);
+          }
+        }
+      }
+    }
+  }
+
   public static void main(String[] args) {
     if(args.length < 3) {
       System.out.println("Program http://localhost:8000/ http://localhost:8001/ http://localhost:8002/");
@@ -253,19 +271,28 @@ public class XProcess3 {
 
     uris = args;
     System.out.println("start");
-    System.out.println("create table");
+    System.out.println("create events table");
 
+    try (Client client = new Client("http://localhost:8000/", events)) {
+      client.open("append", 300);
+    }
+
+    System.out.println("start event source threads");
     int num = 2;
     for (int i = 0; i < num; i++) {
       new Thread(new EventSource(i)).start();
     }
 
-    System.out.println("event source threads");
-
     try {Thread.currentThread().sleep(10000);} catch(Exception ex) {}
 
+    System.out.println("start processing threads");
     for (int i = 0; i < min5; i++) {
       new Thread(new Query(i)).start();
+    }
+
+    System.out.println("start compaction worker");
+    for (int i = 0; i < hours; i++) {
+      new Thread(new Compact(i)).start();
     }
 
   }

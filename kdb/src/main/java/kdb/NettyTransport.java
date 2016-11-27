@@ -42,8 +42,6 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import kdb.rsm.ZabException;
 import java.util.List;
 import java.util.ArrayList;
-import com.google.gson.GsonBuilder;
-import com.google.gson.Gson;
 
 public class NettyTransport {
   private static Logger log = LogManager.getLogger(NettyTransport.class);
@@ -51,20 +49,22 @@ public class NettyTransport {
   public NettyTransport() { }
 
   static List<Ring> configRings(PropertiesConfiguration config, boolean standalone, Store store) {
-    List ringaddrs = config.getList("ringaddr");
-    List leaders = config.getList("leader");
-    List logs = config.getList("logDir");
-
-    int len = ringaddrs.size();
-    if((leaders.size() > 0 && len != leaders.size()) || len != logs.size())
-      throw new KdbException("ring config error");
-
     List<Ring> rings = new ArrayList<Ring>();
-    for(int i = 0; i < len; i++) {
-      Ring ring = new Ring((String)ringaddrs.get(i), leaders.size() == 0? null: (String)leaders.get(i), (String)logs.get(i));
-      rings.add(ring);
-      if(!standalone) {
-        ring.bind(store);
+    if(!standalone) {
+      List ringaddrs = config.getList("ringaddr");
+      List leaders = config.getList("leader");
+      List logs = config.getList("logDir");
+
+      int len = ringaddrs.size();
+      if((leaders.size() > 0 && len != leaders.size()) || len != logs.size())
+        throw new KdbException("ring config error");
+
+      for(int i = 0; i < len; i++) {
+        Ring ring = new Ring((String)ringaddrs.get(i), leaders.size() == 0? null: (String)leaders.get(i), (String)logs.get(i));
+        rings.add(ring);
+        if(!standalone) {
+          ring.bind(store);
+        }
       }
     }
     return rings;
@@ -152,7 +152,6 @@ public class NettyTransport {
         }
         Message msg = MessageBuilder.emptyMsg;
         //log.info("req method {}", req.method());
-        //log.info("req method {}", req.uri());
         if(req.method() == HttpMethod.POST) {
           FullHttpMessage m = (FullHttpMessage) data;
           ByteBuf buf = null;
@@ -177,9 +176,8 @@ public class NettyTransport {
           response.headers().set(CONTENT_TYPE, "application/octet-stream");
           response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
         } else {
-          GsonBuilder builder = new GsonBuilder();
-          Gson gson = builder.create();
-          String value = gson.toJson(datanode.stats());
+          //log.info("req uri {}", req.uri());
+          String value = datanode.stats(req.uri().substring(1));
           response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(Unpooled.wrappedBuffer(value.getBytes())));
           response.headers().set(CONTENT_TYPE, "text/json");
           response.headers().setInt(CONTENT_LENGTH, value.length());

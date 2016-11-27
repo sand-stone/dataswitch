@@ -33,15 +33,24 @@ final class MessageBuilder {
     return Message.newBuilder().setType(MessageType.Response).setResponse(op).build();
   }
 
-  public static Message buildOpenOp(String table, List<String> columns, String merge) {
-    return buildOpenOp(table, columns, merge, -1);
+  public static Message buildOpenOp(String table, String options) {
+    OpenOperation op = OpenOperation
+      .newBuilder()
+      .setTable(table)
+      .setOptions(options == null? "" : options)
+      .build();
+    return Message.newBuilder().setType(MessageType.Open).setOpenOp(op).build();
   }
 
-  public static Message buildOpenOp(String table, List<String> columns, String merge, int ttl) {
-    return buildOpenOp(table, columns, merge, -1, "");
+  public static Message buildOpenOp(String table, List<String> columns, String merge, String options) {
+    return buildOpenOp(table, columns, merge, -1, options);
   }
 
-  public static Message buildOpenOp(String table, List<String> columns, String merge, int ttl, String compression) {
+  public static Message buildOpenOp(String table, List<String> columns, String merge, int ttl, String options) {
+    return buildOpenOp(table, columns, merge, -1, "", options);
+  }
+
+  public static Message buildOpenOp(String table, List<String> columns, String merge, int ttl, String compression, String options) {
     OpenOperation op = OpenOperation
       .newBuilder()
       .setTable(table)
@@ -49,6 +58,7 @@ final class MessageBuilder {
       .setCompression(compression == null? "": compression)
       .setMergeOperator(merge == null? "" : merge)
       .addAllColumns(columns == null? emptyList : columns)
+      .setOptions(options == null? "" : options)
       .build();
     return Message.newBuilder().setType(MessageType.Open).setOpenOp(op).build();
   }

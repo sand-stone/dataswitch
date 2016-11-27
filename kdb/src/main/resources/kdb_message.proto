@@ -87,6 +87,7 @@ message OpenOperation {
   repeated string columns = 3;
   int32 ttl = 4;
   string compression = 5;
+  string options = 6;
 }
 
 message CompactOperation {
