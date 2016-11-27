@@ -26,55 +26,8 @@ class MySQLBinLogReader {
 
   private KdbConnector kdb;
 
-  public MySQLBinLogReader(List<String> uris, String table) {
-    kdb = new KdbConnector(uris, table);
-  }
-
-  private FieldType[] getFieldTypes(TableMapEventData mapEvent) {
-    byte[] types = mapEvent.getColumnTypes();
-    FieldType[] ftypes = new FieldType[types.length];
-    for(int i = 0; i < types.length; i++) {
-      ftypes[i] = FieldType.map(types[i]);
-    }
-    return ftypes;
-  }
-
-  private OperationType getOpType(EventData evt) {
-    OperationType ret = OperationType.None;
-    if (evt instanceof WriteRowsEventData) {
-      ret = OperationType.Insert;
-    } else if (evt instanceof UpdateRowsEventData) {
-      ret = OperationType.Update;
-    }
-    return ret;
-  }
-
-  private Object[] getRows(EventData evt) {
-    Object[] rows = null;
-    if(evt instanceof UpdateRowsEventData)
-      rows = ((UpdateRowsEventData)evt).getRows().toArray();
-    else if(evt instanceof WriteRowsEventData)
-      rows = ((WriteRowsEventData)evt).getRows().toArray();
-    return rows;
-  }
-
-  private BitSet getIncludedCols(EventData evt) {
-    BitSet ret = null;
-    if(evt instanceof UpdateRowsEventData)
-      ret = ((UpdateRowsEventData)evt).getIncludedColumns();
-    else if(evt instanceof WriteRowsEventData)
-      ret = ((WriteRowsEventData)evt).getIncludedColumns();
-    return ret;
-  }
-
-  private void send(MySQLChangeRecord evt) {
-    String schema="{\"uri\":\"acme\", \"database\":\"acme\",\"table\":\"employees\", \"cols\":{\"id\":\"int\",\"first\":\"string\",\"last\":\"string\",\"age\":\"int\"}}";
-    log.info("evt {}=>{} : {} ", evt, MySQLChangeRecord.get(evt.key(), evt.value()), evt.toSQL(schema));
-    List<byte[]> keys = new ArrayList<byte[]>();
-    List<byte[]> values = new ArrayList<byte[]>();
-    keys.add(evt.key());
-    values.add(evt.value());
-    kdb.write(keys, values);
+  public MySQLBinLogReader() {
+    kdb = KdbConnector.get();
   }
 
   public void process(InputStream input) throws IOException {
@@ -84,29 +37,25 @@ class MySQLBinLogReader {
     BinaryLogFileReader reader = new BinaryLogFileReader(input, eventDeserializer);
     try {
       TableMapEventData mapEvent = null; EventData crudEvent = null;
-      for (Event dbevent; (dbevent = reader.readEvent()) != null; ) {
-        EventType eventType = dbevent.getHeader().getEventType();
+      for (Event event; (event = reader.readEvent()) != null; ) {
+        EventType eventType = event.getHeader().getEventType();
         switch(eventType) {
         case TABLE_MAP:
-          mapEvent = (TableMapEventData)dbevent.getData();
+          mapEvent = (TableMapEventData)event.getData();
           break;
         case EXT_WRITE_ROWS:
         case EXT_UPDATE_ROWS:
         case EXT_DELETE_ROWS:
-          crudEvent = dbevent.getData();
+          crudEvent = event.getData();
           break;
         case XID:
-          EventHeaderV4 header = dbevent.getHeader();
-          MySQLChangeRecord evt = new MySQLChangeRecord(header.getServerId(),
-                                                        mapEvent.getDatabase(),
-                                                        mapEvent.getTable(),
-                                                        getOpType(crudEvent),
-                                                        header.getTimestamp(),
-                                                        header.getNextPosition(),
-                                                        getIncludedCols(crudEvent),
-                                                        getFieldTypes(mapEvent),
-                                                        getRows(crudEvent));
-          send(evt);
+          if(mapEvent != null && crudEvent!= null) {
+            EventHeaderV4 header = event.getHeader();
+            MySQLChangeRecord evt = new MySQLChangeRecord(header, mapEvent, crudEvent);
+            kdb.publish(evt);
+          } else {
+            log.info("skip e {}", event);
+          }
           crudEvent = null;
           mapEvent = null;
         }
@@ -119,6 +68,6 @@ class MySQLBinLogReader {
 
   public static void main(String[] args) throws Exception {
     FileInputStream in = new FileInputStream(args[0]);
-    new MySQLBinLogReader(Arrays.asList(args[1]), "mysqlevents").process(in);
+    new MySQLBinLogReader().process(in);
   }
 }

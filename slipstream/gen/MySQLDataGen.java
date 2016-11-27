@@ -5,7 +5,7 @@ public class MySQLDataGen {
   static final String DB_URL = "jdbc:mysql://localhost/acme?autoReconnect=true&useSSL=false";
 
   static final String USER = "root";
-  static final String PASS = "yourpassword";
+  static final String PASS = "mysql";
 
   private static void inserts(Connection conn) throws SQLException {
     Statement stmt = conn.createStatement();

@@ -10,6 +10,7 @@ import java.time.*;
 import com.google.gson.*;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
+import com.github.shyiko.mysql.binlog.event.*;
 import slipstream.replication.proto.Event;
 import slipstream.replication.proto.Event.MySQLEventKey;
 import slipstream.replication.proto.Event.MySQLEventValue;
@@ -162,8 +163,20 @@ public class MySQLChangeRecord {
     }
   }
 
+  public MySQLChangeRecord(EventHeaderV4 header, TableMapEventData mapEvent, EventData crudEvent) {
+    this.serverid = header.getServerId();
+    this.database = mapEvent.getDatabase();
+    this.table = mapEvent.getTable();
+    this.op = getOpType(crudEvent);
+    this.timestamp = header.getTimestamp();
+    this.position = header.getNextPosition();
+    this.includedCols = getIncludedCols(crudEvent);
+    this.colsTypes = getFieldTypes(mapEvent);
+    this.colsData = getRows(crudEvent);
+  }
+
   public MySQLChangeRecord(long serverid, String database, String table, OperationType op, long timestamp, long position,
-                            BitSet includedCols, FieldType[] colsTypes, Object[] colsData) {
+                           BitSet includedCols, FieldType[] colsTypes, Object[] colsData) {
     this.serverid = serverid;
     this.database = database;
     this.table = table;
@@ -173,6 +186,43 @@ public class MySQLChangeRecord {
     this.includedCols = includedCols;
     this.colsTypes = colsTypes;
     this.colsData = colsData;
+  }
+
+  private FieldType[] getFieldTypes(TableMapEventData mapEvent) {
+    byte[] types = mapEvent.getColumnTypes();
+    FieldType[] ftypes = new FieldType[types.length];
+    for(int i = 0; i < types.length; i++) {
+      ftypes[i] = FieldType.map(types[i]);
+    }
+    return ftypes;
+  }
+
+  private OperationType getOpType(EventData evt) {
+    OperationType ret = OperationType.None;
+    if (evt instanceof WriteRowsEventData) {
+      ret = OperationType.Insert;
+    } else if (evt instanceof UpdateRowsEventData) {
+      ret = OperationType.Update;
+    }
+    return ret;
+  }
+
+  private Object[] getRows(EventData evt) {
+    Object[] rows = null;
+    if(evt instanceof UpdateRowsEventData)
+      rows = ((UpdateRowsEventData)evt).getRows().toArray();
+    else if(evt instanceof WriteRowsEventData)
+      rows = ((WriteRowsEventData)evt).getRows().toArray();
+    return rows;
+  }
+
+  private BitSet getIncludedCols(EventData evt) {
+    BitSet ret = null;
+    if(evt instanceof UpdateRowsEventData)
+      ret = ((UpdateRowsEventData)evt).getIncludedColumns();
+    else if(evt instanceof WriteRowsEventData)
+      ret = ((WriteRowsEventData)evt).getIncludedColumns();
+    return ret;
   }
 
   public static MySQLChangeRecord get(byte[] key, byte[] value) {
