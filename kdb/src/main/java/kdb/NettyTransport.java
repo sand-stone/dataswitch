@@ -48,7 +48,7 @@ public class NettyTransport {
 
   public NettyTransport() { }
 
-  static List<Ring> configRings(PropertiesConfiguration config, boolean standalone, Store store) {
+  static List<Ring> configRings(PropertiesConfiguration config, boolean standalone) {
     List<Ring> rings = new ArrayList<Ring>();
     if(!standalone) {
       List ringaddrs = config.getList("ringaddr");
@@ -63,7 +63,7 @@ public class NettyTransport {
         Ring ring = new Ring((String)ringaddrs.get(i), leaders.size() == 0? null: (String)leaders.get(i), (String)logs.get(i));
         rings.add(ring);
         if(!standalone) {
-          ring.bind(store);
+          ring.bind(Store.get());
         }
       }
     }
@@ -86,8 +86,8 @@ public class NettyTransport {
     }
 
     boolean standalone = config.getBoolean("standalone", false);
-    Store store = new Store(config.getString("store"));
-    DataNode datanode = new DataNode(configRings(config, standalone, store), store, standalone);
+    Store.get().bind(config.getString("store"));
+    DataNode datanode = new DataNode(configRings(config, standalone), standalone);
     //DataNode datanode = new DataNode(null, store, standalone);
 
     EventLoopGroup bossGroup = new NioEventLoopGroup(1);

@@ -373,4 +373,94 @@ public class KdbIntegrationTest extends TestCase {
     }
   }
 
+  public void test12() {
+    String table = "test12";
+    try(Client client = new Client("http://localhost:8000/", table)) {
+      Client.Result rsp = client.openCompressed("snappy");
+      long s1 = client.getLatestSequenceNumber();
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      int count = 100;
+      for(int i = 0; i < count; i++) {
+        keys.add(("keys"+i).getBytes());
+        values.add(("values"+i).getBytes());
+      }
+      rsp = client.put(keys, values);
+      long s2 = client.getLatestSequenceNumber();
+      if(s2 -s1 == count)
+        assertTrue(true);
+      else
+        assertTrue(false);
+    }
+  }
+
+  public void test13() {
+    String table = "test13";
+    try(Client client = new Client("http://localhost:8000/", table)) {
+      Client.Result rsp = client.openCompressed("snappy");
+      long s1 = client.getLatestSequenceNumber();
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      int count = 3;
+      for(int i = 0; i < count; i++) {
+        keys.add(("keys"+i).getBytes());
+        values.add(("values"+i).getBytes());
+      }
+      rsp = client.put(keys, values);
+      keys.clear(); values.clear();
+      for(int i = 0; i < count; i++) {
+        keys.add(("2keys"+i).getBytes());
+        values.add(("2values"+i).getBytes());
+      }
+      rsp = client.put(keys, values);
+      long s2 = client.getLatestSequenceNumber();
+      rsp = client.scanlog(s1, 10);
+      int c1 = rsp.count();
+      //log.info("log rsp {}", rsp);
+      rsp = client.scanlog(rsp.seqno(), 10);
+      if(c1==rsp.count()*2)
+        assertTrue(true);
+      else
+        assertTrue(false);
+    }
+  }
+
+  public void test14() {
+    String source = "test14-source";
+    String target = "test14-target";
+    int count = 3;
+
+    try(Client client = new Client("http://localhost:8000/", source)) {
+      Client.Result rsp = client.openCompressed("snappy");
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      for(int i = 0; i < count; i++) {
+        keys.add(("keys"+i).getBytes());
+        values.add(("values"+i).getBytes());
+      }
+      rsp = client.put(keys, values);
+      keys.clear(); values.clear();
+      for(int i = 0; i < count; i++) {
+        keys.add(("2keys"+i).getBytes());
+        values.add(("2values"+i).getBytes());
+      }
+      rsp = client.put(keys, values);
+    }
+
+    try(Client client = new Client("http://localhost:8000/", target)) {
+      Client.Result rsp = client.openCompressed("snappy");
+      client.subscribe("http://localhost:8000/", source, 0);
+      //log.info("target lsn {}", client.getLatestSequenceNumber());
+      try {Thread.currentThread().sleep(1000);} catch(Exception ex) {}
+      //log.info("target lsn {}", client.getLatestSequenceNumber());
+      rsp = client.scanFirst(1000);
+      if(rsp.count() == count*2)
+        assertTrue(true);
+      else
+        assertTrue(false);
+      client.unsubscribe("http://localhost:8000/", source);
+      //log.info("rsp {}", rsp.count());
+    }
+  }
+
 }

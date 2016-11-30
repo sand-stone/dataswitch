@@ -98,6 +98,17 @@ final class MessageBuilder {
     return Message.newBuilder().setType(MessageType.Scan).setScanOp(scan).build();
   }
 
+  public static Message buildSubcribeOp(String table, String uri, String source, long seqno) {
+    SubscribeOperation subscribe = SubscribeOperation
+      .newBuilder()
+      .setTable(table)
+      .setUri(uri)
+      .setSource(source)
+      .setSeqno(seqno)
+      .build();
+    return Message.newBuilder().setType(MessageType.Subscribe).setSubscribeOp(subscribe).build();
+  }
+
   public static Message buildResponse(String token, List<byte[]> keys, List<byte[]> values) {
     Response op = Response
       .newBuilder()
@@ -111,6 +122,33 @@ final class MessageBuilder {
                .stream()
                .map(v -> ByteString.copyFrom(v))
                .collect(toList()))
+      .build();
+    return Message.newBuilder().setType(MessageType.Response).setResponse(op).build();
+  }
+
+  public static Message buildSeq(long seqno) {
+    Response op = Response
+      .newBuilder()
+      .setType(Response.Type.OK)
+      .setSeqno(seqno)
+      .build();
+    return Message.newBuilder().setType(MessageType.Response).setResponse(op).build();
+  }
+
+  public static Message buildLog(long seqno, byte[] logops, List<byte[]> keys, List<byte[]> values) {
+    Response op = Response
+      .newBuilder()
+      .setType(Response.Type.OK)
+      .setSeqno(seqno)
+      .setLogops(ByteString.copyFrom(logops))
+      .addAllKeys(keys
+                  .stream()
+                  .map(k -> ByteString.copyFrom(k))
+               .collect(toList()))
+      .addAllValues(values
+                    .stream()
+                    .map(v -> ByteString.copyFrom(v))
+                    .collect(toList()))
       .build();
     return Message.newBuilder().setType(MessageType.Response).setResponse(op).build();
   }
@@ -161,6 +199,24 @@ final class MessageBuilder {
       .setEnd(end == null? ByteString.EMPTY : ByteString.copyFrom(end))
       .build();
     return Message.newBuilder().setType(MessageType.Compact).setCompactOp(op).build();
+  }
+
+  public static Message buildSeqOp(String table) {
+    SequenceOperation op = SequenceOperation
+      .newBuilder()
+      .setTable(table)
+      .build();
+    return Message.newBuilder().setType(MessageType.Sequence).setSeqOp(op).build();
+  }
+
+  public static Message buildScanlogOp(String table, long seqno, int limit) {
+    ScanlogOperation op = ScanlogOperation
+      .newBuilder()
+      .setTable(table)
+      .setSeqno(seqno)
+      .setLimit(limit)
+      .build();
+    return Message.newBuilder().setType(MessageType.Scanlog).setScanlogOp(op).build();
   }
 
 }

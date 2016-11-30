@@ -24,6 +24,8 @@ import org.apache.logging.log4j.LogManager;
 
 class Store implements Closeable {
   private static Logger log = LogManager.getLogger(Store.class);
+  private static Store instance;
+
   private String db;
   private String location;
   private ConcurrentHashMap<String, DataTable> tables;
@@ -32,6 +34,7 @@ class Store implements Closeable {
 
   static {
     RocksDB.loadLibrary();
+    instance = new Store();
   }
 
   static class Cursor {
@@ -84,9 +87,16 @@ class Store implements Closeable {
     }
   }
 
-  public Store(String location) {
+  public static Store get() {
+    return instance;
+  }
+
+  public void bind(String location) {
     Utils.mkdir(location);
     this.location = location;
+  }
+
+  public Store() {
     tables = new ConcurrentHashMap<String, DataTable>();
     timer = new Timer();
     gson = new Gson();
@@ -419,6 +429,33 @@ class Store implements Closeable {
     return MessageBuilder.buildResponse("drop " + table);
   }
 
+  public void update(String table, Client.Result rsp) {
+    DataTable dt = tables.get(table);
+    if(dt != null) {
+      try(WriteOptions writeOpts = new WriteOptions();
+          WriteBatch writeBatch = new WriteBatch()) {
+        byte[] ops = rsp.logops();
+        int vc = 0;
+        for(int i = 0; i < ops.length; i++) {
+          switch(ops[i]) {
+          case 0:
+            writeBatch.put(rsp.getKey(i), rsp.getValue(vc++));
+            break;
+          case 1:
+            writeBatch.merge(rsp.getKey(i), rsp.getValue(vc++));
+            break;
+          default:
+            break;
+          }
+        }
+        dt.db.write(writeOpts, writeBatch);
+      } catch(RocksDBException e) {
+        e.printStackTrace();
+        log.info(e);
+      }
+    }
+  }
+
   public Message update(PutOperation op) {
     String name = op.getTable();
     DataTable table = tables.get(name);
@@ -444,7 +481,7 @@ class Store implements Closeable {
             writeBatch.put(handle, op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
           }
           table.db.write(writeOpts, writeBatch);
-        } catch (Exception e) {
+        } catch (RocksDBException e) {
           e.printStackTrace();
           log.info(e);
           return MessageBuilder.buildErrorResponse("updated wrong" + e.getMessage());
@@ -457,7 +494,7 @@ class Store implements Closeable {
             writeBatch.merge(handle, op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
           }
           table.db.write(writeOpts, writeBatch);
-        } catch (Exception e) {
+        } catch (RocksDBException e) {
           e.printStackTrace();
           log.info(e);
           return MessageBuilder.buildErrorResponse("updated wrong" + e.getMessage());
@@ -471,7 +508,7 @@ class Store implements Closeable {
             writeBatch.put(op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
           }
           table.db.write(writeOpts, writeBatch);
-        } catch (Exception e) {
+        } catch (RocksDBException e) {
           e.printStackTrace();
           log.info(e);
           return MessageBuilder.buildErrorResponse("updated wrong" + e.getMessage());
@@ -483,7 +520,7 @@ class Store implements Closeable {
             writeBatch.merge(op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
           }
           table.db.write(writeOpts, writeBatch);
-        } catch (Exception e) {
+        } catch (RocksDBException e) {
           e.printStackTrace();
           log.info(e);
           return MessageBuilder.buildErrorResponse("updated wrong" + e.getMessage());
@@ -595,7 +632,7 @@ class Store implements Closeable {
             return MessageBuilder.buildErrorResponse("wrong column:" + col);
           for(int i = 0; i < count; i++)
             handles.add(handle);
-          log.info("col <{}> handle {}", col, handle);
+          //log.info("col <{}> handle {}", col, handle);
           return MessageBuilder.buildResponse(table
                                               .db
                                               .multiGet(handles,
@@ -719,6 +756,90 @@ class Store implements Closeable {
       break;
     }
     return  MessageBuilder.buildResponse(token, keys, values);
+  }
+
+  public Message seqno(SequenceOperation op) {
+    String name = op.getTable();
+    DataTable table = tables.get(name);
+    if(table == null) {
+      return MessageBuilder.buildErrorResponse("table not opened:" + table);
+    }
+
+    return MessageBuilder.buildSeq(table.db.getLatestSequenceNumber());
+  }
+
+  private static class BatchHandler extends WriteBatch.Handler {
+    public List<byte[]> keys;
+    public List<byte[]> values;
+    public List<Byte> ops;
+
+    public BatchHandler(List<Byte> ops, List<byte[]> keys, List<byte[]> values) {
+      this.keys = keys;
+      this.values = values;
+      this.ops = ops;
+    }
+
+    public void put(byte[] key, byte[] value) {
+      keys.add(key);
+      values.add(value);
+      ops.add((byte)0);
+    }
+
+    public void merge(byte[] key, byte[] value) {
+      keys.add(key);
+      values.add(value);
+      ops.add((byte)1);
+    }
+
+    public void delete(byte[] key) {
+      keys.add(key);
+      ops.add((byte)2);
+    }
+
+    public void logData(byte[] blob) {
+      keys.add(blob);
+      ops.add((byte)3);
+    }
+  }
+
+  private void process(WriteBatch batch, List<Byte> ops, List<byte[]> keys, List<byte[]> values) throws RocksDBException {
+    BatchHandler handler = new BatchHandler(ops, keys, values);
+    batch.iterate(handler);
+  }
+
+  public Message scanlog(ScanlogOperation op) {
+    String name = op.getTable();
+    DataTable dt = tables.get(name);
+    if(dt == null) {
+      return MessageBuilder.buildErrorResponse("table not opened:" + name);
+    }
+    Message ret = MessageBuilder.emptyMsg;
+    int limit = op.getLimit();
+    try {
+      //log.info("last seq {}", op.getSeqno());
+      TransactionLogIterator iter = dt.db.getUpdatesSince(op.getSeqno());
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      List<Byte> ops = new ArrayList<Byte>();
+      int count = 0;
+      long seqno = 0;
+      while(iter.isValid()) {
+        TransactionLogIterator.BatchResult batch = iter.getBatch();
+        seqno = batch.sequenceNumber();
+        process(batch.writeBatch(), ops, keys, values);
+        if(++count >= limit)
+          break;
+        iter.next();
+      }
+      byte[] logops = new byte[ops.size()];
+      for(int i = 0; i < ops.size(); i++) {
+        logops[i] = ops.get(i);
+      }
+      ret = MessageBuilder.buildLog(seqno, logops, keys, values);
+    } catch (RocksDBException e) {
+      log.info("scan log {}", e);
+    }
+    return ret;
   }
 
   public Message handle(ByteBuffer data) throws IOException {

@@ -64,6 +64,14 @@ public final class Client implements Closeable {
       return rsp.getValuesList().stream().map(v -> v.toByteArray()).collect(toList());
     }
 
+    public byte[] logops() {
+      return rsp.getLogops().toByteArray();
+    }
+
+    public long seqno() {
+      return rsp.getSeqno();
+    }
+
     public byte[] getKey(int index) {
       return rsp.getKeys(index).toByteArray();
     }
@@ -176,6 +184,26 @@ public final class Client implements Closeable {
   public Result open(List<String> columns, String merge, int ttl, String compression) {
     Message msg = sendMsg(MessageBuilder.buildOpenOp(table, columns, merge, ttl, compression, options));
     return new Result(msg.getResponse());
+  }
+
+  public long getLatestSequenceNumber() {
+    Message msg = sendMsg(MessageBuilder.buildSeqOp(table));
+    return msg.getResponse().getSeqno();
+  }
+
+  public Result scanlog(long seqno, int limit) {
+    Message msg = sendMsg(MessageBuilder.buildScanlogOp(table, seqno, limit));
+    return new Result(msg.getResponse());
+  }
+
+  public String subscribe(String uri, String table, long seqno) {
+    Message msg = sendMsg(MessageBuilder.buildSubcribeOp(this.table, uri, table, seqno));
+    return msg.getResponse().getReason();
+  }
+
+  public String unsubscribe(String uri, String table) {
+    Message msg = sendMsg(MessageBuilder.buildSubcribeOp(this.table, uri, table, -1));
+    return msg.getResponse().getReason();
   }
 
   public Result compact() {

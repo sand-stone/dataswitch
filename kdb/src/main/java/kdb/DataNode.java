@@ -19,9 +19,9 @@ final class DataNode {
   private List<Ring> rings;
   private Random rnd;
 
-  public DataNode(List<Ring> rings, Store store, boolean standalone) {
+  public DataNode(List<Ring> rings, boolean standalone) {
     this.rings = rings;
-    this.store = store;
+    this.store = Store.get();
     this.standalone = standalone;
     this.rnd = new Random();
   }
@@ -80,6 +80,12 @@ final class DataNode {
     case Scan:
       r = store.scan(msg.getScanOp());
       break;
+    case Sequence:
+      r = store.seqno(msg.getSeqOp());
+      break;
+    case Scanlog:
+      r = store.scanlog(msg.getScanlogOp());
+      break;
     case Put:
       table = msg.getGetOp().getTable();
       if(standalone) {
@@ -87,6 +93,12 @@ final class DataNode {
       } else {
         rsend(msg, context);
       }
+      break;
+    case Subscribe:
+      r = KPoll.get().process(msg.getSubscribeOp());
+      break;
+    default:
+      r = MessageBuilder.emptyMsg;
       break;
     }
     if(r != MessageBuilder.nullMsg) {

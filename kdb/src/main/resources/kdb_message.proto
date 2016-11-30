@@ -15,7 +15,10 @@ message Message {
     Open = 4;
     Drop = 5;
     Compact = 6;
-    Response = 7;
+    Sequence = 7;
+    Scanlog = 8;
+    Subscribe = 9;
+    Response = 10;
   }
 
   MessageType type = 1;
@@ -26,7 +29,27 @@ message Message {
   DropOperation dropOp = 6;
   ScanOperation scanOp = 7;
   CompactOperation compactOp = 8;
-  Response response = 9;
+  SequenceOperation seqOp = 9;
+  ScanlogOperation scanlogOp = 10;
+  SubscribeOperation subscribeOp = 11;
+  Response response = 12;
+}
+
+message SequenceOperation {
+  string table = 1;
+}
+
+message ScanlogOperation {
+  string table = 1;
+  int64 seqno = 2;
+  int32 limit = 3;
+}
+
+message SubscribeOperation {
+  string table = 1;
+  string uri = 2;
+  string source = 3;
+  int64 seqno = 4;
 }
 
 message Response {
@@ -36,10 +59,12 @@ message Response {
   }
 
   Type type = 1;
-  string reason = 2;
-  string token = 3;
-  repeated bytes keys = 4;
-  repeated bytes values = 5;
+  int64 seqno = 2;
+  string reason = 3;
+  string token = 4;
+  repeated bytes keys = 5;
+  repeated bytes values = 6;
+  bytes logops = 7;
 }
 
 message GetOperation {

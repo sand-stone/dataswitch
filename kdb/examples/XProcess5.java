@@ -58,7 +58,7 @@ public class XProcess5 {
       List<byte[]> keys = new ArrayList<byte[]>();
       List<byte[]> values = new ArrayList<byte[]>();
       int batchSize = 1000;
-      int total = 0;
+      long total = 0;
       int basem = LocalDateTime.now().getMinute() - 1;
       while(true) {
         int hour = LocalDateTime.now().getHour();
