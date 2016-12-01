@@ -120,9 +120,9 @@ class Store implements Closeable {
   }
 
   private RocksDB getDB(final DBOptions options, final String path,
-                       final List<ColumnFamilyDescriptor> columnFamilyDescriptors,
-                       final List<ColumnFamilyHandle> columnFamilyHandles,
-                       int ttl) throws RocksDBException {
+                        final List<ColumnFamilyDescriptor> columnFamilyDescriptors,
+                        final List<ColumnFamilyHandle> columnFamilyHandles,
+                        int ttl) throws RocksDBException {
 
     if(ttl == -1) {
       return RocksDB.open(options, path, columnFamilyDescriptors, columnFamilyHandles);
@@ -229,6 +229,94 @@ class Store implements Closeable {
     }
   }
 
+  private void setMergeOperator(Options options, String mergeOperator) {
+    //log.info("{} merge: <{}>", op, mergeOperator);
+    if(mergeOperator != null && mergeOperator.length() > 0) {
+      switch(mergeOperator) {
+      case "add":
+        options.setMergeOperatorName("uint64add");
+        break;
+      case "append":
+        options.setMergeOperatorName("stringappend");
+        break;
+      case"max":
+        options.setMergeOperatorName("max");
+        break;
+      default:
+        throw new KdbException("wrong merge operator, valid ones: add, append, max");
+      }
+    }
+  }
+
+  private void setMergeOperator(ColumnFamilyOptions options, String mergeOperator) {
+    //log.info("column merge: <{}>", mergeOperator);
+    if(mergeOperator != null && mergeOperator.length() > 0) {
+      switch(mergeOperator) {
+      case "add":
+        options.setMergeOperatorName("uint64add");
+        break;
+      case "append":
+        options.setMergeOperatorName("stringappend");
+        break;
+      case"max":
+        options.setMergeOperatorName("max");
+        break;
+      default:
+        throw new KdbException("wrong merge operator, valid ones: add, append, max");
+      }
+    }
+  }
+
+  private void parseOptions(ColumnFamilyOptions options, String json) {
+    KdbOptions opts = gson.fromJson(json, KdbOptions.class);
+    if(opts != null) {
+      opts.forEach((name, v)->{
+          switch(name) {
+          case "CompactionStyle":
+            switch(v) {
+            case "FIFO":
+              options.setCompactionStyle(CompactionStyle.FIFO);
+              break;
+            case "LEVEL":
+              options.setCompactionStyle(CompactionStyle.LEVEL);
+              break;
+            default:
+              options.setCompactionStyle(CompactionStyle.UNIVERSAL);
+              break;
+            }
+            break;
+          case "MaxTableFilesSizeFIFO":
+            options.setMaxTableFilesSizeFIFO(toLong(v));
+            break;
+          case "MaxWriteBufferNumber":
+            options.setMaxWriteBufferNumber(toInt(v));
+            break;
+          case "MinWriteBufferNumberToMerge":
+            options.setMinWriteBufferNumberToMerge(toInt(v));
+            break;
+          case "NumLevels":
+            options.setNumLevels(toInt(v));
+            break;
+          case "MaxBytesForLevelBase":
+            options.setMaxBytesForLevelBase(toLong(v));
+            break;
+          case "MaxBytesForLevelMultiplier":
+            options.setMaxBytesForLevelMultiplier(toInt(v));
+            break;
+          case "LevelZeroFileNumCompactionTrigger":
+            options.setLevelZeroFileNumCompactionTrigger(toInt(v));
+            break;
+          case "LevelZeroSlowdownWritesTrigger":
+            options.setLevelZeroSlowdownWritesTrigger(toInt(v));
+            break;
+          case "LevelZeroStopWritesTrigger":
+            options.setLevelZeroStopWritesTrigger(toInt(v));
+            break;
+          }
+        });
+    }
+  }
+
   private void report(StringBuilder builder, String name, DataTable dt) {
     builder.append("\n\n\t\t\ttable " + name + "\n");
     try {
@@ -285,39 +373,31 @@ class Store implements Closeable {
         options.setIncreaseParallelism(Runtime.getRuntime().availableProcessors());
         parseOptions(options, op.getOptions());
         dt.stats = options.statisticsPtr();
-        //log.info("{} merge: <{}>", op, mergeOperator);
-        if(mergeOperator != null && mergeOperator.length() > 0) {
-          if(mergeOperator.equals("add")) {
-            dt.merge = mergeOperator;
-            options.setMergeOperatorName("uint64add");
-          } else if(mergeOperator.equals("append")) {
-            dt.merge = mergeOperator;
-            options.setMergeOperatorName("stringappend");
-          }  else if(mergeOperator.equals("max")) {
-            dt.merge = mergeOperator;
-            options.setMergeOperatorName("max");
-          } else {
-            return MessageBuilder.buildResponse("wrong merge operator, valid ones: add, append, max");
-          }
-        }
+        dt.merge = mergeOperator.length() == 0? null : mergeOperator;
         RocksDB db = null;
         try {
           List<String> columns = op.getColumnsList();
           if(columns.size() == 0) {
+            setMergeOperator(options, dt.merge);
             db = getDB(options, path, ttl);
           } else {
             try(final RocksDB db2 = getDB(options, path, ttl)) {
               assert(db2 != null);
               columns.stream().forEach(col -> {
-                  try(ColumnFamilyHandle columnFamilyHandle = db2
-                      .createColumnFamily(
-                                          new ColumnFamilyDescriptor(col.getBytes(),
-                                                                     new ColumnFamilyOptions()))) {
-                  } catch (RocksDBException e) {
-                    log.info(e);
-                  }
+                  try(ColumnFamilyOptions colOpts = new ColumnFamilyOptions()) {
+                    parseOptions(colOpts, op.getOptions());
+                    setMergeOperator(colOpts, dt.merge);
+                    try(ColumnFamilyHandle columnFamilyHandle = db2
+                        .createColumnFamily(
+                                            new ColumnFamilyDescriptor(col.getBytes(), colOpts))) {
+                    } catch (RocksDBException e) {
+                      throw new KdbException(e);
+                    }}
                 });
             } catch (RocksDBException e) {
+              log.info(e);
+              return MessageBuilder.buildResponse("open: " + e.getMessage());
+            } catch (KdbException e) {
               log.info(e);
               return MessageBuilder.buildResponse("open: " + e.getMessage());
             }
@@ -327,11 +407,15 @@ class Store implements Closeable {
               .add(new ColumnFamilyDescriptor(RocksDB.DEFAULT_COLUMN_FAMILY,
                                               new ColumnFamilyOptions()));
             columns.stream().forEach(col -> {
+                ColumnFamilyOptions colOpts = new ColumnFamilyOptions();
+                parseOptions(colOpts, op.getOptions());
+                setMergeOperator(colOpts, dt.merge);
                 dt.colDs
                   .add(new ColumnFamilyDescriptor(col.getBytes(),
-                                                  new ColumnFamilyOptions()));
+                                                  colOpts));
               });
             try(DBOptions dboptions = new DBOptions()) {
+              parseOptions(options, op.getOptions());
               db = getDB(dboptions, path, dt.colDs, handles, ttl);
             }
             dt.columns = new LinkedHashMap<String, ColumnFamilyHandle>();
@@ -343,6 +427,10 @@ class Store implements Closeable {
           }
         } catch (RocksDBException e) {
           log.info(e);
+          return MessageBuilder.buildResponse(e.getMessage());
+        } catch (KdbException e) {
+          log.info(e);
+          return MessageBuilder.buildResponse(e.getMessage());
         }
         dt.db = db;
         tables.putIfAbsent(table, dt);
@@ -487,7 +575,7 @@ class Store implements Closeable {
           return MessageBuilder.buildErrorResponse("updated wrong" + e.getMessage());
         }
       } else {
-        //log.info("op.getColumn() {}", op.getColumn());
+        //log.info("merge {} op.getColumn() {}", table.merge, op.getColumn());
         try(WriteOptions writeOpts = new WriteOptions();
             WriteBatch writeBatch = new WriteBatch()) {
           for(int i = 0; i < len; i++) {

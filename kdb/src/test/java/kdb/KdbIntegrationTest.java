@@ -74,7 +74,7 @@ public class KdbIntegrationTest extends TestCase {
       client.open();
       client.put(keys, values);
       Client.Result rsp = client.get(keys);
-      //log.info("rsp: {}", rsp);
+      //log.info("test3 rsp: {}", rsp);
       if(rsp.count() == 2 && (new String(rsp.getValue(0)).equals("val2")
                               || new String(rsp.getValue(1)).equals("val2")
                               )) {
@@ -463,4 +463,38 @@ public class KdbIntegrationTest extends TestCase {
     }
   }
 
+  public void test15() {
+    String table = "test15";
+    try(Client client = new Client("http://localhost:8000/", table)) {
+      List<String> cols = Arrays.asList("test15col1", "test15col2");
+      Client.Result rsp = client.open(cols, "append");
+      //System.out.println("rsp:" + rsp);
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      int count = 10;
+      for(int i = 0; i < count; i++) {
+        keys.add(("keys"+i).getBytes());
+        values.add(("values"+i).getBytes());
+      }
+      rsp = client.put("test15col2", keys, values);
+      rsp = client.get("test15col2", keys);
+      long s1 = rsp.values().stream().map(e -> e.length)
+        .collect(Collectors.toList())
+        .stream()
+        .reduce(0, Integer::sum);
+      rsp = client.put("test15col2", keys, values);
+      rsp = client.get("test15col2", keys);
+      long s2 = rsp.values().stream().map(e -> e.length)
+        .collect(Collectors.toList())
+        .stream()
+        .reduce(0, Integer::sum);
+      if(s1*2 + count == s2) {
+        assertTrue(true);
+      } else {
+        assertTrue(false);
+      }
+
+      client.drop("test15col2");
+    }
+  }
 }
