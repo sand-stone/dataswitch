@@ -89,7 +89,7 @@ class Ring implements Runnable, StateMachine {
       log.info("deliver callback handle {}", e);
     } finally {
       if(msg.getType() != MessageType.Sequence) {
-        NettyTransport.HttpKdbServerHandler.reply(ctx, ret);
+        Transport.HttpKdbServerHandler.reply(ctx, ret);
       } else {
         //log.info("msg {} => r {}", msg, ret);
       }
@@ -127,7 +127,7 @@ class Ring implements Runnable, StateMachine {
     Message msg = MessageBuilder.buildErrorResponse("Service Error");
     for (Tuple tp : pendingRequests.pendingSends) {
       if(tp.param instanceof io.netty.channel.ChannelHandlerContext)
-        NettyTransport.HttpKdbServerHandler.reply(tp.param, msg);
+        Transport.HttpKdbServerHandler.reply(tp.param, msg);
     }
     log.info("... Recovering>>>");
   }

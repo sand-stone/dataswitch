@@ -111,7 +111,7 @@
                 <argument>java</argument>
                 <argument>-cp</argument>
                 <argument>${basedir}/target/kdb-${project.version}.jar</argument>
-                <argument>kdb.NettyTransport</argument>
+                <argument>kdb.Transport</argument>
                 <argument>${basedir}/conf/datanode1.properties</argument>
               </arguments>
             </configuration>
@@ -131,7 +131,7 @@
                 <argument>java</argument>
                 <argument>-cp</argument>
                 <argument>${basedir}/target/kdb-${project.version}.jar</argument>
-                <argument>kdb.NettyTransport</argument>
+                <argument>kdb.Transport</argument>
                 <argument>${basedir}/conf/datanode2.properties</argument>
               </arguments>
             </configuration>
@@ -151,28 +151,8 @@
                 <argument>java</argument>
                 <argument>-cp</argument>
                 <argument>${basedir}/target/kdb-${project.version}.jar</argument>
-                <argument>kdb.NettyTransport</argument>
+                <argument>kdb.Transport</argument>
                 <argument>${basedir}/conf/datanode3.properties</argument>
-              </arguments>
-            </configuration>
-          </execution>
-          <execution>
-            <id>kdb--subscribe-process</id>
-            <phase>pre-integration-test</phase>
-            <goals>
-              <goal>start</goal>
-            </goals>
-            <configuration>
-              <name>kdb-test</name>
-              <workingDir>${basedir}</workingDir>
-              <waitForInterrupt>false</waitForInterrupt>
-              <healthcheckUrl>http://localhost:9000/</healthcheckUrl>
-              <arguments>
-                <argument>java</argument>
-                <argument>-cp</argument>
-                <argument>${basedir}/target/kdb-${project.version}.jar</argument>
-                <argument>kdb.NettyTransport</argument>
-                <argument>${basedir}/conf/subscribe.conf</argument>
               </arguments>
             </configuration>
           </execution>

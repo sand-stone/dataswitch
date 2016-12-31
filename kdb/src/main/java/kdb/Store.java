@@ -1063,7 +1063,7 @@ class Store implements Closeable {
 
   public Message fetch(SequenceOperation op) {
     Message ret = MessageBuilder.emptyMsg;
-    if(!op.getEndpoint().equals(NettyTransport.get().dataaddr)) {
+    if(!op.getEndpoint().equals(Transport.get().dataaddr)) {
       try (Client client = new Client("http://"+op.getEndpoint(), op.getTable())) {
         client.open();
         long seqno = op.getSeqno();

@@ -43,14 +43,14 @@ import kdb.rsm.ZabException;
 import java.util.List;
 import java.util.ArrayList;
 
-public class NettyTransport {
-  private static Logger log = LogManager.getLogger(NettyTransport.class);
-  private static NettyTransport instance = new NettyTransport();
+public class Transport {
+  private static Logger log = LogManager.getLogger(Transport.class);
+  private static Transport instance = new Transport();
   String dataaddr;
 
-  private NettyTransport() { }
+  private Transport() { }
 
-  public static NettyTransport get() {
+  public static Transport get() {
     return instance;
   }
 
@@ -252,7 +252,7 @@ public class NettyTransport {
 
   public static void main(String[] args) throws Exception {
     if(args.length < 1) {
-      System.out.println("java -cp ./target/kdb-1.0-SNAPSHOT.jar kdb.NettyTransport conf/datanode.properties");
+      System.out.println("java -cp ./target/kdb-1.0-SNAPSHOT.jar kdb.Transport conf/datanode.properties");
       return;
     }
     File propertiesFile = new File(args[0]);
@@ -263,6 +263,6 @@ public class NettyTransport {
     Configurations configs = new Configurations();
     PropertiesConfiguration config = configs.properties(propertiesFile);
 
-    NettyTransport.get().start(config);
+    Transport.get().start(config);
   }
 }

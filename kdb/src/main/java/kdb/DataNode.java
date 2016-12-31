@@ -96,7 +96,7 @@ final class DataNode {
       r = store.update(msg.getPutOp());
       if(!standalone) {
         Message repl = MessageBuilder.buildSeqOp(table,
-                                                 NettyTransport.get().dataaddr,
+                                                 Transport.get().dataaddr,
                                                  r.getResponse().getSeqno());
         rsend(repl, context);
       }
@@ -106,7 +106,7 @@ final class DataNode {
       break;
     }
     if(r != MessageBuilder.nullMsg) {
-      NettyTransport.HttpKdbServerHandler.reply(context, r);
+      Transport.HttpKdbServerHandler.reply(context, r);
     }
   }
 
