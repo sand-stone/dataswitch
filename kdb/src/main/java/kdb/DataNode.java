@@ -30,6 +30,10 @@ final class DataNode {
     return store.stats(table);
   }
 
+  public boolean isMaster() {
+    return ring().isLeader();
+  }
+
   private Ring ring() {
     return rings.get(rnd.nextInt(rings.size()));
   }
@@ -87,6 +91,7 @@ final class DataNode {
       r = store.scanlog(msg.getScanlogOp());
       break;
     case Put:
+      log.info("master {} ", isMaster());
       table = msg.getPutOp().getTable();
       r = store.update(msg.getPutOp());
       if(!standalone) {

@@ -26,12 +26,16 @@ class Ring implements Runnable, StateMachine {
   private String serverId;
   private final ZabConfig config = new ZabConfig();
   Store store;
+  private String leader;
+  private Set<String> members;
+  private Set<String> followers;
 
   public Zab zab;
 
   public Ring(String serverId, String joinPeer, String logDir) {
     try {
       this.serverId = serverId;
+      this.leader = null;
       if (this.serverId != null && joinPeer == null) {
         // It's the first server in cluster, joins itself.
         joinPeer = this.serverId;
@@ -58,6 +62,10 @@ class Ring implements Runnable, StateMachine {
 
   public void bind(Store store) {
     this.store = store;
+  }
+
+  public boolean isLeader() {
+    return this.leader == null || this.leader.equals(serverId);
   }
 
   @Override
@@ -126,23 +134,27 @@ class Ring implements Runnable, StateMachine {
 
   @Override
   public void leading(Set<String> activeFollowers, Set<String> clusterMembers) {
-    log.info("LEADING with active followers : ");
+    this.followers = activeFollowers;
+    this.members = clusterMembers;
+    /*log.info("LEADING with active followers : ");
     for (String peer : activeFollowers) {
       log.info(" -- {}", peer);
     }
     log.info("Cluster configuration change : ", clusterMembers.size());
     for (String peer : clusterMembers) {
       log.info(" -- {}", peer);
-    }
+      }*/
   }
 
   @Override
   public void following(String leader, Set<String> clusterMembers) {
-    log.info("FOLLOWING {}", leader);
+    this.leader = leader;
+    this.members = clusterMembers;
+    /*log.info("FOLLOWING {}", leader);
     log.info("Cluster configuration change : ", clusterMembers.size());
     for (String peer : clusterMembers) {
       log.info(" -- {}", peer);
-    }
+      }*/
   }
 
   public void run() {
