@@ -815,55 +815,55 @@ class Store implements Closeable {
   public Message get(GetOperation op) {
     String name = op.getTable();
     DataTable table = tables.get(name);
+    if(table == null) {
+      return MessageBuilder.buildErrorResponse("table not opened:" + name);
+    }
     try {
       table.inc();
-      if(table != null) {
-        if(op.getKeysCount() > 1000) {
-          //review: random guess
-          return MessageBuilder.buildErrorResponse("batch size too big");
+      if(op.getKeysCount() > 1000) {
+        //review: random guess
+        return MessageBuilder.buildErrorResponse("batch size too big");
+      }
+      String col = op.getColumn();
+      if(col != null && col.length() > 0) {
+        try {
+          int count = op.getKeysCount();
+          List<ColumnFamilyHandle> handles = new ArrayList<ColumnFamilyHandle>(count);
+          ColumnFamilyHandle handle = table.getCol(col);
+          if(handle == null)
+            return MessageBuilder.buildErrorResponse("wrong column:" + col);
+          for(int i = 0; i < count; i++)
+            handles.add(handle);
+          //log.info("col <{}> handle {}", col, handle);
+          return MessageBuilder.buildResponse(table
+                                              .db
+                                              .multiGet(handles,
+                                                        op
+                                                        .getKeysList()
+                                                        .stream()
+                                                        .map(k -> k.toByteArray())
+                                                        .collect(toList())));
+        } catch(RocksDBException e) {
+          log.info(e);
+          return MessageBuilder.buildErrorResponse("table get errr:" + e.getMessage());
         }
-        String col = op.getColumn();
-        if(col != null && col.length() > 0) {
-          try {
-            int count = op.getKeysCount();
-            List<ColumnFamilyHandle> handles = new ArrayList<ColumnFamilyHandle>(count);
-            ColumnFamilyHandle handle = table.getCol(col);
-            if(handle == null)
-              return MessageBuilder.buildErrorResponse("wrong column:" + col);
-            for(int i = 0; i < count; i++)
-              handles.add(handle);
-            //log.info("col <{}> handle {}", col, handle);
-            return MessageBuilder.buildResponse(table
-                                                .db
-                                                .multiGet(handles,
-                                                          op
-                                                          .getKeysList()
-                                                          .stream()
-                                                          .map(k -> k.toByteArray())
-                                                          .collect(toList())));
-          } catch(RocksDBException e) {
-            log.info(e);
-            return MessageBuilder.buildErrorResponse("table get errr:" + e.getMessage());
-          }
-        } else {
-          try {
-            return MessageBuilder.buildResponse(table
-                                                .db
-                                                .multiGet(op
-                                                          .getKeysList()
-                                                          .stream()
-                                                          .map(k -> k.toByteArray())
-                                                          .collect(toList())));
-          } catch(RocksDBException e) {
-            log.info(e);
-            return MessageBuilder.buildErrorResponse("table get errr:" + e.getMessage());
-          }
+      } else {
+        try {
+          return MessageBuilder.buildResponse(table
+                                              .db
+                                              .multiGet(op
+                                                        .getKeysList()
+                                                        .stream()
+                                                        .map(k -> k.toByteArray())
+                                                        .collect(toList())));
+        } catch(RocksDBException e) {
+          log.info(e);
+          return MessageBuilder.buildErrorResponse("table get errr:" + e.getMessage());
         }
       }
     } finally {
       table.dec();
     }
-    return MessageBuilder.buildErrorResponse("table not opened:" + table);
   }
 
   private  boolean isempty(String col) {
@@ -1074,13 +1074,11 @@ class Store implements Closeable {
         DataTable dt = tables.get(op.getTable());
         long lsn = dt.db.getLatestSequenceNumber();
         lsn++;
-        if(seqno >= lsn) {
-          do {
-            Client.Result rsp = client.scanlog(lsn, 1);
-            //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
-            Store.get().update(op.getTable(), rsp);
-            lsn = rsp.seqno() + 1;
-          } while(lsn < seqno);
+        while (seqno >= lsn) {
+          Client.Result rsp = client.scanlog(lsn, 1);
+          //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
+          Store.get().update(op.getTable(), rsp);
+          lsn = rsp.seqno() + 1;
           //log.info("table {} seqno {} lsn {}", op.getTable(), seqno, lsn);
         }
       } catch(Exception e) {
