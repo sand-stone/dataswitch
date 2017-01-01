@@ -38,7 +38,7 @@ public class Guid2 {
       values.clear();
       keys = eventKeys.subList(index, eventKeys.size());
       for(int i = 0; i < keys.size(); i++) {
-        byte[] value = new byte[7000*8];
+        byte[] value = new byte[1000*8];
         rnd.nextBytes(value);
         values.add(value);
       }
@@ -53,7 +53,7 @@ public class Guid2 {
     List<byte[]> keys = new ArrayList<byte[]>();
     List<byte[]> values = new ArrayList<byte[]>();
     Random rnd = new Random();
-    valueState = new byte[7000*8];
+    valueState = new byte[1000*8];
     rnd.nextBytes(valueState);
 
     for(int i = 0; i < 50000; i++) {
@@ -67,6 +67,6 @@ public class Guid2 {
       stateClient.open();
       process(stateClient, keys);
     }
+    System.exit(0);
   }
-
 }
