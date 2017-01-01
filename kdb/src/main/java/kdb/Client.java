@@ -93,7 +93,11 @@ public final class Client implements Closeable {
 
   public Client(String uri, String table, String options, String backupOptions, int timeout) {
     try {
-      final AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder().setRequestTimeout(timeout).setNettyTimer(timer).build();
+      final AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
+        .setRequestTimeout(timeout)
+        .setNettyTimer(timer)
+        .setFollowRedirect(true)
+        .build();
       client = new DefaultAsyncHttpClient(config);
     } catch(Exception e) {
       throw new KdbException(e);

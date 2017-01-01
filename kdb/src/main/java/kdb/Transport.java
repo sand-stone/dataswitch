@@ -31,6 +31,7 @@ import io.netty.handler.codec.DecoderResult;
 import io.netty.util.AsciiString;
 import static io.netty.handler.codec.http.HttpResponseStatus.*;
 import static io.netty.handler.codec.http.HttpVersion.*;
+import static io.netty.handler.codec.http.HttpHeaderNames.*;
 import java.io.File;
 import io.netty.buffer.ByteBuf;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +48,10 @@ public class Transport {
   private static Logger log = LogManager.getLogger(Transport.class);
   private static Transport instance = new Transport();
   String dataaddr;
+  private static final AsciiString CONTENT_TYPE = new AsciiString("Content-Type");
+  private static final AsciiString CONTENT_LENGTH = new AsciiString("Content-Length");
+  private static final AsciiString CONNECTION = new AsciiString("Connection");
+  private static final AsciiString KEEP_ALIVE = new AsciiString("keep-alive");
 
   private Transport() { }
 
@@ -139,11 +144,33 @@ public class Transport {
     }
   }
 
+  public static void redirect(Object ctx, String uri) {
+    ChannelHandlerContext context = (ChannelHandlerContext)ctx;
+    FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1,
+                                                            TEMPORARY_REDIRECT,
+                                                            Unpooled.EMPTY_BUFFER);
+    response.headers().set(LOCATION, "http://"+uri);
+    context.writeAndFlush(response);
+    context.close();
+  }
+
+  public static void reply(Object ctx, Message msg) {
+    ChannelHandlerContext context = (ChannelHandlerContext)ctx;
+    if (context == null) {
+      // This request is sent from other instance.
+      return;
+    }
+    FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1,
+                                                            OK,
+                                                            Unpooled.wrappedBuffer(msg.toByteArray()));
+    response.headers().set(CONTENT_TYPE, "application/octet-stream");
+    response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
+    //response.headers().set(CONNECTION, KEEP_ALIVE);
+    //context.write(response).addListener(ChannelFutureListener.CLOSE);;
+    context.writeAndFlush(response);
+  }
+
   public static class HttpKdbServerHandler extends ChannelInboundHandlerAdapter {
-    private static final AsciiString CONTENT_TYPE = new AsciiString("Content-Type");
-    private static final AsciiString CONTENT_LENGTH = new AsciiString("Content-Length");
-    private static final AsciiString CONNECTION = new AsciiString("Connection");
-    private static final AsciiString KEEP_ALIVE = new AsciiString("keep-alive");
     private DataNode datanode;
 
     public HttpKdbServerHandler(DataNode datanode) {
@@ -153,22 +180,6 @@ public class Transport {
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) {
       ctx.flush();
-    }
-
-    public static void reply(Object ctx, Message msg) {
-      //log.info("**** ctx {}", ctx);
-      ChannelHandlerContext context = (ChannelHandlerContext)ctx;
-      if (context == null) {
-        // This request is sent from other instance.
-        return;
-      }
-      FullHttpResponse response;
-      response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(msg.toByteArray()));
-      response.headers().set(CONTENT_TYPE, "application/octet-stream");
-      response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes());
-      //response.headers().set(CONNECTION, KEEP_ALIVE);
-      //context.write(response).addListener(ChannelFutureListener.CLOSE);;
-      context.writeAndFlush(response);
     }
 
     @Override

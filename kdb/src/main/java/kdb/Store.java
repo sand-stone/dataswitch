@@ -1073,9 +1073,9 @@ class Store implements Closeable {
         if(seqno >= lsn) {
           do {
             Client.Result rsp = client.scanlog(lsn, 1);
-            //log.info("fetch wal rsp count {}", rsp.count());
+            //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
             Store.get().update(op.getTable(), rsp);
-            lsn = rsp.seqno();
+            lsn = rsp.seqno() + 1;
           } while(lsn < seqno);
           //log.info("table {} seqno {} lsn {}", op.getTable(), seqno, lsn);
         }
@@ -1093,6 +1093,7 @@ class Store implements Closeable {
       msg = update(op);
     } else if(msg.getType() == MessageType.Open) {
       OpenOperation op = msg.getOpenOp();
+      //log.info("server {} open op {}", Transport.get().dataaddr, op);
       msg = open(op);
     } else if(msg.getType() == MessageType.Drop) {
       msg = drop(msg.getDropOp());

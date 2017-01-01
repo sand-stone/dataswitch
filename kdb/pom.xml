@@ -126,7 +126,7 @@
               <name>kdb-test</name>
               <workingDir>${basedir}</workingDir>
               <waitForInterrupt>false</waitForInterrupt>
-              <healthcheckUrl>http://localhost:8001</healthcheckUrl>
+              <healthcheckUrl>http://localhost:8002</healthcheckUrl>
               <arguments>
                 <argument>java</argument>
                 <argument>-cp</argument>
@@ -146,7 +146,7 @@
               <name>kdb-test</name>
               <workingDir>${basedir}</workingDir>
               <waitForInterrupt>false</waitForInterrupt>
-              <healthcheckUrl>http://localhost:8002</healthcheckUrl>
+              <healthcheckUrl>http://localhost:8004</healthcheckUrl>
               <arguments>
                 <argument>java</argument>
                 <argument>-cp</argument>

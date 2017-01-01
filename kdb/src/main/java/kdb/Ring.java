@@ -27,6 +27,7 @@ class Ring implements Runnable, StateMachine {
   private final ZabConfig config = new ZabConfig();
   Store store;
   private String leader;
+  private String leaderd;
   private Set<String> members;
   private Set<String> followers;
 
@@ -36,6 +37,7 @@ class Ring implements Runnable, StateMachine {
     try {
       this.serverId = serverId;
       this.leader = null;
+      this.leaderd = null;
       if (this.serverId != null && joinPeer == null) {
         // It's the first server in cluster, joins itself.
         joinPeer = this.serverId;
@@ -68,6 +70,29 @@ class Ring implements Runnable, StateMachine {
     return this.leader == null || this.leader.equals(serverId);
   }
 
+  public String leader() {
+    return leader == null? serverId: leader;
+  }
+
+  private void setLeaderd() {
+    String[] parts = leader().split(":");
+    int port = -1;
+    try {
+      port = Integer.parseInt(parts[1]);
+    } catch(NumberFormatException e) {
+      log.info("dataaddr error");
+    }
+    leaderd = parts[0] + ":" + (--port);
+  }
+
+  public String serverid() {
+    return serverId;
+  }
+
+  public String leaderd() {
+    return leaderd;
+  }
+
   @Override
   public ByteBuffer preprocess(Zxid zxid, ByteBuffer message) {
     //log.info("Preprocessing a message: {}", message);
@@ -89,7 +114,7 @@ class Ring implements Runnable, StateMachine {
       log.info("deliver callback handle {}", e);
     } finally {
       if(msg.getType() != MessageType.Sequence) {
-        Transport.HttpKdbServerHandler.reply(ctx, ret);
+        Transport.reply(ctx, ret);
       } else {
         //log.info("msg {} => r {}", msg, ret);
       }
@@ -127,7 +152,7 @@ class Ring implements Runnable, StateMachine {
     Message msg = MessageBuilder.buildErrorResponse("Service Error");
     for (Tuple tp : pendingRequests.pendingSends) {
       if(tp.param instanceof io.netty.channel.ChannelHandlerContext)
-        Transport.HttpKdbServerHandler.reply(tp.param, msg);
+        Transport.reply(tp.param, msg);
     }
     log.info("... Recovering>>>");
   }
@@ -136,25 +161,32 @@ class Ring implements Runnable, StateMachine {
   public void leading(Set<String> activeFollowers, Set<String> clusterMembers) {
     this.followers = activeFollowers;
     this.members = clusterMembers;
-    /*log.info("LEADING with active followers : ");
-    for (String peer : activeFollowers) {
-      log.info(" -- {}", peer);
+    this.leader = serverId;
+    setLeaderd();
+    if(log.isDebugEnabled()) {
+      log.info("LEADING with active followers : ");
+      for (String peer : activeFollowers) {
+        log.info(" -- {}", peer);
+      }
+      log.info("Cluster configuration change : ", clusterMembers.size());
+      for (String peer : clusterMembers) {
+        log.info(" -- {}", peer);
+      }
     }
-    log.info("Cluster configuration change : ", clusterMembers.size());
-    for (String peer : clusterMembers) {
-      log.info(" -- {}", peer);
-      }*/
   }
 
   @Override
   public void following(String leader, Set<String> clusterMembers) {
     this.leader = leader;
     this.members = clusterMembers;
-    /*log.info("FOLLOWING {}", leader);
-    log.info("Cluster configuration change : ", clusterMembers.size());
-    for (String peer : clusterMembers) {
-      log.info(" -- {}", peer);
-      }*/
+    setLeaderd();
+    if(log.isDebugEnabled()) {
+      log.info("FOLLOWING {}", leader);
+      log.info("Cluster configuration change : ", clusterMembers.size());
+      for (String peer : clusterMembers) {
+        log.info(" -- {}", peer);
+      }
+    }
   }
 
   public void run() {

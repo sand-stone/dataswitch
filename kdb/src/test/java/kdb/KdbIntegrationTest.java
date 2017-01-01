@@ -441,7 +441,7 @@ public class KdbIntegrationTest extends TestCase {
   public void test14() {
     String table = "test14";
     try(Client client = new Client("http://localhost:8000/", table)) {
-      List<String> cols = Arrays.asList("test15col1", "test15col2");
+      List<String> cols = Arrays.asList("test14col1", "test14col2");
       Client.Result rsp = client.open(cols, "append");
       //System.out.println("rsp:" + rsp);
       List<byte[]> keys = new ArrayList<byte[]>();
@@ -451,14 +451,14 @@ public class KdbIntegrationTest extends TestCase {
         keys.add(("keys"+i).getBytes());
         values.add(("values"+i).getBytes());
       }
-      rsp = client.put("test15col2", keys, values);
-      rsp = client.get("test15col2", keys);
+      rsp = client.put("test14col2", keys, values);
+      rsp = client.get("test14col2", keys);
       long s1 = rsp.values().stream().map(e -> e.length)
         .collect(Collectors.toList())
         .stream()
         .reduce(0, Integer::sum);
-      rsp = client.put("test15col2", keys, values);
-      rsp = client.get("test15col2", keys);
+      rsp = client.put("test14col2", keys, values);
+      rsp = client.get("test14col2", keys);
       long s2 = rsp.values().stream().map(e -> e.length)
         .collect(Collectors.toList())
         .stream()
@@ -469,7 +469,7 @@ public class KdbIntegrationTest extends TestCase {
         assertTrue(false);
       }
 
-      //client.drop("test15col2");
+      //client.drop("test14col2");
     }
   }
 
@@ -522,11 +522,28 @@ public class KdbIntegrationTest extends TestCase {
     backupOpts.Path = "./backup";
 
     /*try(Client client = new Client("http://localhost:8000/",
-                                   table,
-                                   gson.toJson(options),
-                                   gson.toJson(backupOpts)
-                                   )) {
+      table,
+      gson.toJson(options),
+      gson.toJson(backupOpts)
+      )) {
       Client.Result rsp = client.open("append");
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      int count = 10;
+      for(int i = 0; i < count; i++) {
+      keys.add(("keys"+i).getBytes());
+      values.add(("values"+i).getBytes());
+      }
+      rsp = client.put(keys, values);
+      rsp = client.put(keys, values);
+      rsp = client.get(keys);
+      } */
+  }
+
+  public void test17() {
+    String table = "test17";
+    try(Client client = new Client("http://localhost:8002/", table)) {
+      Client.Result rsp = client.open();
       List<byte[]> keys = new ArrayList<byte[]>();
       List<byte[]> values = new ArrayList<byte[]>();
       int count = 10;
@@ -535,8 +552,41 @@ public class KdbIntegrationTest extends TestCase {
         values.add(("values"+i).getBytes());
       }
       rsp = client.put(keys, values);
-      rsp = client.put(keys, values);
-      rsp = client.get(keys);
-      } */
+      //try {Thread.currentThread().sleep(1000);} catch(Exception e) {}
+      do {
+        rsp = client.get(keys);
+      } while(rsp.count() < count);
+      Set<String>  r = rsp.keys().stream().map(e -> new String(e)).collect(Collectors.toSet());
+      if(r.size() == count)
+        assertTrue(true);
+      else
+        assertTrue(false);
+    }
   }
+
+  public void test18() {
+    String table = "test18";
+    try(Client client = new Client("http://localhost:8004/", table)) {
+      Client.Result rsp = client.open();
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      int count = 10;
+      for(int i = 0; i < count; i++) {
+        keys.add(("keys"+i).getBytes());
+        values.add(("values"+i).getBytes());
+      }
+      rsp = client.put(keys, values);
+      //try {Thread.currentThread().sleep(1000);} catch(Exception e) {}
+      do {
+        rsp = client.get(keys);
+      } while(rsp.count() < count);
+      Set<String>  r = rsp.keys().stream().map(e -> new String(e)).collect(Collectors.toSet());
+      if(r.size() == count)
+        assertTrue(true);
+      else
+        assertTrue(false);
+    }
+  }
+
+
 }

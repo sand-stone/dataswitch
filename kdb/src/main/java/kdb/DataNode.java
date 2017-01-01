@@ -55,6 +55,7 @@ final class DataNode {
     switch(msg.getType()) {
     case Open:
       table = msg.getOpenOp().getTable();
+      //log.info("server {} open table {} ", ring().serverid(), table);
       if(standalone) {
         r = store.open(msg.getOpenOp());
       } else {
@@ -91,7 +92,11 @@ final class DataNode {
       r = store.scanlog(msg.getScanlogOp());
       break;
     case Put:
-      log.info("master {} ", isMaster());
+      if(!isMaster()) {
+        //log.info("from {} ===> {}", Transport.get().dataaddr, ring().leaderd());
+        Transport.redirect(context, ring().leaderd());
+        return;
+      }
       table = msg.getPutOp().getTable();
       r = store.update(msg.getPutOp());
       if(!standalone) {
@@ -106,7 +111,7 @@ final class DataNode {
       break;
     }
     if(r != MessageBuilder.nullMsg) {
-      Transport.HttpKdbServerHandler.reply(context, r);
+      Transport.reply(context, r);
     }
   }
 
