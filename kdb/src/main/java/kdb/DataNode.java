@@ -59,7 +59,10 @@ final class DataNode {
       if(standalone) {
         r = store.open(msg.getOpenOp());
       } else {
-        rsend(msg, context);
+        if(!store.tableOpened(table))
+          rsend(msg, context);
+        else
+          r = MessageBuilder.emptyMsg;
       }
       break;
     case Compact:

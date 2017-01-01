@@ -426,6 +426,10 @@ class Store implements Closeable {
     return builder.toString();
   }
 
+  public boolean tableOpened(String table) {
+    return tables.get(table) != null;
+  }
+
   public synchronized Message open(OpenOperation op) {
     String table = op.getTable();
     if(table == null || table.length() == 0)
