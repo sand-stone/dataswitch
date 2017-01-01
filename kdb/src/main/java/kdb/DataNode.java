@@ -95,18 +95,19 @@ final class DataNode {
       r = store.scanlog(msg.getScanlogOp());
       break;
     case Put:
-      if(!isMaster()) {
+      if(standalone || isMaster()) {
+        table = msg.getPutOp().getTable();
+        r = store.update(msg.getPutOp());
+        if(!standalone) {
+          Message repl = MessageBuilder.buildSeqOp(table,
+                                                   Transport.get().dataaddr,
+                                                   r.getResponse().getSeqno());
+          rsend(repl, context);
+        }
+      } else {
         //log.info("from {} ===> {}", Transport.get().dataaddr, ring().leaderd());
         Transport.redirect(context, ring().leaderd());
         return;
-      }
-      table = msg.getPutOp().getTable();
-      r = store.update(msg.getPutOp());
-      if(!standalone) {
-        Message repl = MessageBuilder.buildSeqOp(table,
-                                                 Transport.get().dataaddr,
-                                                 r.getResponse().getSeqno());
-        rsend(repl, context);
       }
       break;
     default:
