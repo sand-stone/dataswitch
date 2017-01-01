@@ -124,7 +124,7 @@ public final class Client implements Closeable {
   Client() {
     try {
       final AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
-        .setRequestTimeout(timeout)
+        .setRequestTimeout(Integer.MAX_VALUE)
         .setNettyTimer(timer)
         .setFollowRedirect(true)
         .build();

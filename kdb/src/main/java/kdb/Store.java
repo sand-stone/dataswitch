@@ -1054,7 +1054,7 @@ class Store implements Closeable {
         }
         iter.next();
       }
-      log.info("scan {} seq between {} and {}", name, op.getSeqno(), seqno);
+      //log.info("scan {} seq between {} and {}", name, op.getSeqno(), seqno);
       byte[] logops = new byte[ops.size()];
       for(int i = 0; i < ops.size(); i++) {
         logops[i] = ops.get(i);
