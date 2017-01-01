@@ -31,6 +31,7 @@ class Store implements Closeable {
   private ConcurrentHashMap<String, DataTable> tables;
   private Timer timer;
   private Gson gson;
+  private Client client;
 
   static {
     RocksDB.loadLibrary();
@@ -114,6 +115,7 @@ class Store implements Closeable {
     tables = new ConcurrentHashMap<String, DataTable>();
     timer = new Timer();
     gson = new Gson();
+    client = new Client();
   }
 
   private static TimerTask wrap(Runnable r) {
@@ -1052,6 +1054,7 @@ class Store implements Closeable {
         }
         iter.next();
       }
+      log.info("scan {} seq between {} and {}", name, op.getSeqno(), seqno);
       byte[] logops = new byte[ops.size()];
       for(int i = 0; i < ops.size(); i++) {
         logops[i] = ops.get(i);
@@ -1068,20 +1071,20 @@ class Store implements Closeable {
   public Message fetch(SequenceOperation op) {
     Message ret = MessageBuilder.emptyMsg;
     if(!op.getEndpoint().equals(Transport.get().dataaddr)) {
-      try (Client client = new Client("http://"+op.getEndpoint(), op.getTable())) {
-        client.open();
+      try {
         long seqno = op.getSeqno();
         DataTable dt = tables.get(op.getTable());
         long lsn = dt.db.getLatestSequenceNumber();
         lsn++;
         while (seqno >= lsn) {
-          Client.Result rsp = client.scanlog(lsn, 1);
+          Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), lsn, 1);
           //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
           Store.get().update(op.getTable(), rsp);
           lsn = rsp.seqno() + 1;
           //log.info("table {} seqno {} lsn {}", op.getTable(), seqno, lsn);
         }
       } catch(Exception e) {
+        e.printStackTrace();
         log.info("failed to reach master {} exception: {}", op.getEndpoint(), e);
       }
     }

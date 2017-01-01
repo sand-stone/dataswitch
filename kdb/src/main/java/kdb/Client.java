@@ -121,6 +121,19 @@ public final class Client implements Closeable {
     this(uri, table, null, null);
   }
 
+  Client() {
+    try {
+      final AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
+        .setRequestTimeout(timeout)
+        .setNettyTimer(timer)
+        .setFollowRedirect(true)
+        .build();
+      client = new DefaultAsyncHttpClient(config);
+    } catch(Exception e) {
+      throw new KdbException(e);
+    }
+  }
+
   public Result open() {
     return open((String)null);
   }
@@ -337,6 +350,33 @@ public final class Client implements Closeable {
                                                      prefix,
                                                      suffix));
     return new Result(msg.getResponse());
+  }
+
+  Result scanlog(String uri, String table, long seqno, int limit) {
+    Message msg = MessageBuilder.buildScanlogOp(table, seqno, limit);
+    Message rsp = MessageBuilder.nullMsg;
+    try {
+      //log.info("msg {}", msg);
+      org.asynchttpclient.Response r = client
+        .preparePost(uri)
+        .setBody(msg.toByteArray())
+        .execute()
+        .get();
+      byte[] data = r.getResponseBodyAsBytes();
+      rsp = Message.parseFrom(data);
+    } catch(InterruptedException e) {
+      log.debug(e);
+      //e.printStackTrace();
+    } catch(ExecutionException e) {
+      log.debug(e);
+      throw new KdbException(e);
+      //e.printStackTrace();
+    } catch(InvalidProtocolBufferException e) {
+      log.debug(e);
+      throw new KdbException(e);
+      //e.printStackTrace();
+    }
+    return new Result(rsp.getResponse());
   }
 
   private Message sendMsg(Message msg) {
