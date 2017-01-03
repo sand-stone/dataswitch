@@ -11,7 +11,7 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 import com.google.gson.Gson;
 
-public class XProcess9 {
+public class XProcess10 {
 
   private static String events = "xevents";
   private static String states = "xstates";
@@ -264,23 +264,20 @@ public class XProcess9 {
   }
 
   public static void main(String[] args) {
-    if(args.length < 1) {
-      System.out.println("Program http://localhost:8000/");
-      return;
-    }
+    uris = new String[]{"http://10.0.0.10:8000/", "http://10.0.0.11:8000/", "http://10.0.0.12:8000/"};
 
-    uris = args;
+    String uri = uris[0];
     System.out.println("start");
     init();
     System.out.println("create events table");
     for(int i = 0; i < range; i++) {
-      try (Client client = new Client(uris[0], events+i, evtopts())) {
+      try (Client client = new Client(uri, events+i, evtopts())) {
         client.open("append");
       }
     }
 
     System.out.println("create states table");
-    try (Client client = new Client(uris[0], states, statesopts())) {
+    try (Client client = new Client(uri, states, statesopts())) {
       //client.open("append", 30*60);
       client.openCompressed("snappy");
     }
@@ -297,9 +294,9 @@ public class XProcess9 {
       new Thread(new Query(i)).start();
       }*/
 
-    Client[] mclients = getClients("http://localhost:8000/");
-    Client[] s1clients = getClients("http://localhost:8000/");
-    Client[] s2clients = getClients("http://localhost:8000/");
+    Client[] mclients = getClients("http://10.0.0.10:8000/");
+    Client[] s1clients = getClients("http://10.0.0.11:8000/");
+    Client[] s2clients = getClients("http://10.0.0.12:8000/");
 
     while(true) {
       try { Thread.currentThread().sleep(3000); } catch(Exception e) {}
