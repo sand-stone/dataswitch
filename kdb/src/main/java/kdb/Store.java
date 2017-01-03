@@ -600,7 +600,7 @@ class Store implements Closeable {
     return MessageBuilder.buildResponse("drop " + table);
   }
 
-  public void update(String table, Client.Result rsp) {
+  public long update(String table, Client.Result rsp) {
     DataTable dt = tables.get(table);
     if(dt != null) {
       try(WriteOptions writeOpts = new WriteOptions();
@@ -622,6 +622,7 @@ class Store implements Closeable {
         try {
           dt.inc();
           dt.db.write(writeOpts, writeBatch);
+          return dt.db.getLatestSequenceNumber();
         } finally {
           dt.dec();
         }
@@ -630,6 +631,7 @@ class Store implements Closeable {
         log.info(e);
       }
     }
+    return -1;
   }
 
   public Message update(PutOperation op) {
