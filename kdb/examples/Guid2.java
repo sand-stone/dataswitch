@@ -49,6 +49,14 @@ public class Guid2 {
 
   static byte[] valueState;
 
+  public static long getLastLSN(String uri, String table) {
+    try (Client client = new Client(uri, table)) {
+      client.open();
+      return client.getLatestSequenceNumber();
+    } catch(Exception e) {}
+    return -1;
+  }
+
   public static void main(String[] args) {
     List<byte[]> keys = new ArrayList<byte[]>();
     List<byte[]> values = new ArrayList<byte[]>();
@@ -66,6 +74,13 @@ public class Guid2 {
     try (Client stateClient = new Client("http://localhost:8000/", "acme")) {
       stateClient.open();
       process(stateClient, keys);
+    }
+
+    try { Thread.currentThread().sleep(1000); } catch(Exception e) {}
+    for(int i = 0; i < 10; i++) {
+      System.out.printf("http://localhost:8000/ LSN %d \n", getLastLSN("http://localhost:8000/", "acme"));
+      System.out.printf("http://localhost:8002/ LSN %d \n", getLastLSN("http://localhost:8002/", "acme"));
+      System.out.printf("http://localhost:8004/ LSN %d \n", getLastLSN("http://localhost:8004/", "acme"));
     }
     System.exit(0);
   }
