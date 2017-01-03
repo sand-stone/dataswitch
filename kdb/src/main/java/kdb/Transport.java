@@ -256,7 +256,7 @@ public class Transport {
         p.addLast(sslCtx.newHandler(ch.alloc()));
       }
       p.addLast(new HttpServerCodec());
-      p.addLast("aggregator", new HttpObjectAggregator(1000000000));
+      p.addLast("aggregator", new HttpObjectAggregator(Integer.MAX_VALUE));
       p.addLast(new HttpKdbServerHandler(datanode));
     }
   }
