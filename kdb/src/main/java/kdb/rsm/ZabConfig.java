@@ -11,8 +11,8 @@ public class ZabConfig {
    */
   static final int MAX_PENDING_REQS = 10000;
   static final long ROLLING_SIZE = 500 * 1024 * 1024;
-  private int timeoutMs = 10000;
-  private int minSyncTimeoutMs = 15000;
+  private int timeoutMs = 30000;
+  private int minSyncTimeoutMs = 60000;
   // The default logDir is current working directory.
   private String logDir = System.getProperty("user.dir");
   private int maxBatchSize = 500;
