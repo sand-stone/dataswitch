@@ -1,0 +1,6 @@
+serverid=3
+dataaddr=10.0.0.12:8000
+store=data/data3
+ringaddr=10.0.0.12:8001
+leader=10.0.0.10:8001
+logDir=log/server3
