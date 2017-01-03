@@ -230,7 +230,7 @@ public class XProcess10 {
     options.MaxBackgroundCompactions = 4;
     options.MaxWriteBufferNumber = 32;
     options.MinWriteBufferNumberToMerge = 8;
-    options.WalTtlSeconds = 60*5;
+    options.WalTtlSeconds = 60*10;
     Gson gson = new Gson();
     return gson.toJson(options);
   }
@@ -283,7 +283,7 @@ public class XProcess10 {
     }
 
     System.out.println("start event source threads");
-    int num = 1;
+    int num = 3;
     for (int i = 0; i < num; i++) {
       new Thread(new EventSource(i)).start();
     }
