@@ -230,7 +230,7 @@ public class XProcess9 {
     options.MaxBackgroundCompactions = 4;
     options.MaxWriteBufferNumber = 32;
     options.MinWriteBufferNumberToMerge = 8;
-    options.WalTtlSeconds = 3600;
+    options.WalTtlSeconds = 300;
     Gson gson = new Gson();
     return gson.toJson(options);
   }
