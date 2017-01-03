@@ -65,17 +65,8 @@ class KQueue implements Closeable {
         try {
           SequenceOperation op = queue.take();
           long seqno = op.getSeqno();
-          Store.DataTable dt = Store.get().tables.get(op.getTable());
-          long lsn = dt.db.getLatestSequenceNumber();
-          lsn++;
-          while (seqno > lsn) {
-            int delta = (int)(seqno - lsn);
-            int limit = delta < 1000? delta : 1000;
-            Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), lsn, limit);
-            //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
-            lsn = Math.max(Store.get().update(op.getTable(), rsp), rsp.seqno() + 1);
-            //log.info("table {} seqno {} lsn {}", op.getTable(), seqno, lsn);
-          }
+          Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), seqno, 1);
+          Store.get().update(op.getTable(), rsp);
         } catch(Exception e) {
           e.printStackTrace();
           //log.info("failed to reach master {} exception: {}", op.getEndpoint(), e);
