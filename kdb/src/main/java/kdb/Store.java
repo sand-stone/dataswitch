@@ -1077,7 +1077,9 @@ class Store implements Closeable {
         long lsn = dt.db.getLatestSequenceNumber();
         lsn++;
         while (seqno >= lsn) {
-          Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), lsn, 10000);
+          int delta = (int)(seqno - lsn);
+          int limit = delta < 5000? delta : 5000;
+          Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), lsn, limit);
           //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
           Store.get().update(op.getTable(), rsp);
           lsn = rsp.seqno() + 1;
