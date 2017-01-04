@@ -29,7 +29,7 @@ class KQueue implements Closeable {
   Thread[] workers;
 
   private KQueue() {
-    workers = new Thread[Runtime.getRuntime().availableProcessors()];
+    workers = new Thread[Runtime.getRuntime().availableProcessors()*2];
     queues = new Object[workers.length];
     for(int i = 0; i < workers.length; i++) {
       queues[i] = new LinkedBlockingQueue<>(MAX_PENDING_REQS);
