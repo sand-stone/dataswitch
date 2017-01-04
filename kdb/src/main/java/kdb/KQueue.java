@@ -15,7 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.rocksdb.*;
 import kdb.proto.Database.*;
 import kdb.proto.Database.Message.MessageType;
-
+import com.google.common.hash.Hashing;
+import com.google.common.hash.HashFunction;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 
@@ -23,7 +24,7 @@ class KQueue implements Closeable {
   private static Logger log = LogManager.getLogger(KQueue.class);
   private static KQueue instance = new KQueue();
   Object[] queues;
-
+  HashFunction hfunc;
   static final int MAX_PENDING_REQS = 100000;
   Thread[] workers;
 
@@ -35,6 +36,7 @@ class KQueue implements Closeable {
       workers[i] = new Thread(new Updater(i));
       workers[i].start();
     }
+    hfunc = Hashing.murmur3_32();
   }
 
   public void close() {}
@@ -46,7 +48,8 @@ class KQueue implements Closeable {
   public void add(SequenceOperation op) {
     try {
       String table = op.getTable();
-      int bucket = Math.abs(table.hashCode()) % queues.length;
+      int hashcode =  hfunc.hashUnencodedChars(table).hashCode();
+      int bucket = Math.abs(hashcode) % queues.length;
       LinkedBlockingQueue<SequenceOperation> queue = (LinkedBlockingQueue<SequenceOperation>)queues[bucket];
       queue.put(op);
     } catch(InterruptedException e) {
@@ -75,7 +78,7 @@ class KQueue implements Closeable {
           lsn++;
           while (seqno > lsn) {
             int delta = (int)(seqno - lsn);
-            int limit = delta < 100? delta : 100;
+            int limit = delta < 1000? delta : 1000;
             Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), lsn, limit);
             //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
             lsn = Math.max(Store.get().update(op.getTable(), rsp), rsp.seqno() + 1);
