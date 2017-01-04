@@ -22,15 +22,18 @@ import org.apache.logging.log4j.LogManager;
 class KQueue implements Closeable {
   private static Logger log = LogManager.getLogger(KQueue.class);
   private static KQueue instance = new KQueue();
+  Object[] queues;
+
   LinkedBlockingQueue<SequenceOperation> queue;
-  static final int MAX_PENDING_REQS = 1000;
+  static final int MAX_PENDING_REQS = 100000;
   Thread[] workers;
 
   private KQueue() {
-    queue = new LinkedBlockingQueue<>(MAX_PENDING_REQS);
-    workers = new Thread[Runtime.getRuntime().availableProcessors()*2];
+    workers = new Thread[Runtime.getRuntime().availableProcessors()];
+    queues = new Object[workers.length];
     for(int i = 0; i < workers.length; i++) {
-      workers[i] = new Thread(new Updater());
+      queues[i] = new LinkedBlockingQueue<>(MAX_PENDING_REQS);
+      workers[i] = new Thread(new Updater(i));
       workers[i].start();
     }
   }
@@ -43,6 +46,9 @@ class KQueue implements Closeable {
 
   public void add(SequenceOperation op) {
     try {
+      String table = op.getTable();
+      int bucket = Math.abs(table.hashCode()) % queues.length;
+      LinkedBlockingQueue<SequenceOperation> queue = (LinkedBlockingQueue<SequenceOperation>)queues[bucket];
       queue.put(op);
     } catch(InterruptedException e) {
       log.info("missed {}", op);
@@ -55,9 +61,12 @@ class KQueue implements Closeable {
 
   private class Updater implements Runnable {
     Client client;
+    LinkedBlockingQueue<SequenceOperation> queue;
 
-    public Updater() {
+
+    public Updater(int bucket) {
       client = new Client();
+      this.queue = (LinkedBlockingQueue<SequenceOperation>)queues[bucket];
     }
 
     public void run() {
