@@ -1039,6 +1039,7 @@ class Store implements Closeable {
       List<byte[]> keys = new ArrayList<byte[]>();
       List<byte[]> values = new ArrayList<byte[]>();
       List<Byte> ops = new ArrayList<Byte>();
+      long count = 0;
       long seqno = 0;
       while(iter.isValid()) {
         iter.status();
@@ -1048,7 +1049,7 @@ class Store implements Closeable {
           seqno += wb.count() - 1;
           process(wb, ops, keys, values);
         }
-        if((seqno - op.getSeqno()) >= limit) {
+        if(++count >= limit) {
           break;
         }
         iter.next();
