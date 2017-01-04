@@ -170,11 +170,12 @@ class Store implements Closeable {
   private RocksDB getDB(Options options, String backupOptions, String path, int ttl) throws RocksDBException {
     //log.info("options {}", backupOptions);
     if(ttl == -1) {
-      if(backupOptions.length() == 0)
+      return RocksDB.open(options, path);
+      /*if(backupOptions.length() == 0)
         return RocksDB.open(options, path);
       else {
         return BackupableDB.open(options, parseBackupOptions(backupOptions), path);
-      }
+        }*/
     }
     //log.info("create {} ttl {}", path, ttl);
     return TtlDB.open(options, path, ttl, false);
