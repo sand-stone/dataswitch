@@ -23,7 +23,7 @@ class KQueue implements Closeable {
   private static Logger log = LogManager.getLogger(KQueue.class);
   private static KQueue instance = new KQueue();
   LinkedBlockingQueue<SequenceOperation> queue;
-  static final int MAX_PENDING_REQS = 100000;
+  static final int MAX_PENDING_REQS = 1000;
   Thread[] workers;
 
   private KQueue() {

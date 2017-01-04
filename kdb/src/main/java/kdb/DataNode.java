@@ -99,6 +99,7 @@ final class DataNode {
         table = msg.getPutOp().getTable();
         r = store.update(msg.getPutOp());
         if(!standalone) {
+          //log.info(" seq {}", r.getResponse().getSeqno());
           Message repl = MessageBuilder.buildSeqOp(table,
                                                    Transport.get().dataaddr,
                                                    r.getResponse().getSeqno());

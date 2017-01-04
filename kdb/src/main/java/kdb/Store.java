@@ -1049,7 +1049,7 @@ class Store implements Closeable {
           seqno += wb.count() - 1;
           process(wb, ops, keys, values);
         }
-        if(++count >= limit) {
+        if((seqno - op.getSeqno()) >= limit) {
           break;
         }
         iter.next();
