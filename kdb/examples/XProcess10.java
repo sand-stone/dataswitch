@@ -20,7 +20,7 @@ public class XProcess10 {
 
   private static UUID[] deviceIds;
 
-  private static int range = 6;
+  private static int range = 12;
 
   public static class EventSource implements Runnable {
     private int id;
