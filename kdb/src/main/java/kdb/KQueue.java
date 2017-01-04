@@ -61,7 +61,12 @@ class KQueue implements Closeable {
     }
 
     public void run() {
+      int count = 0;
       while(true) {
+        if(++count == 100) {
+          log.info("q size {}", size());
+          count = 0;
+        }
         try {
           SequenceOperation op = queue.take();
           long seqno = op.getSeqno();
