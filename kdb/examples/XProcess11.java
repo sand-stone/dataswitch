@@ -72,7 +72,6 @@ public class XProcess11 {
               values.add(value);
             }
             if(keys.size() >= batchSize) {
-              System.out.println("xxxx: " + keys.size());
               write(client, keys, values);
               total += keys.size();
               count += keys.size();
