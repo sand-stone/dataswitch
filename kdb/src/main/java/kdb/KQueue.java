@@ -78,7 +78,7 @@ class KQueue implements Closeable {
           lsn++;
           while (seqno > lsn) {
             int delta = (int)(seqno - lsn);
-            int limit = delta < 1000? delta : 1000;
+            int limit = delta < 64? delta : 64;
             Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), lsn, limit);
             //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
             lsn = Math.max(Store.get().update(op.getTable(), rsp), rsp.seqno() + 1);
