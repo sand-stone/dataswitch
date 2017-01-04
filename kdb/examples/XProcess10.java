@@ -283,7 +283,7 @@ public class XProcess10 {
     }
 
     System.out.println("start event source threads");
-    int num = 1;
+    int num = 3;
     for (int i = 0; i < num; i++) {
       new Thread(new EventSource(i)).start();
     }
