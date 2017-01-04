@@ -57,7 +57,7 @@ public class XProcess10 {
         LocalDateTime now = LocalDateTime.now();
         int hour = now.getHour();
         int m = now.getMinute();
-        int bucket = m % range; /*m == 60? (byte)0: (byte)(m/5);*/
+        int bucket = m == 60? 0: m/5;
         try (Client client = new Client(uris[0], events+bucket)) {
           client.open();
           keys.clear();
@@ -225,12 +225,12 @@ public class XProcess10 {
   private static String evtopts() {
     Options options = new Options();
     options.CompactionStyle = "FIFO";
-    options.MaxTableFilesSizeFIFO = 1024*1024*1024*8L;
+    options.MaxTableFilesSizeFIFO = 1024*1024*1024*5L;
     options.MaxBackgroundFlushes = 2;
     options.MaxBackgroundCompactions = 4;
     options.MaxWriteBufferNumber = 32;
     options.MinWriteBufferNumberToMerge = 8;
-    options.WalTtlSeconds = 60*10;
+    options.WalTtlSeconds = 60*15;
     Gson gson = new Gson();
     return gson.toJson(options);
   }
