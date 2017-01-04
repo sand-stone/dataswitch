@@ -72,6 +72,7 @@ public class XProcess11 {
               values.add(value);
             }
             if(keys.size() >= batchSize) {
+              System.out.println("xxxx: " + keys.size());
               write(client, keys, values);
               total += keys.size();
               count += keys.size();
@@ -126,7 +127,7 @@ public class XProcess11 {
     Random rnd = new Random();
     evtTables = new String[range];
     for (int i = 0; i < range; i++) {
-      evtTables[i] = ""+ Math.abs(rnd.nextInt());
+      evtTables[i] = "evt"+ Math.abs(rnd.nextInt());
     }
   }
 
@@ -141,6 +142,7 @@ public class XProcess11 {
 
   public static void main(String[] args) {
     uris = new String[]{"http://10.0.0.10:8000/", "http://10.0.0.11:8000/", "http://10.0.0.12:8000/"};
+    //uris = new String[]{"http://127.0.0.1:8000/", "http://127.0.0.1:8002/", "http://127.0.0.1:8004/"};
 
     String uri = uris[0];
     System.out.println("start");
@@ -152,9 +154,18 @@ public class XProcess11 {
       }
     }
 
+    System.out.println("start event source threads");
+    int num = 3;
+    for (int i = 0; i < num; i++) {
+      new Thread(new EventSource(i)).start();
+    }
+
     Client[] mclients = getClients("http://10.0.0.10:8000/");
+    //Client[] mclients = getClients("http://localhost:8000/");
     Client[] s1clients = getClients("http://10.0.0.11:8000/");
+    //Client[] s1clients = getClients("http://localhost:8002/");
     Client[] s2clients = getClients("http://10.0.0.12:8000/");
+    //Client[] s2clients = getClients("http://localhost:8004/");
 
     while(true) {
       try { Thread.currentThread().sleep(3000); } catch(Exception e) {}
