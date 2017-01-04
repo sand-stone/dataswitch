@@ -24,7 +24,6 @@ class KQueue implements Closeable {
   private static KQueue instance = new KQueue();
   Object[] queues;
 
-  LinkedBlockingQueue<SequenceOperation> queue;
   static final int MAX_PENDING_REQS = 100000;
   Thread[] workers;
 
@@ -55,10 +54,6 @@ class KQueue implements Closeable {
     }
   }
 
-  public int size() {
-    return queue.size();
-  }
-
   private class Updater implements Runnable {
     Client client;
     LinkedBlockingQueue<SequenceOperation> queue;
@@ -73,7 +68,7 @@ class KQueue implements Closeable {
       int count = 0;
       while(true) {
         if(++count == 100) {
-          log.info("q size {}", size());
+          log.info("q size {}", queue.size());
           count = 0;
         }
         try {
