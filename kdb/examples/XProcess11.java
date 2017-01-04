@@ -126,7 +126,7 @@ public class XProcess11 {
     Random rnd = new Random();
     evtTables = new String[range];
     for (int i = 0; i < range; i++) {
-      evtTables[i] = ""+rnd.nextInt();
+      evtTables[i] = ""+ Math.abs(rnd.nextInt());
     }
   }
 
