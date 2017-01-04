@@ -20,7 +20,7 @@ public class XProcess10 {
 
   private static UUID[] deviceIds;
 
-  private static int range = 12;
+  private static int range = 6;
 
   public static class EventSource implements Runnable {
     private int id;
@@ -57,7 +57,7 @@ public class XProcess10 {
         LocalDateTime now = LocalDateTime.now();
         int hour = now.getHour();
         int m = now.getMinute();
-        int bucket = m == 60? 0: m/5;
+        int bucket = m == 60? 0: m/10;
         try (Client client = new Client(uris[0], events+bucket)) {
           client.open();
           keys.clear();

@@ -1039,7 +1039,6 @@ class Store implements Closeable {
       List<byte[]> keys = new ArrayList<byte[]>();
       List<byte[]> values = new ArrayList<byte[]>();
       List<Byte> ops = new ArrayList<Byte>();
-      int count = 0;
       long seqno = 0;
       while(iter.isValid()) {
         iter.status();
