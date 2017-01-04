@@ -102,6 +102,7 @@ public class XProcess11 {
     int MaxWriteBufferNumber;
     int MinWriteBufferNumberToMerge;
     int WalTtlSeconds;
+    long WalSizeLimitMB;
   }
 
   private static String evtopts() {
@@ -113,6 +114,7 @@ public class XProcess11 {
     options.MaxWriteBufferNumber = 16;
     options.MinWriteBufferNumberToMerge = 8;
     options.WalTtlSeconds = 60*5;
+    options.WalSizeLimitMB = 10000;
     Gson gson = new Gson();
     return gson.toJson(options);
   }
@@ -154,7 +156,7 @@ public class XProcess11 {
     }
 
     System.out.println("start event source threads");
-    int num = 3;
+    int num = 1;
     for (int i = 0; i < num; i++) {
       new Thread(new EventSource(i)).start();
     }

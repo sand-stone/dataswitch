@@ -286,6 +286,9 @@ class Store implements Closeable {
           case "LevelZeroStopWritesTrigger":
             options.setLevelZeroStopWritesTrigger(toInt(v));
             break;
+          case "WalSizeLimitMB":
+            options.setWalSizeLimitMB(toLong(v));
+            break;
           case "WalTtlSeconds":
             options.setWalTtlSeconds(toInt(v));
             break;
