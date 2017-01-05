@@ -25,11 +25,11 @@ class KQueue implements Closeable {
   private static KQueue instance = new KQueue();
   Object[] queues;
   HashFunction hfunc;
-  static final int MAX_PENDING_REQS = 10000;
+  static final int MAX_PENDING_REQS = 100000;
   Thread[] workers;
 
   private KQueue() {
-    workers = new Thread[23];
+    workers = new Thread[53];
     queues = new Object[workers.length];
     for(int i = 0; i < workers.length; i++) {
       queues[i] = new LinkedBlockingQueue<>(MAX_PENDING_REQS);
