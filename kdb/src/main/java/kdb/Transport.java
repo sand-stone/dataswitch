@@ -128,12 +128,17 @@ public class Transport {
     EventLoopGroup workerGroup = new NioEventLoopGroup();
     try {
       ServerBootstrap b = new ServerBootstrap();
-      b.option(ChannelOption.SO_BACKLOG, 1024);
+      b.option(ChannelOption.SO_BACKLOG, 1024)
+        .option(ChannelOption.SO_REUSEADDR, true)
+        .childOption(ChannelOption.SO_KEEPALIVE, true)
+        .childOption(ChannelOption.TCP_NODELAY, true)
+        .childOption(ChannelOption.SO_RCVBUF, 16*1024*1024)
+        .childOption(ChannelOption.SO_SNDBUF, 16*1024*1024)
+        .childOption(ChannelOption.SO_TIMEOUT, 60000);
       b.group(bossGroup, workerGroup)
         .channel(NioServerSocketChannel.class)
         //.handler(new LoggingHandler(LogLevel.INFO))
         .childHandler(new HttpKdbServerInitializer(sslCtx, datanode));
-
       Channel ch = b.bind(hostport.port).sync().channel();
       ch.closeFuture().sync();
     } catch(Exception e) {
