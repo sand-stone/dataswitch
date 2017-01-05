@@ -57,14 +57,38 @@ class KQueue implements Closeable {
     }
   }
 
+  private static class WorkItem {
+    String table;
+    Client.Result rsp;
+
+    public WorkItem(String table, Client.Result rsp) {
+      this.table = table;
+      this.rsp = rsp;
+    }
+  }
+
   private class Updater implements Runnable {
     Client client;
     LinkedBlockingQueue<SequenceOperation> queue;
+    LinkedBlockingQueue<WorkItem> workq;
 
+    private class Worker implements Runnable {
+      public void run() {
+        while(true) {
+          try {
+            WorkItem item = workq.take();
+            Store.get().update(item.table, item.rsp);
+          } catch(InterruptedException e) {
+          }
+        }
+      }
+    }
 
     public Updater(int bucket) {
       client = new Client();
       this.queue = (LinkedBlockingQueue<SequenceOperation>)queues[bucket];
+      this.workq = new LinkedBlockingQueue<>(10);
+      new Thread(new Worker()).start();
     }
 
     public void run() {
@@ -88,7 +112,9 @@ class KQueue implements Closeable {
             int limit = delta < 1000? delta : 1000;
             Client.Result rsp = client.scanlog("http://"+op.getEndpoint(), op.getTable(), lsn, limit);
             //log.info("target {} fetch wal table {} rsp count {} seqno {}", seqno, op.getTable(), rsp.count(), rsp.seqno());
-            lsn = Math.max(Store.get().update(op.getTable(), rsp), rsp.seqno() + 1);
+            //lsn = Math.max(Store.get().update(op.getTable(), rsp), rsp.seqno() + 1);
+            workq.put(new WorkItem(op.getTable(), rsp));
+            lsn = rsp.seqno() + 1;
             //log.info("table {} seqno {} lsn {}", op.getTable(), seqno, lsn);
           }
         } catch(Exception e) {
