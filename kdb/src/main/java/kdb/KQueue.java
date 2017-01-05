@@ -68,10 +68,17 @@ class KQueue implements Closeable {
     }
 
     public void run() {
-      int count = 0;
       while(true) {
         try {
-          SequenceOperation op = queue.take();
+          SequenceOperation op = null;
+          if(queue.size() > 1000) {
+            int count = 1000;
+            while(--count > 0) {
+              op = queue.take();
+            }
+          } else {
+            op = queue.take();
+          }
           long seqno = op.getSeqno();
           Store.DataTable dt = Store.get().tables.get(op.getTable());
           long lsn = dt.db.getLatestSequenceNumber();
