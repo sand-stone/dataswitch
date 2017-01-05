@@ -25,7 +25,7 @@ class KQueue implements Closeable {
   private static KQueue instance = new KQueue();
   Object[] queues;
   HashFunction hfunc;
-  static final int MAX_PENDING_REQS = 100000;
+  static final int MAX_PENDING_REQS = 10000;
   Thread[] workers;
 
   private KQueue() {
@@ -71,9 +71,9 @@ class KQueue implements Closeable {
       while(true) {
         try {
           SequenceOperation op = null;
-          if(queue.size() > 1000) {
-            int count = 1000;
-            while(--count > 0) {
+          if(queue.size() > 2) {
+            int count = queue.size()/2;
+            while(count-- > 0) {
               op = queue.take();
             }
           } else {
