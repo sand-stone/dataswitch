@@ -142,8 +142,16 @@ public class XProcess11 {
   }
 
   public static void main(String[] args) {
-    uris = new String[]{"http://10.0.0.10:8000/", "http://10.0.0.11:8000/", "http://10.0.0.12:8000/"};
-    //uris = new String[]{"http://127.0.0.1:8000/", "http://127.0.0.1:8002/", "http://127.0.0.1:8004/"};
+    boolean local = true;
+    if(args.length == 0 || args[0].equals("remote")) {
+      local = false;
+    }
+
+    if(local) {
+      uris = new String[]{"http://127.0.0.1:8000/", "http://127.0.0.1:8002/", "http://127.0.0.1:8004/"};
+    } else {
+      uris = new String[]{"http://10.0.0.10:8000/", "http://10.0.0.11:8000/", "http://10.0.0.12:8000/"};
+    }
 
     String uri = uris[0];
     System.out.println("start");
@@ -161,13 +169,16 @@ public class XProcess11 {
       new Thread(new EventSource(i)).start();
     }
 
-    Client[] mclients = getClients("http://10.0.0.10:8000/");
-    //Client[] mclients = getClients("http://localhost:8000/");
-    Client[] s1clients = getClients("http://10.0.0.11:8000/");
-    //Client[] s1clients = getClients("http://localhost:8002/");
-    Client[] s2clients = getClients("http://10.0.0.12:8000/");
-    //Client[] s2clients = getClients("http://localhost:8004/");
-
+    Client[] mclients, s1clients, s2clients;
+    if(local) {
+      mclients = getClients("http://localhost:8000/");
+      s1clients = getClients("http://localhost:8002/");
+      s2clients = getClients("http://localhost:8004/");
+    } else {
+      mclients = getClients("http://10.0.0.10:8000/");
+      s1clients = getClients("http://10.0.0.11:8000/");
+      s2clients = getClients("http://10.0.0.12:8000/");
+    }
     while(true) {
       try { Thread.currentThread().sleep(3000); } catch(Exception e) {}
       for(int i = 0; i < range; i++) {
