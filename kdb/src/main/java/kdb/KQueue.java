@@ -87,22 +87,14 @@ class KQueue implements Closeable {
     public Updater(int bucket) {
       client = new Client();
       this.queue = (LinkedBlockingQueue<SequenceOperation>)queues[bucket];
-      this.workq = new LinkedBlockingQueue<>(10);
+      this.workq = new LinkedBlockingQueue<>(1);
       new Thread(new Worker()).start();
     }
 
     public void run() {
       while(true) {
         try {
-          SequenceOperation op = null;
-          if(queue.size() > 2) {
-            int count = queue.size()/2;
-            while(count-- > 0) {
-              op = queue.take();
-            }
-          } else {
-            op = queue.take();
-          }
+          SequenceOperation op = queue.take();
           long seqno = op.getSeqno();
           Store.DataTable dt = Store.get().tables.get(op.getTable());
           long lsn = dt.db.getLatestSequenceNumber();
