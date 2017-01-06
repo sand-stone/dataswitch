@@ -9,6 +9,7 @@ public class ZabConfig {
   /**
    * Maximum number of pending requests allowed for each server.
    */
+  static int SO_TIMEOUT = 30000;
   static final int MAX_PENDING_REQS = 10000;
   static final long ROLLING_SIZE = 50 * 1024 * 1024;
   private int timeoutMs = 60000;

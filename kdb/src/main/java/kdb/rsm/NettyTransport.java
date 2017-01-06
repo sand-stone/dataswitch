@@ -127,6 +127,7 @@ class NettyTransport extends Transport {
       .option(ChannelOption.SO_REUSEADDR, true)
       .childOption(ChannelOption.SO_KEEPALIVE, true)
       .childOption(ChannelOption.TCP_NODELAY, true)
+      .childOption(ChannelOption.SO_TIMEOUT, ZabConfig.SO_TIMEOUT)
       .childHandler(new ChannelInitializer<SocketChannel>() {
         @Override
         public void initChannel(SocketChannel ch) throws Exception {
