@@ -245,9 +245,12 @@ class NettyTransport extends Transport {
 
       ChannelHandlerContext current = receivers.putIfAbsent(remoteId, ctx);
       if (current != null) {
-        LOG.warn("Rejecting a duplicate connection from {}", remoteId);
-        ctx.close();
-        return;
+        //LOG.warn("Rejecting a duplicate connection from {}", remoteId);
+        //ctx.close();
+        //return;
+        LOG.warn("Closing an old connection from {}", remoteId);
+        current.close();
+        receivers.put(remoteId, ctx);
       }
       LOG.debug("{} accepted a connection from {}", hostPort, remoteId);
 
