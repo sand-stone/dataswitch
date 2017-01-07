@@ -11,7 +11,11 @@ import java.time.LocalTime;
 import java.time.LocalDateTime;
 import com.google.gson.Gson;
 
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 public class XProcess11 {
+  private static Logger log = LogManager.getLogger(XProcess11.class);
 
   private static String[] uris;
 
@@ -85,7 +89,7 @@ public class XProcess11 {
             count += keys.size();
           }
           long t2 = System.nanoTime();
-          System.out.printf("write %d total %d for bucket %d at count %d time %e rate of %e \n", id, total, bucket, count, (t2-t1)/1e9,
+          log.info("write {} total {} for bucket {} at count {} time {} rate of {} \n", id, total, bucket, count, (t2-t1)/1e9,
                             (1.0*count)/((t2-t1)/1e9));
         } catch(KdbException e) {
           System.out.printf("event source %d failed", id);
@@ -113,8 +117,8 @@ public class XProcess11 {
     options.MaxBackgroundCompactions = 8;
     options.MaxWriteBufferNumber = 16;
     options.MinWriteBufferNumberToMerge = 8;
-    options.WalTtlSeconds = 60*5;
-    options.WalSizeLimitMB = 10000;
+    options.WalTtlSeconds = 60*8;
+    options.WalSizeLimitMB = 15000;
     Gson gson = new Gson();
     return gson.toJson(options);
   }
@@ -182,9 +186,9 @@ public class XProcess11 {
     while(true) {
       try { Thread.currentThread().sleep(3000); } catch(Exception e) {}
       for(int i = 0; i < range; i++) {
-        System.out.printf("master xevents%d LSN %d \n", i, mclients[i].getLatestSequenceNumber());
-        System.out.printf("slave1 xevents%d LSN %d \n", i, s1clients[i].getLatestSequenceNumber());
-        System.out.printf("slave2 xevents%d LSN %d \n", i, s2clients[i].getLatestSequenceNumber());
+        log.info("master xevents%d LSN {} \n", i, mclients[i].getLatestSequenceNumber());
+        log.info("slave1 xevents%d LSN {} \n", i, s1clients[i].getLatestSequenceNumber());
+        log.info("slave2 xevents%d LSN {} \n", i, s2clients[i].getLatestSequenceNumber());
       }
     }
   }
