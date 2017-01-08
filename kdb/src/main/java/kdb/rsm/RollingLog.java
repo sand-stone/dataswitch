@@ -74,7 +74,7 @@ class RollingLog implements Log {
   }
 
   private void auto_purge() {
-    int count = 3;
+    int count = 10;
     if(logFiles.size() < count) {
       return;
     }
