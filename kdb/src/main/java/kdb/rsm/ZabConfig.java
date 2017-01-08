@@ -11,7 +11,7 @@ public class ZabConfig {
    */
   static int SO_TIMEOUT = 30000;
   static final int MAX_PENDING_REQS = 10000;
-  static final long ROLLING_SIZE = 50 * 1024 * 1024;
+  static final long ROLLING_SIZE = 10 * 1024 * 1024;
   private int timeoutMs = 60000;
   private int minSyncTimeoutMs = 60000;
   // The default logDir is current working directory.
