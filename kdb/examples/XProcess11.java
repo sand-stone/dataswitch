@@ -186,9 +186,9 @@ public class XProcess11 {
     while(true) {
       try { Thread.currentThread().sleep(3000); } catch(Exception e) {}
       for(int i = 0; i < range; i++) {
-        log.info("master xevents{} LSN {} \n", i, mclients[i].getLatestSequenceNumber());
-        log.info("slave1 xevents{} LSN {} \n", i, s1clients[i].getLatestSequenceNumber());
-        log.info("slave2 xevents{} LSN {} \n", i, s2clients[i].getLatestSequenceNumber());
+        log.info("master xevents{} LSN {}", i, mclients[i].getLatestSequenceNumber());
+        log.info("slave1 xevents{} LSN {}", i, s1clients[i].getLatestSequenceNumber());
+        log.info("slave2 xevents{} LSN {}", i, s2clients[i].getLatestSequenceNumber());
       }
     }
   }
