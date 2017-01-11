@@ -64,6 +64,7 @@ class MySQLBinLogReader {
       reader.close();
     }
     log.info("total evts {}", kdb.count());
+    System.exit(0);
   }
 
   public static void main(String[] args) throws Exception {
