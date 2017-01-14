@@ -17,7 +17,9 @@ message Message {
     Compact = 6;
     Sequence = 7;
     Scanlog = 8;
-    Response = 9;
+    Backup = 9;
+    Restore = 10;
+    Response = 11;
   }
 
   MessageType type = 1;
@@ -30,7 +32,9 @@ message Message {
   CompactOperation compactOp = 8;
   SequenceOperation seqOp = 9;
   ScanlogOperation scanlogOp = 10;
-  Response response = 11;
+  BackupOperation backupOp = 11;
+  RestoreOperation restoreOp = 12;
+  Response response = 13;
 }
 
 message SequenceOperation {
@@ -119,4 +123,18 @@ message CompactOperation {
 message DropOperation {
   string table = 1;
   string column = 2;
+}
+
+message BackupOperation {
+  enum Type {
+    Create = 0;
+    List = 1;
+  }
+  Type op = 1;
+  string table = 2;
+}
+
+message RestoreOperation {
+  string table = 1;
+  int32 backupId = 2;
 }
