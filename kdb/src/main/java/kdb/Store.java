@@ -533,7 +533,7 @@ class Store implements Closeable {
           return MessageBuilder.buildResponse(e.getMessage());
         }
         dt.db = db;
-        dt.backup = new Backup(path);
+        dt.backup = new Backup(path, db);
         tables.putIfAbsent(table, dt);
       }
     }
@@ -601,6 +601,7 @@ class Store implements Closeable {
       log.info("try to drop active table {}", table);
       return MessageBuilder.buildErrorResponse("table still active:" + table);
     }
+    dt.backup.close();
     String col = op.getColumn();
     if(col != null && col.length() > 0) {
       try {
@@ -1105,7 +1106,11 @@ class Store implements Closeable {
       return MessageBuilder.buildErrorResponse("table not opened:" + name);
     }
     Message ret = MessageBuilder.emptyMsg;
-    dt.backup.add(op);
+    if(op.getOp() == BackupOperation.Type.Create) {
+      dt.backup.add(op);
+    } else {
+      ret = dt.backup.list();
+    }
     return ret;
   }
 
@@ -1115,9 +1120,7 @@ class Store implements Closeable {
     if(dt == null) {
       return MessageBuilder.buildErrorResponse("table not opened:" + name);
     }
-    Message ret = MessageBuilder.emptyMsg;
-    dt.backup.restore(op);
-    return ret;
+    return dt.backup.restore(op);
   }
 
   public Message handle(Message msg) throws IOException {

@@ -11,7 +11,7 @@ import kdb.proto.Database.Message.MessageType;
 final class MessageBuilder {
 
   final static Message nullMsg = MessageBuilder.buildErrorResponse("null");
-  final static Message emptyMsg = MessageBuilder.buildResponse("empty");
+  final static Message emptyMsg = MessageBuilder.buildResponse("");
 
   private final static List<String> emptyList = new ArrayList<String>();
 
@@ -207,10 +207,11 @@ final class MessageBuilder {
     return Message.newBuilder().setType(MessageType.Backup).setBackupOp(op).build();
   }
 
-  public static Message buildRestoreOp(String table) {
+  public static Message buildRestoreOp(String table, int backupid) {
     RestoreOperation op = RestoreOperation
       .newBuilder()
       .setTable(table)
+      .setBackupId(backupid)
       .build();
     return Message.newBuilder().setType(MessageType.Restore).setRestoreOp(op).build();
   }

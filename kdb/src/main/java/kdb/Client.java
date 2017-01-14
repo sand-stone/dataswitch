@@ -354,15 +354,16 @@ public final class Client implements Closeable {
 
   public Result listBackup() {
     Message msg = sendMsg(MessageBuilder.buildBackupOp(BackupOperation.Type.List, table));
-    return null;
+    return new Result(msg.getResponse());
   }
 
   public void backup() {
     Message msg = sendMsg(MessageBuilder.buildBackupOp(BackupOperation.Type.Create, table));
   }
 
-  public void restore() {
-    Message msg = sendMsg(MessageBuilder.buildRestoreOp(table));
+  public Result restore(int backupid) {
+    Message msg = sendMsg(MessageBuilder.buildRestoreOp(table, backupid));
+    return new Result(msg.getResponse());
   }
 
   Result scanlog(String uri, String table, long seqno, int limit) {
