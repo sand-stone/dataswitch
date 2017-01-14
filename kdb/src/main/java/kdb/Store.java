@@ -52,6 +52,7 @@ class Store implements Closeable {
 
   static class DataTable {
     public RocksDB db;
+    public Backup backup;
     public List<ColumnFamilyDescriptor> colDs;
     public LinkedHashMap<String, ColumnFamilyHandle> columns;
     public String merge;
@@ -61,6 +62,7 @@ class Store implements Closeable {
 
     public DataTable() {
       db = null;
+      backup = null;
       columns = null;
       merge = null;
       colDs = null;
@@ -531,6 +533,7 @@ class Store implements Closeable {
           return MessageBuilder.buildResponse(e.getMessage());
         }
         dt.db = db;
+        dt.backup = new Backup(path);
         tables.putIfAbsent(table, dt);
       }
     }
@@ -1093,6 +1096,28 @@ class Store implements Closeable {
       KQueue.get().add(op);
     }
     return  ret;
+  }
+
+  public Message backup(BackupOperation op) {
+    String name = op.getTable();
+    DataTable dt = tables.get(name);
+    if(dt == null) {
+      return MessageBuilder.buildErrorResponse("table not opened:" + name);
+    }
+    Message ret = MessageBuilder.emptyMsg;
+    dt.backup.add(op);
+    return ret;
+  }
+
+  public Message restore(RestoreOperation op) {
+    String name = op.getTable();
+    DataTable dt = tables.get(name);
+    if(dt == null) {
+      return MessageBuilder.buildErrorResponse("table not opened:" + name);
+    }
+    Message ret = MessageBuilder.emptyMsg;
+    dt.backup.restore(op);
+    return ret;
   }
 
   public Message handle(Message msg) throws IOException {

@@ -198,4 +198,21 @@ final class MessageBuilder {
     return Message.newBuilder().setType(MessageType.Scanlog).setScanlogOp(op).build();
   }
 
+  public static Message buildBackupOp(BackupOperation.Type opType, String table) {
+    BackupOperation op = BackupOperation
+      .newBuilder()
+      .setOp(opType)
+      .setTable(table)
+      .build();
+    return Message.newBuilder().setType(MessageType.Backup).setBackupOp(op).build();
+  }
+
+  public static Message buildRestoreOp(String table) {
+    RestoreOperation op = RestoreOperation
+      .newBuilder()
+      .setTable(table)
+      .build();
+    return Message.newBuilder().setType(MessageType.Restore).setRestoreOp(op).build();
+  }
+
 }

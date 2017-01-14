@@ -94,6 +94,12 @@ final class DataNode {
     case Scanlog:
       r = store.scanlog(msg.getScanlogOp());
       break;
+    case Backup:
+      r = store.backup(msg.getBackupOp());
+      break;
+    case Restore:
+      r = store.restore(msg.getRestoreOp());
+      break;
     case Put:
       if(standalone || isMaster()) {
         table = msg.getPutOp().getTable();
