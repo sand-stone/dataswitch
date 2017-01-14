@@ -27,7 +27,6 @@ public final class Client implements Closeable {
   private String table;
   private String token;
   private String options;
-  private String backupOptions;
 
   public enum Status {
     OK,
@@ -91,7 +90,7 @@ public final class Client implements Closeable {
     timer.start();
   }
 
-  public Client(String uri, String table, String options, String backupOptions, int timeout) {
+  public Client(String uri, String table, String options, int timeout) {
     try {
       final AsyncHttpClientConfig config = new DefaultAsyncHttpClientConfig.Builder()
         .setRequestTimeout(timeout)
@@ -106,19 +105,14 @@ public final class Client implements Closeable {
     this.table = table;
     this.token = "";
     this.options = options;
-    this.backupOptions = backupOptions;
   }
 
   public Client(String uri, String table, String options) {
-    this(uri, table, options, null, Integer.MAX_VALUE);
-  }
-
-  public Client(String uri, String table, String options, String backupOptions) {
-    this(uri, table, options, backupOptions, Integer.MAX_VALUE);
+    this(uri, table, options, Integer.MAX_VALUE);
   }
 
   public Client(String uri, String table) {
-    this(uri, table, null, null);
+    this(uri, table, null);
   }
 
   Client() {
@@ -159,7 +153,7 @@ public final class Client implements Closeable {
   }
 
   public Result open(String merge, int ttl, String compression) {
-    Message msg = sendMsg(MessageBuilder.buildOpenOp(table, null, merge, ttl, compression, options, backupOptions));
+    Message msg = sendMsg(MessageBuilder.buildOpenOp(table, null, merge, ttl, compression, options));
     return new Result(msg.getResponse());
   }
 
@@ -192,7 +186,7 @@ public final class Client implements Closeable {
   }
 
   public Result open(List<String> columns, String merge, int ttl, String compression) {
-    Message msg = sendMsg(MessageBuilder.buildOpenOp(table, columns, merge, ttl, compression, options, backupOptions));
+    Message msg = sendMsg(MessageBuilder.buildOpenOp(table, columns, merge, ttl, compression, options));
     return new Result(msg.getResponse());
   }
 
