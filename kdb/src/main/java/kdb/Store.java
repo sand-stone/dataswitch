@@ -433,6 +433,21 @@ class Store implements Closeable {
     return tables.get(table) != null;
   }
 
+  private void setCompressionLevels(Options opts) {
+    int levels = opts.numLevels();
+    if(levels > 0) {
+      CompressionType ct = opts.compressionType();
+      List<CompressionType> compressionLevels = new ArrayList<>();
+      compressionLevels.add(CompressionType.NO_COMPRESSION);
+      for(int i = 1; i < levels - 1; i++) {
+        compressionLevels.add(ct == CompressionType.NO_COMPRESSION?
+                              CompressionType.SNAPPY_COMPRESSION : ct);
+      }
+      compressionLevels.add(ct == CompressionType.NO_COMPRESSION?
+                            CompressionType.ZLIB_COMPRESSION : ct);
+    }
+  }
+
   public synchronized Message open(OpenOperation op) {
     String table = op.getTable();
     if(table == null || table.length() == 0)
@@ -454,6 +469,7 @@ class Store implements Closeable {
         options.setCompactionStyle(CompactionStyle.UNIVERSAL);
         options.setIncreaseParallelism(Runtime.getRuntime().availableProcessors());
         parseOptions(options, op.getOptions());
+        setCompressionLevels(options);
         dt.stats = options.statisticsPtr();
         dt.merge = mergeOperator.length() == 0? null : mergeOperator;
         RocksDB db = null;
