@@ -59,7 +59,7 @@ class Backup implements AutoCloseable {
   }
 
   public void add(BackupOperation op) {
-    log.info("add backup {}", op);
+    //log.info("add backup {}", op);
     try {
       if(!worker.isAlive()) {
         worker.start();
@@ -76,7 +76,6 @@ class Backup implements AutoCloseable {
       while(true) {
         try {
           BackupOperation op = queue.take();
-          //engine.createNewBackup(db, true);
           engine.createNewBackup(db, false);
         } catch(InterruptedException e) {
           return;

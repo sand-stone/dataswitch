@@ -62,22 +62,51 @@ public class BackupRestore {
     return -1;
   }
 
-  public static void main(String[] args) {
-
-    try (Client client = new Client("http://localhost:8000/", "acme")) {
+  public static long count(String uri, String table) {
+    try (Client client = new Client(uri, table)) {
       client.open();
-      addData(client);
-      log.info("backups {}", client.listBackup());
-      client.backup();
-      try { Thread.currentThread().sleep(3000);} catch(Exception e) {}
-      log.info("backups {}", client.listBackup());
-      client.backup();
-      try { Thread.currentThread().sleep(3000);} catch(Exception e) {}
-      log.info("backups {}", client.listBackup());
-      log.info("restore: {}", client.restore(-1));
+      long count = 0;
+      Client.Result rsp = client.scanFirst(100);
+      do {
+        count += rsp.count();
+        rsp = client.scanNext(100);
+        if(rsp.count() == 0)
+          break;
+      } while(true);
+      return count;
+    } catch(Exception e) {}
+    return -1;
+  }
+
+  public static void main(String[] args) {
+    if(args.length == 0) {
+      System.out.println("backup or restore");
+      return;
     }
 
-    log.info("lsn {}", getLastLSN("http://localhost:8000/", "acme"));
+    log.info("lsn {} count {}", getLastLSN("http://localhost:8000/", "acme"), count("http://localhost:8000/", "acme"));
+    if(args[0].equals("backup")) {
+      try (Client client = new Client("http://localhost:8000/", "acme")) {
+        client.open();
+        addData(client);
+        client.backup();
+        try { Thread.currentThread().sleep(3000);} catch(Exception e) {}
+        log.info("backups {}", client.listBackup());
+        addData(client);
+        client.backup();
+        try { Thread.currentThread().sleep(3000);} catch(Exception e) {}
+        log.info("backups {}", client.listBackup());
+      }
+    } else {
+      log.info("lsn {}", getLastLSN("http://localhost:8000/", "acme"));
+      try (Client client = new Client("http://localhost:8000/", "acme")) {
+        client.open();
+        log.info("backups {}", client.listBackup());
+        client.restore(2);
+        log.info("backups {}", client.listBackup());
+      }
+    }
+    log.info("lsn {} count {}", getLastLSN("http://localhost:8000/", "acme"), count("http://localhost:8000/", "acme"));
     System.exit(0);
   }
 }
