@@ -20,7 +20,7 @@ import kdb.rsm.Zxid;
 import kdb.proto.Database.Message;
 import kdb.proto.Database.Message.MessageType;
 
-class Ring implements Runnable, StateMachine {
+class Ring implements StateMachine {
   private static Logger log = LogManager.getLogger(Ring.class);
 
   private String serverId;
@@ -32,6 +32,30 @@ class Ring implements Runnable, StateMachine {
   private Set<String> followers;
 
   public Zab zab;
+
+  public static List<Ring> configRings() {
+    PropertiesConfiguration config = Config.get();
+    boolean standalone = config.getBoolean("standalone", false);
+    List<Ring> rings = new ArrayList<Ring>();
+    if(!standalone) {
+      List ringaddrs = config.getList("ringaddr");
+      List leaders = config.getList("leader");
+      List logs = config.getList("logDir");
+
+      int len = ringaddrs.size();
+      if((leaders.size() > 0 && len != leaders.size()) || len != logs.size())
+        throw new KdbException("ring config error");
+
+      for(int i = 0; i < len; i++) {
+        Ring ring = new Ring((String)ringaddrs.get(i), leaders.size() == 0? null: (String)leaders.get(i), (String)logs.get(i));
+        rings.add(ring);
+        if(!standalone) {
+          ring.bind(Store.get());
+        }
+      }
+    }
+    return rings;
+  }
 
   public Ring(String serverId, String joinPeer, String logDir) {
     try {
@@ -148,13 +172,12 @@ class Ring implements Runnable, StateMachine {
 
   @Override
   public void recovering(PendingRequests pendingRequests) {
-    log.info("<<<Recovering ... pending sizes {}", pendingRequests.pendingSends.size());
+    log.info("Ring recovering ... pending sizes {}", pendingRequests.pendingSends.size());
     Message msg = MessageBuilder.buildErrorResponse("Service Error");
     for (Tuple tp : pendingRequests.pendingSends) {
       if(tp.param instanceof io.netty.channel.ChannelHandlerContext)
         Transport.reply(tp.param, msg);
     }
-    log.info("... Recovering>>>");
   }
 
   @Override
@@ -188,13 +211,4 @@ class Ring implements Runnable, StateMachine {
       }
     }
   }
-
-  public void run() {
-    try {
-    } catch(Exception e) {
-      log.info(e);
-    } finally {
-    }
-  }
-
 }

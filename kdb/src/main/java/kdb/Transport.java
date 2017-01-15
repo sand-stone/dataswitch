@@ -59,28 +59,6 @@ public class Transport {
     return instance;
   }
 
-  static List<Ring> configRings(PropertiesConfiguration config, boolean standalone) {
-    List<Ring> rings = new ArrayList<Ring>();
-    if(!standalone) {
-      List ringaddrs = config.getList("ringaddr");
-      List leaders = config.getList("leader");
-      List logs = config.getList("logDir");
-
-      int len = ringaddrs.size();
-      if((leaders.size() > 0 && len != leaders.size()) || len != logs.size())
-        throw new KdbException("ring config error");
-
-      for(int i = 0; i < len; i++) {
-        Ring ring = new Ring((String)ringaddrs.get(i), leaders.size() == 0? null: (String)leaders.get(i), (String)logs.get(i));
-        rings.add(ring);
-        if(!standalone) {
-          ring.bind(Store.get());
-        }
-      }
-    }
-    return rings;
-  }
-
   private static class HostPort {
     public String host;
     public int port;
@@ -103,7 +81,8 @@ public class Transport {
     }
   }
 
-  public void start(PropertiesConfiguration config) {
+  public void start() {
+    PropertiesConfiguration config = Config.get();
     dataaddr = config.getString("dataaddr");
     HostPort hostport = HostPort.parse(dataaddr);
     boolean SSL = config.getBoolean("ssl", false);
@@ -121,8 +100,7 @@ public class Transport {
 
     boolean standalone = config.getBoolean("standalone", false);
     Store.get().bind(config.getString("store"));
-    DataNode datanode = new DataNode(configRings(config, standalone), standalone);
-    //DataNode datanode = new DataNode(null, store, standalone);
+    DataNode datanode = new DataNode();
 
     EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     EventLoopGroup workerGroup = new NioEventLoopGroup();
@@ -278,7 +256,7 @@ public class Transport {
     }
     Configurations configs = new Configurations();
     PropertiesConfiguration config = configs.properties(propertiesFile);
-
-    Transport.get().start(config);
+    Config.init(config);
+    Transport.get().start();
   }
 }

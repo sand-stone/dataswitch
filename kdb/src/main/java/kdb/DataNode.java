@@ -19,10 +19,10 @@ final class DataNode {
   private List<Ring> rings;
   private Random rnd;
 
-  public DataNode(List<Ring> rings, boolean standalone) {
-    this.rings = rings;
+  public DataNode() {
+    this.rings = Ring.configRings();
     this.store = Store.get();
-    this.standalone = standalone;
+    this.standalone = Config.get().getBoolean("standalone", false);
     this.rnd = new Random();
   }
 
