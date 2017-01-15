@@ -102,7 +102,7 @@ public class BackupRestore {
       try (Client client = new Client("http://localhost:8000/", "acme")) {
         client.open();
         log.info("backups {}", client.listBackup());
-        client.restore(2);
+        client.restore(-1);
         log.info("backups {}", client.listBackup());
       }
     }
