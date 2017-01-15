@@ -485,7 +485,7 @@ class Store implements Closeable {
           return MessageBuilder.buildResponse(e.getMessage());
         }
         dt.db = db;
-        dt.backup = new Backup(path, db);
+        dt.backup = new Backup(table, path, db);
         tables.putIfAbsent(table, dt);
       }
     }

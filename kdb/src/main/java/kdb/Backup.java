@@ -31,9 +31,14 @@ class Backup implements AutoCloseable {
   Gson gson;
   String path;
 
-  public Backup(String path, RocksDB db) {
+  public Backup(String tablename, String path, RocksDB db) {
     try {
-      String backpath = path+"/backups";
+      String backpath = Config.get().getString("store.backup");
+      if(backpath == null || backpath.isEmpty()) {
+        backpath = path + "/backups";
+      } else {
+        backpath += "/" + tablename;
+      }
       Utils.mkdir(backpath);
       engine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(backpath));
       queue = new LinkedBlockingQueue<>(MAX_PENDING_REQS);
