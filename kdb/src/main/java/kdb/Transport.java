@@ -132,9 +132,9 @@ public class Transport {
         .option(ChannelOption.SO_REUSEADDR, true)
         .childOption(ChannelOption.SO_KEEPALIVE, true)
         .childOption(ChannelOption.TCP_NODELAY, true)
-        .childOption(ChannelOption.SO_RCVBUF, 8*1024*1024)
-        .childOption(ChannelOption.SO_SNDBUF, 8*1024*1024)
-        .childOption(ChannelOption.SO_TIMEOUT, 60000);
+        .childOption(ChannelOption.SO_RCVBUF, 4*1024*1024)
+        .childOption(ChannelOption.SO_SNDBUF, 4*1024*1024)
+        .childOption(ChannelOption.SO_TIMEOUT, 30000);
       b.group(bossGroup, workerGroup)
         .channel(NioServerSocketChannel.class)
         //.handler(new LoggingHandler(LogLevel.INFO))
@@ -239,7 +239,7 @@ public class Transport {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-      cause.printStackTrace();
+      log.info("remote {} exception {}", ctx.channel().remoteAddress(), cause.getMessage());
       ctx.close();
     }
   }
