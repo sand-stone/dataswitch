@@ -15,7 +15,8 @@ public class LogTest2 {
     Options options = new Options().setCreateIfMissing(true);
     options.setWalSizeLimitMB(1000);
     options.setWalTtlSeconds(100);
-    options.setWalDir(wal);
+    if(wal != null)
+      options.setWalDir(wal);
     RocksDB db = null;
     try {
       db = RocksDB.open(options, name);
@@ -60,10 +61,10 @@ public class LogTest2 {
     }
   }
 
-  static void put(RocksDB db, int start, int end, List<byte[]> keys, List<byte[]> values) {
+  static void put(RocksDB db, List<byte[]> keys, List<byte[]> values) {
     try(WriteOptions writeOpts = new WriteOptions();
         WriteBatch writeBatch = new WriteBatch()) {
-      for(int i = start; i < end; i++) {
+      for(int i = 0; i < keys.size(); i++) {
         writeBatch.put(keys.get(i), values.get(i));
       }
       db.write(writeOpts, writeBatch);
@@ -72,41 +73,37 @@ public class LogTest2 {
     }
   }
 
+  static void gendata(int count, List<byte[]> keys, List<byte[]> values) {
+    for(int i = 0; i < count; i++) {
+      byte[] data = new byte[20];
+      rnd.nextBytes(data);
+      keys.add(data);
+      data = new byte[300];
+      rnd.nextBytes(data);
+      values.add(data);
+    }
+  }
+
+  static Random rnd = new Random();
+
   public static void main(String[] args) throws Exception {
     RocksDB.loadLibrary();
 
-    List<byte[]> keys = new ArrayList<byte[]>();
-    List<byte[]> values = new ArrayList<byte[]>();
-
-    Random rnd = new Random();
-
-    ByteBuffer key = ByteBuffer.allocate(20).order(ByteOrder.BIG_ENDIAN);
-    ByteBuffer value = ByteBuffer.allocate(300).order(ByteOrder.BIG_ENDIAN);
-    int count = 10000000;
-    for(int i = 0; i < 100000; i++) {
-      rnd.nextBytes(key.array());
-      keys.add(key.array());
-      rnd.nextBytes(value.array());
-      values.add(value.array());
-      key.clear();
-      value.clear();
-    }
-
     long t1 = System.nanoTime();
     RocksDB acme = createDB("acme", args.length == 0? null : args[0]);
-    int i = 0;
-    for (i = 0; i + 100 < keys.size(); i+= 100) {
-      put(acme, i, i+100, keys, values);
-    }
-
-    if(i < keys.size()) {
-      put(acme, i, keys.size(), keys, values);
+    int batch = 1000;
+    int count = 10000;
+    for (int i = 0; i < count; i++) {
+      List<byte[]> keys = new ArrayList<byte[]>();
+      List<byte[]> values = new ArrayList<byte[]>();
+      gendata(batch, keys, values);
+      put(acme, keys, values);
     }
 
     acme.flush(new FlushOptions());
     long t2 = System.nanoTime();
 
-    System.out.printf("total %d", (t2-t1)/1e9);
+    System.out.printf("total %e\n", (t2-t1)/1e9);
   }
 
 }
