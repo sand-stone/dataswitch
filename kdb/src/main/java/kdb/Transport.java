@@ -99,7 +99,7 @@ public class Transport {
     }
 
     boolean standalone = config.getBoolean("standalone", false);
-    Store.get().bind(config.getString("store"));
+    Store.get().bind(config.getString("store"), config.getString("store.wal"));
     DataNode datanode = new DataNode();
 
     EventLoopGroup bossGroup = new NioEventLoopGroup(1);

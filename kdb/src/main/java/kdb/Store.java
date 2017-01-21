@@ -27,6 +27,7 @@ class Store implements Closeable {
 
   private String db;
   private String location;
+  private String wal_location;
   ConcurrentHashMap<String, DataTable> tables;
   private Timer timer;
   private Gson gson;
@@ -106,9 +107,14 @@ class Store implements Closeable {
     return instance;
   }
 
-  public void bind(String location) {
+  public void bind(String location, String wal_location) {
     Utils.mkdir(location);
     this.location = location;
+    this.wal_location = wal_location;
+    if(wal_location == null || wal_location.isEmpty()) {
+      this.wal_location = location + "/log";
+    }
+    Utils.mkdir(location);
   }
 
   public Store() {
@@ -128,9 +134,14 @@ class Store implements Closeable {
 
   private RocksDB getDB(Options options, String path, int ttl) throws RocksDBException {
     if(ttl == -1) {
+      try {
+        return RocksDB.open(options, path);
+      } catch(RocksDBException e) {
+        log.info("recover db from {}", path);
+      }
+      options.setCreateIfMissing(false);
       return RocksDB.open(options, path);
     }
-    //log.info("create {} ttl {}", path, ttl);
     return TtlDB.open(options, path, ttl, false);
   }
 
@@ -140,6 +151,12 @@ class Store implements Closeable {
                         int ttl) throws RocksDBException {
 
     if(ttl == -1) {
+      try {
+        return RocksDB.open(options, path, columnFamilyDescriptors, columnFamilyHandles);
+      } catch(RocksDBException e) {
+        log.info("recover db from {}", path);
+      }
+      options.setCreateIfMissing(false);
       return RocksDB.open(options, path, columnFamilyDescriptors, columnFamilyHandles);
     } else {
       List<Integer> ttls = new ArrayList<Integer>();
@@ -409,7 +426,9 @@ class Store implements Closeable {
 
     if(tables.get(table) == null) {
       String path = location+"/"+table;
+      String wal_path = wal_location+"/"+table;
       Utils.mkdir(path);
+      Utils.mkdir(wal_path);
       DataTable dt = new DataTable();
       String mergeOperator = op.getMergeOperator();
       int ttl = op.getTtl();
@@ -422,6 +441,7 @@ class Store implements Closeable {
         options.setEnableWriteThreadAdaptiveYield(true);
         options.setCompactionStyle(CompactionStyle.UNIVERSAL);
         options.setIncreaseParallelism(Runtime.getRuntime().availableProcessors());
+        options.setWalDir(wal_path);
         parseOptions(options, op.getOptions());
         setCompressionLevels(options);
         dt.stats = options.statisticsPtr();
@@ -468,6 +488,7 @@ class Store implements Closeable {
               });
             try(DBOptions dboptions = new DBOptions()) {
               parseOptions(options, op.getOptions());
+              dboptions.setWalDir(wal_path);
               db = getDB(dboptions, path, dt.colDs, handles, ttl);
             }
             dt.columns = new LinkedHashMap<String, ColumnFamilyHandle>();
