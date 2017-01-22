@@ -19,7 +19,7 @@ public class KdbConnectorFactory
   @Override
   public String getName()
   {
-    return "kdb-http";
+    return "presto-kdb";
   }
 
   @Override
