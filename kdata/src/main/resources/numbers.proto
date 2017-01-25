@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package kdata;
+
+option java_package = "kdata.proto";
+option java_outer_classname = "Schema";
+
+message Number {
+  string name = 1;
+  int32 value = 2;
+}
