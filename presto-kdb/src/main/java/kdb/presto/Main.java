@@ -30,7 +30,9 @@ public class Main {
     }
     byte[] data = Files.readAllBytes(Paths.get(args[1]));
     DynamicMessage msg = DynamicMessage.parseFrom(numd, data);
-    System.out.println("msg:" + msg);
+    //System.out.println("msg:" + msg);
+    System.out.println("type:" + numd.findFieldByName("value").getType());
+    System.out.println("value:" + msg.getField(numd.findFieldByName("value")));
   }
 
 }
