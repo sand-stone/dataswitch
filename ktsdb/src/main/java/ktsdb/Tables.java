@@ -55,6 +55,11 @@ class Tables {
     return buf.getInt();
   }
 
+  public static int toInt(byte[] data, int offset, int length) {
+    ByteBuffer buf = ByteBuffer.wrap(data, offset, length).order(ByteOrder.BIG_ENDIAN);
+    return buf.getInt();
+  }
+
   public static byte[] toBytes(double num) {
     ByteBuffer buf = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN);
     buf.putDouble(num);

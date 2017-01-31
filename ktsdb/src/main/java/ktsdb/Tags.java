@@ -56,7 +56,8 @@ public class Tags {
       if(count == 0)
         break;
       for(int i = 0; i < rsp.count(); i++) {
-        tagsetIDs.push(Tables.toInt(rsp.getValue(i)));
+        byte[] rk = rsp.getKey(i);
+        tagsetIDs.push(Tables.toInt(rk, rk.length - 4, 4));
       }
       if(rsp.token().length() > 0) {
         rsp = client.scanNext(10);

@@ -46,7 +46,6 @@ public class Kdb implements AutoCloseable {
   public void writeDatapoint(PutResource.Datapoint datapoint) throws JsonProcessingException {
     int tagsetID = tagsets.getTagsetID(datapoint.getTags());
     metrics.insertDatapoint(datapoint.getMetric(), tagsetID, datapoint.getTimestamp(), datapoint.getValue());
-    log.info("tagsetID {}", tagsetID);
   }
 
   public void writeDatapoint(final String metric,
