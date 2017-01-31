@@ -16,20 +16,15 @@ public class Tags {
   }
 
   public Integer insertTagset(final int id, final SortedMap<String, String> tagset) {
-    byte[] v = new byte[]{(byte)0};
-
     List<byte[]> keys = new ArrayList<>();
-    List<byte[]> values = new ArrayList<>();
-
     for (Map.Entry<String, String> tag : tagset.entrySet()) {
       byte[] key = tag.getKey().getBytes();
       byte[] value = tag.getKey().getBytes();
       ByteBuffer buf = ByteBuffer.allocate(key.length+value.length+4).order(ByteOrder.BIG_ENDIAN);
       buf.put(key).put(value).putInt(id);
       keys.add(key);
-      values.add(v);
     }
-    client.put(keys, values);
+    client.put(keys);
     return id;
   }
 
