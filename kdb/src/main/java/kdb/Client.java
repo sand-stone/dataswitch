@@ -20,6 +20,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 
 public final class Client implements Closeable {
   private static Logger log = LogManager.getLogger(Client.class);
+  private static List<byte[]> emptyValues = new ArrayList<>();
   final static HashedWheelTimer timer;
   AsyncHttpClient client;
   int timeout;
@@ -232,8 +233,18 @@ public final class Client implements Closeable {
     return new Result(msg.getResponse());
   }
 
+  public Result put(List<byte[]> keys) {
+    Message msg = sendMsg(MessageBuilder.buildPutOp(table, null, keys, emptyValues));
+    return new Result(msg.getResponse());
+  }
+
   public Result put(String column, List<byte[]> keys, List<byte[]> values) {
     Message msg = sendMsg(MessageBuilder.buildPutOp(table, column, keys, values));
+    return new Result(msg.getResponse());
+  }
+
+  public Result put(String column, List<byte[]> keys) {
+    Message msg = sendMsg(MessageBuilder.buildPutOp(table, column, keys, emptyValues));
     return new Result(msg.getResponse());
   }
 

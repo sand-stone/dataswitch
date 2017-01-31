@@ -24,7 +24,7 @@ import org.apache.logging.log4j.LogManager;
 class Store implements Closeable {
   private static Logger log = LogManager.getLogger(Store.class);
   private static Store instance;
-
+  private static final byte[] emptyValue = {};
   private String db;
   private String location;
   private String wal_location;
@@ -636,9 +636,9 @@ class Store implements Closeable {
     if(table == null) {
       return MessageBuilder.buildErrorResponse("table not opened:" + table);
     }
-
+    boolean emptyVal = op.getValuesCount() == 0;
     int len = op.getKeysCount();
-    if(len != op.getValuesCount()) {
+    if(len != op.getValuesCount() && !emptyVal) {
       return MessageBuilder.buildErrorResponse("data length wrong");
     }
     try {
@@ -652,8 +652,14 @@ class Store implements Closeable {
         if(table.merge == null) {
           try(WriteOptions writeOpts = new WriteOptions();
               WriteBatch writeBatch = new WriteBatch()) {
-            for(int i = 0; i < len; i++) {
-              writeBatch.put(handle, op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+            if(emptyVal) {
+              for(int i = 0; i < len; i++) {
+                writeBatch.put(handle, op.getKeys(i).toByteArray(), emptyValue);
+              }
+            } else {
+              for(int i = 0; i < len; i++) {
+                writeBatch.put(handle, op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+              }
             }
             table.db.write(writeOpts, writeBatch);
           } catch (RocksDBException e) {
@@ -665,8 +671,14 @@ class Store implements Closeable {
           //log.info("merge {} op.getColumn() {}", table.merge, op.getColumn());
           try(WriteOptions writeOpts = new WriteOptions();
               WriteBatch writeBatch = new WriteBatch()) {
-            for(int i = 0; i < len; i++) {
-              writeBatch.merge(handle, op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+            if(emptyVal) {
+              for(int i = 0; i < len; i++) {
+                writeBatch.merge(handle, op.getKeys(i).toByteArray(), emptyValue);
+              }
+            } else {
+              for(int i = 0; i < len; i++) {
+                writeBatch.merge(handle, op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+              }
             }
             table.db.write(writeOpts, writeBatch);
           } catch (RocksDBException e) {
@@ -679,8 +691,14 @@ class Store implements Closeable {
         if(table.merge == null) {
           try(WriteOptions writeOpts = new WriteOptions();
               WriteBatch writeBatch = new WriteBatch()) {
-            for(int i = 0; i < len; i++) {
-              writeBatch.put(op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+            if(emptyVal) {
+              for(int i = 0; i < len; i++) {
+                writeBatch.put(op.getKeys(i).toByteArray(), emptyValue);
+              }
+            } else {
+              for(int i = 0; i < len; i++) {
+                writeBatch.put(op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+              }
             }
             table.db.write(writeOpts, writeBatch);
           } catch (RocksDBException e) {
@@ -691,8 +709,14 @@ class Store implements Closeable {
         } else {
           try(WriteOptions writeOpts = new WriteOptions();
               WriteBatch writeBatch = new WriteBatch()) {
-            for(int i = 0; i < len; i++) {
-              writeBatch.merge(op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+            if(emptyVal) {
+              for(int i = 0; i < len; i++) {
+                writeBatch.merge(op.getKeys(i).toByteArray(), emptyValue);
+              }
+            } else {
+              for(int i = 0; i < len; i++) {
+                writeBatch.merge(op.getKeys(i).toByteArray(), op.getValues(i).toByteArray());
+              }
             }
             table.db.write(writeOpts, writeBatch);
           } catch (RocksDBException e) {
