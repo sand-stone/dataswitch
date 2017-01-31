@@ -33,15 +33,15 @@ class Tables {
   static List<String> metricsBuckets = new ArrayList<String>();
 
   static String metricsTableName(String tsName) {
-    return String.format("ktsdb.%s.metrics", tsName);
+    return String.format("ktsdb.%s.metrics", tsName.trim());
   }
 
   static String tagsetsTableName(String tsName) {
-    return String.format("ktsdb.%s.tagsets", tsName);
+    return String.format("ktsdb.%s.tagsets", tsName.trim());
   }
 
   static String tagsTableName(String tsName) {
-    return String.format("ktsdb.%s.tags", tsName);
+    return String.format("ktsdb.%s.tags", tsName.trim());
   }
 
   public static byte[] toBytes(int num) {

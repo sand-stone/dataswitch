@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.Iterators;
+import com.google.gson.Gson;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -26,10 +27,12 @@ public class PutResource {
 
   private final Kdb ts;
   private final ObjectMapper mapper;
+  private Gson gson;
 
   public PutResource(Kdb ts) {
     this.ts = ts;
     this.mapper = new ObjectMapper();
+    this.gson = new Gson();
   }
 
   public ByteBuf create(Request request, Response response) {
@@ -64,7 +67,8 @@ public class PutResource {
         datapoints++;
         JsonNode node = nodes.next();
         try {
-          ts.writeDatapoint(node);
+          Datapoint dp = gson.fromJson(node.toString(), Datapoint.class);
+          ts.writeDatapoint(dp);
         } catch (JsonProcessingException e) {
           e.printStackTrace();
           errors.add(e.getMessage());
@@ -102,7 +106,8 @@ public class PutResource {
       datapoints++;
       JsonNode node = nodes.next();
       try {
-        ts.writeDatapoint(node);
+        Datapoint dp = mapper.treeToValue(node, Datapoint.class);
+        ts.writeDatapoint(dp);
       } catch (JsonProcessingException e) {
         errors.add(e.getMessage());
       }

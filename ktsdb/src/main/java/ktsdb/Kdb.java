@@ -37,13 +37,16 @@ public class Kdb implements AutoCloseable {
   }
 
   private static Client createClient(String uri, String name) {
+    log.info("tablet {} name {}", uri, name);
     Client client = new Client(uri, name);
-    //client.open();
+    client.open();
     return client;
   }
 
-  public void writeDatapoint(JsonNode json) throws JsonProcessingException {
-    log.info("writeDatapoint {}", json);
+  public void writeDatapoint(PutResource.Datapoint datapoint) throws JsonProcessingException {
+    int tagsetID = tagsets.getTagsetID(datapoint.getTags());
+    metrics.insertDatapoint(datapoint.getMetric(), tagsetID, datapoint.getTimestamp(), datapoint.getValue());
+    log.info("tagsetID {}", tagsetID);
   }
 
   public void writeDatapoint(final String metric,

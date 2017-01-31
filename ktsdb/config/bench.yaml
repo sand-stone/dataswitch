@@ -1,6 +1,6 @@
 bench:
   ktsdHost: "localhost"
-  ktsdPort: 8000
+  ktsdPort: 9000
   metrics: [
               "metric00",
               "metric01",

@@ -70,7 +70,6 @@ public class Server {
   }
 
   public static void main(String[] args) throws Exception {
-    System.out.println("hello world\n");
     new Server().run(args);
   }
 
