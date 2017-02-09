@@ -52,7 +52,7 @@ public class Tags {
         break;
       for(int i = 0; i < rsp.count(); i++) {
         byte[] rk = rsp.getKey(i);
-        tagsetIDs.push(Tables.toInt(rk, rk.length - 4, 4));
+        tagsetIDs.push(Tables.Util.toInt(rk, rk.length - 4, 4));
       }
       if(rsp.token().length() > 0) {
         rsp = client.scanNext(10);

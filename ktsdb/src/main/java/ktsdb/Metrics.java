@@ -39,7 +39,7 @@ public class Metrics {
       .putInt(tagsetID)
       .putLong(time)
       .array();
-    client.put(Arrays.asList(key), Arrays.asList(Tables.toBytes(value)));
+    client.put(Arrays.asList(key), Arrays.asList(Tables.Util.toBytes(value)));
   }
 
   public Datapoints scanSeries(final String metric,
@@ -73,7 +73,7 @@ public class Metrics {
           byte[] k = rsp.getKey(i);
           times.push(ts.put(k, k.length - 8, 8).getLong());
           ts.rewind();
-          values.push(Tables.toDouble(rsp.getValue(i)));
+          values.push(Tables.Util.toDouble(rsp.getValue(i)));
         }
         if(rsp.token().length() == 0)
           break;
@@ -88,7 +88,7 @@ public class Metrics {
           long time = ts.put(k, k.length - 8, 8).getLong();
           ts.rewind();
           long interval = time - (time % downsampleInterval);
-          double value = Tables.toDouble(rsp.getValue(i));
+          double value = Tables.Util.toDouble(rsp.getValue(i));
           if (interval == currentInterval) {
             downsampler.addValue(value);
             valuesInCurrentInterval++;

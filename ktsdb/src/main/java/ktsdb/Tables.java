@@ -9,23 +9,23 @@ import com.google.gson.Gson;
 
 /*
 
-| field  | type                     |
-|--------|--------------------------|
-| metric | string                   |
-| tagset | map\<string, string\>    |
-| time   | timestamp (µs precision) |
-| value  | double                   |
+  | field  | type                     |
+  |--------|--------------------------|
+  | metric | string                   |
+  | tagset | map\<string, string\>    |
+  | time   | timestamp (µs precision) |
+  | value  | double                   |
 
-metrics table
- [key: <metric string, tagset_id int32, time long> value: <value double>]
+  metrics table
+  [key: <metric string, tagset_id int32, time long> value: <value double>]
 
-tagsets table
+  tagsets table
   [ key: <id int32> value: <tagset blob> ]
 
-tags table
+  tags table
   [key: <key string, value string, tageset_id int32>, value: <>]
 
- */
+*/
 
 class Tables {
   private Tables() {}
@@ -44,44 +44,47 @@ class Tables {
     return String.format("ktsdb.%s.tags", tsName.trim());
   }
 
-  public static byte[] toBytes(int num) {
-    ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
-    buf.putInt(num);
-    return buf.array();
-  }
+  public static class Util {
+    public static byte[] toBytes(int num) {
+      ByteBuffer buf = ByteBuffer.allocate(4).order(ByteOrder.BIG_ENDIAN);
+      buf.putInt(num);
+      return buf.array();
+    }
 
-  public static int toInt(byte[] data) {
-    ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
-    return buf.getInt();
-  }
+    public static int toInt(byte[] data) {
+      return data[0] << 24 | data[1] << 16 | data[2] << 8 | data[3];
+      //ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+      //return buf.getInt();
+    }
 
-  public static int toInt(byte[] data, int offset, int length) {
-    ByteBuffer buf = ByteBuffer.wrap(data, offset, length).order(ByteOrder.BIG_ENDIAN);
-    return buf.getInt();
-  }
+    public static int toInt(byte[] data, int offset, int length) {
+      //ByteBuffer buf = ByteBuffer.wrap(data, offset, length).order(ByteOrder.BIG_ENDIAN);
+      //return buf.getInt();
+      return data[offset] << 24 | data[offset+1] << 16 | data[offset+2] << 8 | data[offset+3];
+    }
 
-  public static byte[] toBytes(double num) {
-    ByteBuffer buf = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN);
-    buf.putDouble(num);
-    return buf.array();
-  }
+    public static byte[] toBytes(double num) {
+      ByteBuffer buf = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN);
+      buf.putDouble(num);
+      return buf.array();
+    }
 
-  public static double toDouble(byte[] data) {
-    ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
-    return buf.getDouble();
-  }
+    public static double toDouble(byte[] data) {
+      ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+      return buf.getDouble();
+    }
 
-  public static byte[] toBytes(long num) {
-    ByteBuffer buf = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN);
-    buf.putLong(num);
-    return buf.array();
-  }
+    public static byte[] toBytes(long num) {
+      ByteBuffer buf = ByteBuffer.allocate(8).order(ByteOrder.BIG_ENDIAN);
+      buf.putLong(num);
+      return buf.array();
+    }
 
-  public static long toLong(byte[] data) {
-    ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
-    return buf.getLong();
+    public static long toLong(byte[] data) {
+      ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.BIG_ENDIAN);
+      return buf.getLong();
+    }
   }
-
   public static class Options {
     String CompactionStyle;
     long MaxTableFilesSizeFIFO;

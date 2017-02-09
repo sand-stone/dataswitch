@@ -31,13 +31,6 @@ public class Query {
     this.aggregator = aggregator;
   }
 
-  /**
-   * Create a new query on a KuduTS table.
-   * @param metric the metric to query
-   * @param tags the set of tags to filter by. Must contain at least one tag
-   * @param aggregator a series aggregator
-   * @return the KuduTS query
-   */
   public static Query create(String metric,
                              Map<String, String> tags,
                              Aggregator aggregator) {

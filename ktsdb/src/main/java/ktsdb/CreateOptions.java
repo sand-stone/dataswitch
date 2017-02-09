@@ -24,18 +24,6 @@ public class CreateOptions {
 
   private CreateOptions() {}
 
-  /**
-   * Returns the default create options:
-   *
-   * <ul>
-   *   <li>numReplicas: 1</li>
-   *   <li>tags: 1 tablet per tablet server</li>
-   *   <li>tagsets: 1 tablet per tablet server</li>
-   *   <li>metrics: 3 tablets per tablet server, no time partitioning</li>
-   * </ul>
-   *
-   * @return the create options
-   */
   public static CreateOptions defaults() {
     return new CreateOptions();
   }

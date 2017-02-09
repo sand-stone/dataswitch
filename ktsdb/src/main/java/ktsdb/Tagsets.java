@@ -90,7 +90,7 @@ public class Tagsets {
   }
 
   private void insertTagset(final SerializedTagset tagset, final int id) {
-    client.put(Arrays.asList(Tables.toBytes(id)), Arrays.asList(tagset.getBytes()));
+    client.put(Arrays.asList(Tables.Util.toBytes(id)), Arrays.asList(tagset.getBytes()));
   }
 
   private Integer lookupOrInsertTagset(final SerializedTagset tagset, final int id) {
@@ -103,7 +103,7 @@ public class Tagsets {
     int probe = id; boolean stop = false; int ret = -1;
     do {
       for(int i = 0; i < rsp.count(); i++) {
-        if(Tables.toInt(rsp.getKey(i)) != probe) {
+        if(Tables.Util.toInt(rsp.getKey(i)) != probe) {
           stop = true;
           insertTagset(tagset, probe);
           tags.insertTagset(probe, tagset.deserialize());
