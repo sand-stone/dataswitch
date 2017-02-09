@@ -49,12 +49,16 @@ public class QueryResource {
     ByteBuf buffer = request.getBody();
     byte[] buf = new byte[buffer.readableBytes()];
     buffer.readBytes(buf);
-    return "{}";
+
+    response.setContentType("application-json");
+    response.setBody("json");
+    response.setResponseCode(200);
+    return "";
+
   }
 
   public List<Result> query(QueryRequest request) throws Exception {
-    log.trace("query: {}", request);
-
+    log.info("query: {}", request);
     List<Query> queries = new ArrayList<>(request.getQueries().size());
     for (SubQuery options : request.getQueries()) {
       Query query = Query.create(options.metric, options.getTags(), getAggregator(options.getAggregator()));

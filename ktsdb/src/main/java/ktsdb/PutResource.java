@@ -86,7 +86,10 @@ public class PutResource {
       log.info(e);
     } finally {
     }
-    return "whatever"; //Response.noContent().build();
+    response.setContentType("application-json");
+    response.setBody("json");
+    response.setResponseCode(200);
+    return "";
   }
 
   public Response syncPut(boolean summary,

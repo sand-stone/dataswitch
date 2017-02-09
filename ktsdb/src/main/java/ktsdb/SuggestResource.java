@@ -3,6 +3,10 @@ package ktsdb;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Iterators;
+import com.google.gson.Gson;
 import com.google.common.collect.ImmutableList;
 
 import java.util.List;
@@ -35,7 +39,11 @@ public class SuggestResource {
     ByteBuf buffer = request.getBody();
     byte[] buf = new byte[buffer.readableBytes()];
     buffer.readBytes(buf);
-    return "{}";
+    //JsonNode body = mapper.readTree(buf);
+    response.setContentType("application-json");
+    response.setBody("json");
+    response.setResponseCode(200);
+    return "";
   }
 
   public List<String> get(String type,
