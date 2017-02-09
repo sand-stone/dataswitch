@@ -44,6 +44,7 @@ public class QueryResource {
   }
 
   public String read(Request request, Response response) {
+    log.info("request {}", request);
     JsonNode body = null;
     ByteBuf buffer = request.getBody();
     byte[] buf = new byte[buffer.readableBytes()];
