@@ -112,7 +112,7 @@ public class Tagsets {
         }
         if (tagset.equals(rsp.getValue(i))) {
           stop = true;
-          ret = id;
+          ret = probe;
           break;
         }
         probe++;
