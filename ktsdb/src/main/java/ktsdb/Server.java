@@ -80,17 +80,17 @@ public class Server {
       Kdb ts = Kdb.open(config.getKdb(), config.getName());
       RestExpress server = new RestExpress();
       server
-        .uri("/", new HelloController()).noSerialization();
+        .uri("/api", new HelloController()).noSerialization();
       server
         .uri("/api/put", new PutResource(ts))
         .action("read", HttpMethod.POST)
         .method(HttpMethod.POST).noSerialization();
       server
-        .uri("/query", new QueryResource(ts))
+        .uri("/api/query", new QueryResource(ts))
         .action("read", HttpMethod.POST)
         .method(HttpMethod.POST).noSerialization();
       server
-        .uri("/suggest", new SuggestResource(ts))
+        .uri("/api/suggest", new SuggestResource(ts))
         .action("read", HttpMethod.POST)
         .method(HttpMethod.POST).noSerialization();
       server.bind(config.getPort());
