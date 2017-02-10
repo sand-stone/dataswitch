@@ -39,6 +39,14 @@
                   <arg value="--java_out=target/generated-sources" />
                   <arg value="src/main/resources/numbers.proto" />
                 </exec>
+                <exec executable="protoc">
+                  <arg value="--java_out=target/generated-sources" />
+                  <arg value="src/main/resources/orders.proto" />
+                </exec>
+                <exec executable="protoc">
+                  <arg value="--java_out=target/generated-sources" />
+                  <arg value="src/main/resources/lineitems.proto" />
+                </exec>
               </tasks>
               <sourceRoot>target/generated-sources</sourceRoot>
             </configuration>
@@ -82,6 +90,8 @@
         <configuration>
           <artifactSet>
             <includes>
+              <include>kdb:kdb</include>
+              <include>com.opencsv:opencsv</include>
               <include>com.google.code.gson:gson</include>
               <include>org.apache.logging.log4j:log4j-api</include>
               <include>org.apache.logging.log4j:log4j-core</include>
@@ -120,6 +130,16 @@
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>kdb</groupId>
+      <artifactId>kdb</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>3.8</version>
+    </dependency>
     <dependency>
       <groupId>commons-net</groupId>
       <artifactId>commons-net</artifactId>

@@ -12,42 +12,47 @@ import java.net.MalformedURLException;
 import java.util.List;
 
 import static java.util.Objects.requireNonNull;
+import io.airlift.log.Logger;
 
 public class KdbRecordSet
-        implements RecordSet
+  implements RecordSet
 {
-    private final List<KdbColumnHandle> columnHandles;
-    private final List<Type> columnTypes;
-    private final ByteSource byteSource;
+  private static final Logger log = Logger.get(KdbRecordSet.class);
 
-    public KdbRecordSet(KdbSplit split, List<KdbColumnHandle> columnHandles)
-    {
-        requireNonNull(split, "split is null");
+  private final List<KdbColumnHandle> columnHandles;
+  private final List<Type> columnTypes;
+  private final ByteSource byteSource;
 
-        this.columnHandles = requireNonNull(columnHandles, "column handles is null");
-        ImmutableList.Builder<Type> types = ImmutableList.builder();
-        for (KdbColumnHandle column : columnHandles) {
-            types.add(column.getColumnType());
-        }
-        this.columnTypes = types.build();
+  public KdbRecordSet(KdbSplit split, List<KdbColumnHandle> columnHandles)
+  {
+    requireNonNull(split, "split is null");
 
-        try {
-            byteSource = Resources.asByteSource(split.getUri().toURL());
-        }
-        catch (MalformedURLException e) {
-            throw Throwables.propagate(e);
-        }
+    this.columnHandles = requireNonNull(columnHandles, "column handles is null");
+    ImmutableList.Builder<Type> types = ImmutableList.builder();
+    for (KdbColumnHandle column : columnHandles) {
+      types.add(column.getColumnType());
     }
+    this.columnTypes = types.build();
 
-    @Override
-    public List<Type> getColumnTypes()
-    {
-        return columnTypes;
+    try {
+      log.info("KdbRecordSet uri:"+split.getUri());
+      log.info("KdbRecordSet url:"+split.getUri().toURL());
+      byteSource = Resources.asByteSource(split.getUri().toURL());
     }
+    catch (MalformedURLException e) {
+      throw Throwables.propagate(e);
+    }
+  }
 
-    @Override
-    public RecordCursor cursor()
-    {
-        return new KdbRecordCursor(columnHandles, byteSource);
-    }
+  @Override
+  public List<Type> getColumnTypes()
+  {
+    return columnTypes;
+  }
+
+  @Override
+  public RecordCursor cursor()
+  {
+    return new KdbRecordCursor(columnHandles, byteSource);
+  }
 }

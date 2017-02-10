@@ -3,7 +3,7 @@ syntax = "proto3";
 package kdata;
 
 option java_package = "kdata.proto";
-option java_outer_classname = "Schema";
+option java_outer_classname = "Numbers";
 
 message Number {
   string name = 1;

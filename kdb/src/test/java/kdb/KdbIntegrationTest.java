@@ -588,5 +588,27 @@ public class KdbIntegrationTest extends TestCase {
     }
   }
 
+  public void test19() {
+    String table = "test19";
+    try(Client client = new Client("http://localhost:8000/", table)) {
+      Client.Result rsp = client.open();
+      List<byte[]> keys = new ArrayList<byte[]>();
+      int count = 10;
+      for(int i = 0; i < count; i++) {
+        keys.add(("keys"+i).getBytes());
+      }
+      rsp = client.put(keys);
+      rsp = client.get(keys);
+      long valLen = rsp.values().stream().map(e -> (int)(e.length))
+        .collect(Collectors.toList())
+        .stream()
+        .reduce(0, Integer::sum);
+      if(rsp.count() == count && valLen == 0) {
+        assertTrue(true);
+      } else {
+        assertTrue(false);
+      }
+    }
+  }
 
 }
