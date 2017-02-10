@@ -422,7 +422,7 @@ class Store implements Closeable {
   public synchronized Message open(OpenOperation op) {
     String table = op.getTable();
     if(table == null || table.length() == 0)
-      return MessageBuilder.buildResponse("table name needed");
+      return MessageBuilder.buildErrorResponse("table name needed");
 
     if(tables.get(table) == null) {
       String path = location+"/"+table;
@@ -468,10 +468,10 @@ class Store implements Closeable {
                 });
             } catch (RocksDBException e) {
               log.info(e);
-              return MessageBuilder.buildResponse("open: " + e.getMessage());
+              return MessageBuilder.buildErrorResponse("open: " + e.getMessage());
             } catch (KdbException e) {
               log.info(e);
-              return MessageBuilder.buildResponse("open: " + e.getMessage());
+              return MessageBuilder.buildErrorResponse("open: " + e.getMessage());
             }
             dt.colDs = new ArrayList<>();
             List<ColumnFamilyHandle> handles = new ArrayList<>();
@@ -500,17 +500,17 @@ class Store implements Closeable {
           }
         } catch (RocksDBException e) {
           log.info(e);
-          return MessageBuilder.buildResponse(e.getMessage());
+          return MessageBuilder.buildErrorResponse(e.getMessage());
         } catch (KdbException e) {
           log.info(e);
-          return MessageBuilder.buildResponse(e.getMessage());
+          return MessageBuilder.buildErrorResponse(e.getMessage());
         }
         dt.db = db;
         dt.backup = new Backup(table, path, db);
         tables.putIfAbsent(table, dt);
       } catch (Exception e) {
         log.info(e);
-        return MessageBuilder.buildResponse(e.getMessage());
+        return MessageBuilder.buildErrorResponse(e.getMessage());
       }
     }
     return MessageBuilder.buildResponse("open " + table);
@@ -585,10 +585,10 @@ class Store implements Closeable {
         dt.db.dropColumnFamily(dt.getCol(col));
       } catch(RocksDBException e) {
         log.info(e);
-        return MessageBuilder.buildResponse("cannot drop " + col);
+        return MessageBuilder.buildErrorResponse("cannot drop " + col);
       } catch(KdbException e) {
         log.info(e);
-        return MessageBuilder.buildResponse("cannot drop " + col);
+        return MessageBuilder.buildErrorResponse("cannot drop " + col);
       }
       return MessageBuilder.buildResponse("drop " + col);
     }
@@ -1139,7 +1139,7 @@ class Store implements Closeable {
     } else  if(msg.getType() == MessageType.Sequence) {
       msg = fetch(msg.getSeqOp());
     } else {
-      msg = MessageBuilder.buildResponse("unknown message type");
+      msg = MessageBuilder.buildErrorResponse("unknown message type");
     }
     return msg;
   }
