@@ -102,9 +102,9 @@ public class GuidInsert {
         List<byte[]> keys = new ArrayList<byte[]>();
         List<byte[]> values = new ArrayList<byte[]>();
         for(int i = 0; i < batch; i++) {
-          byte[] key = new byte[20];
+          byte[] key = new byte[50];
           rnd.nextBytes(key);
-          byte[] value = new byte[20];
+          byte[] value = new byte[4];
           rnd.nextBytes(value);
           keys.add(key);
           values.add(value);
