@@ -232,6 +232,9 @@ class Store implements Closeable {
           case "MaxBackgroundCompactions":
             options.setMaxBackgroundCompactions(toInt(v));
             break;
+          case "WriteBufferSize":
+            options.setWriteBufferSize(toLong(v));
+            break;
           case "MaxWriteBufferNumber":
             options.setMaxWriteBufferNumber(toInt(v));
             break;
