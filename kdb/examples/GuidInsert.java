@@ -60,23 +60,30 @@ public class GuidInsert {
 
   public static class Options {
     String CompactionStyle;
-    long MaxTableFilesSizeFIFO;
+    //long MaxTableFilesSizeFIFO;
     int MaxBackgroundFlushes;
     int MaxBackgroundCompactions;
     int MaxWriteBufferNumber;
     int MinWriteBufferNumberToMerge;
     int WalTtlSeconds;
     long WalSizeLimitMB;
+    int NumLevel;
+    long MaxBytesForLevelBase;
+    int MaxBytesForLevelMultiplier;
   }
 
   private static String evtopts() {
     Options options = new Options();
-    options.CompactionStyle = "UNIV";
-    options.MaxTableFilesSizeFIFO = 1024*1024*1024*3L;
-    options.MaxBackgroundFlushes = 16;
-    options.MaxBackgroundCompactions = 16;
-    options.MaxWriteBufferNumber = 16;
+    options.CompactionStyle = "UNIVERSAL";
+    //options.MaxTableFilesSizeFIFO = 1024*1024*1024*3L;
+    options.MaxBackgroundFlushes = 8;
+    options.MaxBackgroundCompactions = 8;
+    options.MaxWriteBufferNumber = 8;
     options.MinWriteBufferNumberToMerge = 8;
+    options.NumLevel = 10;
+    options.MaxBytesForLevelBase = 32*1024*1024;
+    options.MaxBytesForLevelMultiplier = 4;
+
     options.WalTtlSeconds = 60*8;
     options.WalSizeLimitMB = 15000;
     Gson gson = new Gson();
