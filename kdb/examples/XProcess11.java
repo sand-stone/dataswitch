@@ -107,6 +107,7 @@ public class XProcess11 {
     int MinWriteBufferNumberToMerge;
     int WalTtlSeconds;
     long WalSizeLimitMB;
+    int NumLevels;
   }
 
   private static String evtopts() {
@@ -119,6 +120,7 @@ public class XProcess11 {
     options.MinWriteBufferNumberToMerge = 8;
     options.WalTtlSeconds = 60*8;
     options.WalSizeLimitMB = 15000;
+    options.NumLevels = 5;
     Gson gson = new Gson();
     return gson.toJson(options);
   }

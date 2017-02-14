@@ -71,10 +71,10 @@ public class GuidInsert {
 
   private static String evtopts() {
     Options options = new Options();
-    options.CompactionStyle = "FIFO";
+    options.CompactionStyle = "UNIV";
     options.MaxTableFilesSizeFIFO = 1024*1024*1024*3L;
-    options.MaxBackgroundFlushes = 2;
-    options.MaxBackgroundCompactions = 8;
+    options.MaxBackgroundFlushes = 16;
+    options.MaxBackgroundCompactions = 16;
     options.MaxWriteBufferNumber = 16;
     options.MinWriteBufferNumberToMerge = 8;
     options.WalTtlSeconds = 60*8;
@@ -87,7 +87,7 @@ public class GuidInsert {
     Random rnd = new Random();
 
     int count = 1000000;
-    int batch = 10000;
+    int batch = 100000;
 
     try (Client client = new Client("http://localhost:8000/", "acme", evtopts())) {
       client.open();
@@ -95,12 +95,11 @@ public class GuidInsert {
         List<byte[]> keys = new ArrayList<byte[]>();
         List<byte[]> values = new ArrayList<byte[]>();
         for(int i = 0; i < batch; i++) {
-          UUID guid = UUID.randomUUID();
-          ByteBuffer key = ByteBuffer.allocate(16).order(ByteOrder.BIG_ENDIAN);
-          key.putLong(guid.getMostSignificantBits()).putLong(guid.getLeastSignificantBits());
-          keys.add(key.array());
+          byte[] key = new byte[20];
+          rnd.nextBytes(key);
           byte[] value = new byte[20];
           rnd.nextBytes(value);
+          keys.add(key);
           values.add(value);
         }
         long t1 = System.nanoTime();
