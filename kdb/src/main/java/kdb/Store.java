@@ -262,6 +262,9 @@ class Store implements Closeable {
           case "WalTtlSeconds":
             options.setWalTtlSeconds(toInt(v));
             break;
+          case "Debug":
+            options.setDbLogDir(v);
+            break;
           }
         });
     }
@@ -443,6 +446,11 @@ class Store implements Closeable {
         options.setIncreaseParallelism(Runtime.getRuntime().availableProcessors());
         options.setWalDir(wal_path);
         parseOptions(options, op.getOptions());
+        String debugPath = options.dbLogDir();
+        if(debugPath != null && !debugPath.isEmpty()) {
+          Utils.mkdir(debugPath);
+          options.setDbLogDir(debugPath);
+        }
         setCompressionLevels(options);
         dt.stats = options.statisticsPtr();
         dt.merge = mergeOperator.length() == 0? null : mergeOperator;
