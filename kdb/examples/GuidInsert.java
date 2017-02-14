@@ -84,8 +84,8 @@ public class GuidInsert {
     options.MaxBytesForLevelBase = 32*1024*1024;
     options.MaxBytesForLevelMultiplier = 4;
 
-    options.WalTtlSeconds = 60*8;
-    options.WalSizeLimitMB = 15000;
+    //options.WalTtlSeconds = 60*8;
+    //options.WalSizeLimitMB = 15000;
     Gson gson = new Gson();
     return gson.toJson(options);
   }
