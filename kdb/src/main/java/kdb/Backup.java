@@ -42,7 +42,10 @@ class Backup implements AutoCloseable {
         this.tablename = tablename;
       }
       Utils.mkdir(backpath);
-      engine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(backpath));
+      try(BackupableDBOptions opt = new BackupableDBOptions(backpath)) {
+        //opt.setBackupLogFiles(false);
+        engine = BackupEngine.open(Env.getDefault(), opt);
+      }
       queue = new LinkedBlockingQueue<>(MAX_PENDING_REQS);
       worker = new Thread(new BackupTask());
       this.db = db;
@@ -96,8 +99,7 @@ class Backup implements AutoCloseable {
   public Message restore(RestoreOperation op) {
     int id = op.getBackupId();
     Message ret = MessageBuilder.emptyMsg;
-    RestoreOptions opt = new RestoreOptions(true);
-    try {
+    try(RestoreOptions opt = new RestoreOptions(true)) {
       if(id == -1) {
         engine.restoreDbFromLatestBackup(path, Store.get().wal_location+"/"+tablename, opt);
       } else {
