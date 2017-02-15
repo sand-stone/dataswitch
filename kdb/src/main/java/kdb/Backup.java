@@ -30,6 +30,7 @@ class Backup implements AutoCloseable {
   Thread worker;
   Gson gson;
   String path;
+  String tablename;
 
   public Backup(String tablename, String path, RocksDB db) {
     try {
@@ -38,6 +39,7 @@ class Backup implements AutoCloseable {
         backpath = path + "/backups";
       } else {
         backpath += "/" + tablename;
+        this.tablename = tablename;
       }
       Utils.mkdir(backpath);
       engine = BackupEngine.open(Env.getDefault(), new BackupableDBOptions(backpath));
@@ -97,9 +99,9 @@ class Backup implements AutoCloseable {
     RestoreOptions opt = new RestoreOptions(true);
     try {
       if(id == -1) {
-        engine.restoreDbFromLatestBackup(path, path, opt);
+        engine.restoreDbFromLatestBackup(path, Store.get().wal_location+"/"+tablename, opt);
       } else {
-        engine.restoreDbFromBackup(id, path, path, opt);
+        engine.restoreDbFromBackup(id, path, Store.get().wal_location+"/"+tablename, opt);
       }
     } catch(RocksDBException e) {
       log.info("restore failed {}", e.getMessage());

@@ -25,9 +25,8 @@ class Store implements Closeable {
   private static Logger log = LogManager.getLogger(Store.class);
   private static Store instance;
   private static final byte[] emptyValue = {};
-  private String db;
-  private String location;
-  private String wal_location;
+  String location;
+  String wal_location;
   ConcurrentHashMap<String, DataTable> tables;
   private Timer timer;
   private Gson gson;
@@ -112,7 +111,7 @@ class Store implements Closeable {
     this.location = location;
     this.wal_location = wal_location;
     if(wal_location == null || wal_location.isEmpty()) {
-      this.wal_location = location + "/log";
+      this.wal_location = location + "/wal";
     }
     Utils.mkdir(location);
   }
