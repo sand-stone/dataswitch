@@ -796,7 +796,7 @@ class Store implements Closeable {
           byte[] key = cursor.cursor.key();
           byte[] value = cursor.cursor.value();
           if(marker.length > 0) {
-            if(Utils.memcmp(key, marker, marker.length) < 0) {
+            if(Utils.memcmp(key, marker) < 0) {
               keys.add(Arrays.copyOf(key, key.length));
               values.add(Arrays.copyOf(value, value.length));
               if(++count >= limit) {
